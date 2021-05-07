@@ -9,6 +9,6 @@
 
 class Manager {
     public:
-    Manager() {}
-    virtual void OnStep();
+    Manager() {};
+    virtual void OnStep() = 0;
 };

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     //                                                  bin/Monte -e ... -m map2
     //                                                  etc etc
 	if(coordinator.StartGame("/home/josht/Documents/maps/EverDream506.SC2Map")) std::cout << "boop" << std::endl;
-	coordinator.SaveReplayList("Replay.SC2Replay");
+	coordinator.SaveReplayList("boop.SC2Replay");
 
 	while (coordinator.Update()) {
     }
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     Bot bot;
     coordinator.SetParticipants(
         {
-            CreateParticipant(sc2::Race::Random, &bot, "Monte"),
+            CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
             CreateComputer(
                 sc2::Race::Random,
                 sc2::Difficulty::CheatInsane,
