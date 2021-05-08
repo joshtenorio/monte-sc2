@@ -24,7 +24,7 @@ bool WorkerManager::DistributeWorkers(int gasWorkers){
     return true;
 }
 
-const Unit* FindNearestMineralPatch(const Point3D& start){
+const Unit* WorkerManager::FindNearestMineralPatch(const Point3D& start){
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral);
     float distance = std::numeric_limits<float>::max();
     const Unit* target = nullptr;
