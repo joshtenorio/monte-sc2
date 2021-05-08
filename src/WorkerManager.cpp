@@ -9,7 +9,7 @@
 using namespace sc2;
 
 void WorkerManager::OnStep(){
-    DistributeWorkers();
+    DistributeWorkers(0); // TODO: only have this function run every x steps instead of every step
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){

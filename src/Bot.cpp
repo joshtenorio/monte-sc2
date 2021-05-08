@@ -2,7 +2,8 @@
 
 using namespace sc2;
 
-Bot::Bot(){
+Bot::Bot() {
+    wm = WorkerManager();
     gInterface.reset(new Interface(Observation(), Actions()));
 
 }
@@ -34,7 +35,7 @@ void Bot::OnUnitIdle(const Unit* unit) {
             }
             break;
         case UNIT_TYPEID::TERRAN_SCV:
-            //worker_manager.FindNearestMineralPatch(Point2D(unit->pos));
+            wm.OnUnitIdle(unit);
             break;
         default:
             break;
@@ -95,4 +96,12 @@ bool Bot::TryBuildSupplyDepot(){
     
     // else, try and build depot using a random scv
     return TryBuildStructure (ABILITY_ID::BUILD_SUPPLYDEPOT);
+}
+
+bool Bot::TryBuildBarracks() {
+    return true;
+}
+
+size_t Bot::CountUnitType(UNIT_TYPEID unitType) {
+    return Observation()->GetUnits(Unit::Alliance::Self, IsUnit(unitType)).size();
 }
