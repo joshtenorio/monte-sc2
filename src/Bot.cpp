@@ -19,6 +19,15 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 
 void Bot::OnStep() {
     TryBuildSupplyDepot();
+    TryBuildBarracks();
+
+    if(CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
+        Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));
+        for(const auto& m : marines){
+            Actions()->UnitCommand(m, ABILITY_ID::ATTACK_ATTACK,
+                Observation()->GetGameInfo().enemy_start_locations.front());
+        } // end for loop
+    } // end if marine count > 10
 }
 
 void Bot::OnUnitCreated(const Unit* unit_){
@@ -37,6 +46,8 @@ void Bot::OnUnitIdle(const Unit* unit) {
         case UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitIdle(unit);
             break;
+        case UNIT_TYPEID::TERRAN_BARRACKS:
+            Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_MARINE);
         default:
             break;
     }
@@ -99,7 +110,10 @@ bool Bot::TryBuildSupplyDepot(){
 }
 
 bool Bot::TryBuildBarracks() {
-    return true;
+    // check for depot and if we have 3 barracks already (ie build 3 barracks max)
+    if(CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1 ||
+        CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) == 3) return false;
+    return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
 }
 
 size_t Bot::CountUnitType(UNIT_TYPEID unitType) {

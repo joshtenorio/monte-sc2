@@ -1,9 +1,8 @@
-#include "Bot.h"
 
 #include <sc2api/sc2_coordinator.h>
 #include <sc2api/sc2_gametypes.h>
-
 #include <iostream>
+#include "Bot.h"
 
 using namespace sc2;
 
@@ -28,7 +27,6 @@ int main(int argc, char* argv[]) {
     //                                                  etc etc
 	//if(coordinator.StartGame("/home/josht/Documents/maps/EverDream506.SC2Map")) std::cout << "boop" << std::endl;
     coordinator.StartGame(argv[1]);
-	coordinator.SaveReplayList("boop.SC2Replay");
 
 	while (coordinator.Update()) {
     }
