@@ -12,14 +12,15 @@ int main(int argc, char* argv[]) {
 
 	Bot bot;
 	coordinator.SetParticipants({
-		CreateParticipant(Race::Terran, &bot),
+		CreateParticipant(Race::Terran, &bot, "Monte"),
 		CreateComputer(Race::Zerg)
 	});
 
     // TODO: need to remove this when i upload to ladder :p
     // TODO: maybe possible to add a CLI flag to set this path?
     //coordinator.SetProcessPath("/home/josht/StarCraftII/Versions/Base75689/SC2_x64");
-
+    coordinator.SetRealtime(true);
+    
 	coordinator.LaunchStarcraft();
     // TODO: use the commented-out main function when I start having reasons to test on multiple maps
     //       this is so it is possible to do stuff like bin/Monte -e ... -m map1

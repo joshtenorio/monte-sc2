@@ -1,9 +1,10 @@
-file(GLOB_RECURSE BOT_SOURCES "*.cpp" "*.h")
+file(GLOB_RECURSE BOT_SOURCES "*.cpp" "*.h" "overseer/src/*/*.cpp" "overseer/src/*/*.h")
 
 include_directories(SYSTEM
     ${PROJECT_SOURCE_DIR}/contrib/cpp-sc2/include
     ${PROJECT_SOURCE_DIR}/contrib/cpp-sc2/contrib/protobuf/src
     ${PROJECT_BINARY_DIR}/contrib/cpp-sc2/generated
+    ${PROJECT_SOURCE_DIR}/overseer/src
     "."
 )
 

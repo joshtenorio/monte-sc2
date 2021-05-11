@@ -6,3 +6,6 @@ Maps
 build.bat
 run.bat
 bot-architecture.png
+
+# temporary ignored
+src/overseer

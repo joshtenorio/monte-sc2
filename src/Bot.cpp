@@ -10,6 +10,12 @@ Bot::Bot() {
 
 void Bot::OnGameStart(){
     std::cout << "boop" << std::endl;
+
+    //Overseer::MapImpl map;
+
+    //map.setBot(this);
+    //map.initialize();
+    //std::cout << "Overseer initialized" << std::endl;
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
