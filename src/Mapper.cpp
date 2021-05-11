@@ -43,14 +43,18 @@ void Mapper::calculateExpansions(){
                 }
             } // end for loop
 
-            if(distance >= tempDistance){
+            if(distance >= PATCH_NEIGHBOR_DISTANCE){
                 mineralFrontier.pop();
                 continue;
             }
 
             mineralFrontier.push(closestPatch->pos);
             e.mineralLine.push_back(closestPatch->pos);
-            mineralPatches.erase(mineralPatches.begin());
+
+            // remove closest patch from mineralPatches
+            auto itr = std::find(mineralPatches.begin(), mineralPatches.end(), closestPatch);
+            if(itr != mineralPatches.end()) mineralPatches.erase(itr);
+            
         }
         expansions.push_back(e);
     } // end while !mineralPatches.empty()

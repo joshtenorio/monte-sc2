@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <limits>
+#include <algorithm>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_unit_filters.h>
