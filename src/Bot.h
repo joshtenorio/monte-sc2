@@ -8,6 +8,7 @@
 #include <sc2api/sc2_unit_filters.h>
 #include "api.h"
 #include "WorkerManager.h"
+#include "Mapper.h"
 
 using namespace sc2;
 
@@ -17,6 +18,7 @@ public:
     Bot();
 
 private:
+    Mapper map;
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   

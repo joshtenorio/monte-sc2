@@ -5,6 +5,7 @@ using namespace sc2;
 Bot::Bot() {
     wm = WorkerManager();
     gInterface.reset(new Interface(Observation(), Actions()));
+    map = Mapper();
 
 }
 
@@ -16,6 +17,7 @@ void Bot::OnGameStart(){
     //map.setBot(this);
     //map.initialize();
     //std::cout << "Overseer initialized" << std::endl;
+    map.initialize();
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){

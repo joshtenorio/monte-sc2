@@ -1,32 +1,60 @@
 #include "Mapper.h"
 
 void Mapper::initialize(){
-
+    calculateExpansions();
 }
 
-Expansion Mapper::getClosestExpansion(sc2::Point2D point){
+Expansion Mapper::getClosestExpansion(sc2::Point3D point){
     Expansion tmp;
     return tmp;
 }
 
-void calculateExpansions(){
+//////////////////////////////////////////////////////////
+float tempDistance = 5.0; /////////////////////////////////
+//////////////////////////////////////////////////////////
+void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future
-    Units mineralPatches;
-    auto neutralUnits = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral);
-    for(const auto& unit : neutralUnits){
-        if(unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD750 ||
-            unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD750 ||
-            unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_PURIFIERMINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_PURIFIERMINERALFIELD750 ||
-            unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_PURIFIERRICHMINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_PURIFIERRICHMINERALFIELD750 ||
-            unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_LABMINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_LABMINERALFIELD750 ||
-            unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD750) mineralPatches.push_back(unit);
-    }
+    Units mineralPatches = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsMineralPatch());
 
     // second step: get geysers
     Units gasGeysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsGeyser());
 
     // third: calculate mineral lines and use to create expansions
+    expansions.reserve(16);
+    while(!mineralPatches.empty()){
+        std::queue<sc2::Point3D> mineralFrontier;
+        mineralFrontier.push(mineralPatches.front()->pos);
+        Expansion e;
+        e.mineralLine.reserve(8);
+        e.mineralLine.push_back(mineralFrontier.front());
+        mineralPatches.erase(mineralPatches.begin());
 
+        while(!mineralPatches.empty() && !mineralFrontier.empty()){
+            auto mineralPos = mineralFrontier.front();
+            auto closestPatch = mineralPatches.front();
+            float distance = std::numeric_limits<float>::max();
+
+            // get closest patch to mineral frontier.front
+            for(const auto& u: mineralPatches){
+                if(sc2::Distance2D(u->pos, mineralPos) < distance){
+                    distance = sc2::Distance2D(u->pos, mineralPos);
+                    closestPatch = u;
+                }
+            } // end for loop
+
+            if(distance >= tempDistance){
+                mineralFrontier.pop();
+                continue;
+            }
+
+            mineralFrontier.push(closestPatch->pos);
+            e.mineralLine.push_back(closestPatch->pos);
+            mineralPatches.erase(mineralPatches.begin());
+        }
+        expansions.push_back(e);
+    } // end while !mineralPatches.empty()
+    expansions.shrink_to_fit();
+    std::cout << "number of expansions: " << expansions.size() << std::endl;
 }
 
