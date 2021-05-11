@@ -4,7 +4,7 @@ using namespace sc2;
 
 Bot::Bot() {
     wm = WorkerManager();
-    gInterface.reset(new Interface(Observation(), Actions()));
+    gInterface.reset(new Interface(Observation(), Actions(), Query()));
     map = Mapper();
 
 }

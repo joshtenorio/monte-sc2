@@ -15,13 +15,16 @@ using namespace sc2;
 class Interface {
     public:
     Interface(const ObservationInterface* observation_,
-        ActionInterface* actions_){
+        ActionInterface* actions_,
+        QueryInterface* query_){
             observation = observation_;
             actions = actions_;
+            query = query_;
         };
     
     const ObservationInterface* observation;
     ActionInterface* actions;
+    QueryInterface* query;
 };
 
 extern std::unique_ptr<Interface> gInterface;

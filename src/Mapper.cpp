@@ -5,13 +5,14 @@ void Mapper::initialize(){
 }
 
 Expansion Mapper::getClosestExpansion(sc2::Point3D point){
-    Expansion tmp;
+    Expansion tmp = expansions.front();
+    for (auto e : expansions){
+        if(sc2::DistanceSquared2D(tmp.baseLocation, point) > sc2::DistanceSquared2D(e.baseLocation, point))
+            tmp = e;
+    }
     return tmp;
 }
 
-//////////////////////////////////////////////////////////
-float tempDistance = 5.0; /////////////////////////////////
-//////////////////////////////////////////////////////////
 void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future
@@ -37,13 +38,14 @@ void Mapper::calculateExpansions(){
 
             // get closest patch to mineral frontier.front
             for(const auto& u: mineralPatches){
-                if(sc2::Distance2D(u->pos, mineralPos) < distance){
-                    distance = sc2::Distance2D(u->pos, mineralPos);
+                if(sc2::DistanceSquared2D(u->pos, mineralPos) < distance){
+                    distance = sc2::DistanceSquared2D(u->pos, mineralPos);
                     closestPatch = u;
                 }
             } // end for loop
 
-            if(distance >= PATCH_NEIGHBOR_DISTANCE){
+            // patch is too far from mineral line so disregard it
+            if(distance >= PATCH_NEIGHBOR_DISTANCE){ 
                 mineralFrontier.pop();
                 continue;
             }
@@ -56,9 +58,86 @@ void Mapper::calculateExpansions(){
             if(itr != mineralPatches.end()) mineralPatches.erase(itr);
             
         }
+        // calculate midpoint of expansion's mineral line
+        // TODO: this can definitely be improved, maybe put it in the previous loop?
+        float x = 0.0, y = 0.0, z = 0.0;
+        int n = 0;
+        for(auto& m : e.mineralLine){
+            x += m.x; y += m.y; z += m.z; n++;
+        }
+        e.mineralMidpoint.x = x / (float) n;
+        e.mineralMidpoint.y = y / (float) n;
+        e.mineralMidpoint.z = z / (float) n;
+
         expansions.push_back(e);
     } // end while !mineralPatches.empty()
-    expansions.shrink_to_fit();
+
     std::cout << "number of expansions: " << expansions.size() << std::endl;
-}
+
+    // calculate base locations for each expansion
+    if(expansions.empty()){
+        std::cout << "no expansions found" << std::endl;
+        return;
+    }
+
+    // manually assign starting location to an expansion
+    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+    if(cc != nullptr){
+        for(auto e : expansions){
+            // find the mineral line close to starting location
+            if(sc2::Distance2D(sc2::Point2D(e.mineralMidpoint), sc2::Point2D(cc->pos)) < DISTANCE_ERR_MARGIN){
+                e.baseLocation = sc2::Point2D(cc->pos);
+                e.isStartingLocation = true;
+                break;
+            }
+        } // end for e : expansions
+    }
+
+    // assign the rest of the expansions a base location
+    for(auto e : expansions){
+        if(e.isStartingLocation) continue;
+        
+        // expansions are at (x+0.5, y+0.5)
+        auto center = sc2::Point2D(e.mineralMidpoint);
+        center.x = static_cast<int>(center.x) + 0.5f;
+        center.y = static_cast<int>(center.y) + 0.5f;
+
+        std::cout << "center: (" << center.x << ", " << center.y << ")\n";
+
+        // Find all possible cc locations for the expansion
+        std::vector<sc2::QueryInterface::PlacementQuery> queries;
+
+        queries.reserve((SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1));
+        for (int x_offset = SEARCH_MIN_OFFSET; x_offset <= SEARCH_MAX_OFFSET; ++x_offset) {
+            for (int y_offset = SEARCH_MIN_OFFSET; y_offset <= SEARCH_MAX_OFFSET; ++y_offset) {
+                sc2::Point2D pos(center.x + x_offset, center.y + y_offset);
+                queries.emplace_back(sc2::ABILITY_ID::BUILD_COMMANDCENTER, pos);
+            }
+        }
+        auto results = gInterface->query->Placement(queries);
+
+        // narrow results
+        for (int x_offset = SEARCH_MIN_OFFSET; x_offset <= SEARCH_MAX_OFFSET; ++x_offset) {
+            for (int y_offset = SEARCH_MIN_OFFSET; y_offset <= SEARCH_MAX_OFFSET; ++y_offset) {
+                sc2::Point2D pos(center.x + x_offset, center.y + y_offset);
+
+                // is pos buildable?
+                int index = (x_offset + 0 - SEARCH_MIN_OFFSET) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) + (y_offset + 0 - SEARCH_MIN_OFFSET);
+                assert(0 <= index && index < static_cast<int>(results.size()));
+                if (!results[static_cast<std::size_t>(index)])
+                    continue;
+
+                e.baseLocation = pos;
+            }
+        }
+
+    std::cout << "expansion at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
+    } // end for e : expansions
+    std::cout << "total number of expansions: " << expansions.size() << "\n";
+
+    // assign gas geysers to an expansion
+
+
+
+} // end void Mapper::calculateExpansions()
 
