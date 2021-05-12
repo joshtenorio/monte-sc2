@@ -33,16 +33,17 @@ class Mapper {
     Mapper() {};
     void initialize();
     Expansion getClosestExpansion(sc2::Point3D point);
-    void calculateExpansions(); //tmp position, normally protected
+    Expansion getStartingExpansion();
+
     protected:
     // get expansions functions are from mullemech
     // https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp
     // TODO: find ways to improve performance
-
+    void calculateExpansions();
 
     // sort by closest expansion to the parameter to farthest from the parameter
     void sortExpansions(sc2::Point2D point);
 
-    private:
     std::vector<Expansion> expansions;
+    Expansion startingExpansion;
 };

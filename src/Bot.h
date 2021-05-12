@@ -36,6 +36,7 @@ private:
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();
+    bool tryBuildRefinery();
 
 
 };

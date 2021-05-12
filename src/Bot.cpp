@@ -12,10 +12,6 @@ Bot::Bot() {
 void Bot::OnGameStart(){
     std::cout << "boop" << std::endl;
 
-
-    // does nothing rn, calculateExpansions() is commented out in this function
-    // calculateExpansions() is ran in OnStep currently on the 50th game loop iteration
-    map.initialize();
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
@@ -23,15 +19,16 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
         "(" << building_->tag << ") constructed" << std::endl;
 }
 
-bool bowo = true;
 void Bot::OnStep() {
-    if(bowo && Observation()->GetGameLoop() == 50){
-        std::cout << "hehe\n";
-        map.calculateExpansions(); 
-        bowo = false;
+    if(Observation()->GetGameLoop() == 50){
+        map.initialize(); 
     }
 
+    if(Observation()->GetGameLoop() == 60){
+        std::cout << "main has" << map.getStartingExpansion().gasGeysers.size() << " geysers\n";
+    }
 
+    tryBuildRefinery();
     TryBuildSupplyDepot();
     TryBuildBarracks();
 
@@ -102,15 +99,33 @@ bool Bot::TryBuildStructure (ABILITY_ID ability_type_for_structure, UNIT_TYPEID 
             unit_to_build = unit;
     }
 
-    float rx = GetRandomScalar();
-    float ry = GetRandomScalar();
-
-    Actions()->UnitCommand(
-        unit_to_build,
-        ability_type_for_structure,
-     Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f)
-    );
-    return true;
+    if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
+        // get a random location to build building within a 15x15 region where the scv is at a corner
+        float rx = GetRandomScalar();
+        float ry = GetRandomScalar();
+        Actions()->UnitCommand(
+            unit_to_build,
+            ability_type_for_structure,
+        Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f)
+        );
+        return true;
+    }
+    else if (Observation()->GetGameLoop() > 50 && ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
+        // we are building a refinery!
+        // this needs to get fixed once we have multiple bases,
+        // since this implementation will only work for main base
+        if(map.getStartingExpansion().gasGeysers.size() <= 0){
+            return false;
+        }
+        sc2::Point2D gas = map.getStartingExpansion().gasGeysers.front();
+        Actions()->UnitCommand(
+            unit_to_build,
+            ability_type_for_structure,
+            gas
+        );
+        return true;
+    }
+    else return false;
 }
 
 bool Bot::TryBuildSupplyDepot(){
@@ -128,6 +143,12 @@ bool Bot::TryBuildBarracks() {
     if(CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1 ||
         CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) == 5) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+}
+
+// temporary: only build one refinery
+bool Bot::tryBuildRefinery(){
+    if(CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) == 1) return false;
+    return TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }
 
 size_t Bot::CountUnitType(UNIT_TYPEID unitType) {

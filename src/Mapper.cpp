@@ -1,16 +1,24 @@
 #include "Mapper.h"
 
 void Mapper::initialize(){
-    //calculateExpansions();
+    calculateExpansions();
+    sortExpansions(gInterface->observation->GetStartLocation());
+
+    // get starting location's expansion
+    startingExpansion = getClosestExpansion(gInterface->observation->GetStartLocation());
 }
 
 Expansion Mapper::getClosestExpansion(sc2::Point3D point){
     Expansion tmp = expansions.front();
     for (auto e : expansions){
-        if(sc2::DistanceSquared2D(tmp.baseLocation, point) > sc2::DistanceSquared2D(e.baseLocation, point))
+        if(sc2::DistanceSquared2D(tmp.baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, sc2::Point2D(point)))
             tmp = e;
     }
     return tmp;
+}
+
+Expansion Mapper::getStartingExpansion(){
+    return startingExpansion;
 }
 
 void Mapper::calculateExpansions(){
@@ -141,10 +149,30 @@ void Mapper::calculateExpansions(){
     std::cout << "expansion at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
     } // end for e : expansions
     std::cout << "total number of expansions: " << expansions.size() << "\n";
-
+    for(auto e: expansions) std::cout << "base at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
     // assign gas geysers to an expansion
+    for(auto g : gasGeysers){
+        std::cout << "gas location: (" << g->pos.x << "," << g->pos.y << ")" << std::endl;
+        int c = 0;
+        for(int i = 0; i < expansions.size(); i++){
+            std::cout << "i: " << i << "\t" << "c: " << c << "\t";
+            std::cout << "i location: (" << expansions[i].baseLocation.x << ", " << expansions[i].baseLocation.y << ")\t";
+            std::cout << "c location: (" << expansions[c].baseLocation.x << ", " << expansions[c].baseLocation.y << ")\t";
+            std::cout << "i distance: " << sc2::DistanceSquared2D(g->pos, expansions[i].baseLocation) << "\t";
+            std::cout << "c distance: " << sc2::DistanceSquared2D(g->pos, expansions[c].baseLocation) << std::endl;
+            if(sc2::DistanceSquared2D(g->pos, expansions[i].baseLocation) < sc2::DistanceSquared2D(g->pos, expansions[c].baseLocation)){
+                c = i;
+            }
+        }
+        expansions[c].gasGeysers.emplace_back(g->pos);
+        std::cout << "an expansion has " << expansions[c].gasGeysers.size() << " geysers\n";
+    }
 
+    for(auto e : expansions) std::cout << "boop has " << e.gasGeysers.size() << " geysers\n";
 
 
 } // end void Mapper::calculateExpansions()
 
+void Mapper::sortExpansions(sc2::Point2D point){
+
+}
