@@ -72,8 +72,6 @@ void Mapper::calculateExpansions(){
         expansions.push_back(e);
     } // end while !mineralPatches.empty()
 
-    std::cout << "number of expansions: " << expansions.size() << std::endl;
-
     // calculate base locations for each expansion
     if(expansions.empty()){
         std::cout << "no expansions found" << std::endl;
@@ -101,8 +99,7 @@ void Mapper::calculateExpansions(){
         auto center = sc2::Point2D(e.mineralMidpoint);
         center.x = static_cast<int>(center.x) + 0.5f;
         center.y = static_cast<int>(center.y) + 0.5f;
-
-        std::cout << "center: (" << center.x << ", " << center.y << ")\n";
+        e.baseLocation = center;
 
         // Find all possible cc locations for the expansion
         std::vector<sc2::QueryInterface::PlacementQuery> queries;
@@ -115,6 +112,12 @@ void Mapper::calculateExpansions(){
             }
         }
         auto results = gInterface->query->Placement(queries);
+        int trueResults = 0, total = 0;
+        for(auto r : results){
+            total++;
+            if(r) trueResults++;
+        }
+        std::cout << "true results: " << trueResults << "\ttotal: " << total << "\n";
 
         // narrow results
         for (int x_offset = SEARCH_MIN_OFFSET; x_offset <= SEARCH_MAX_OFFSET; ++x_offset) {
@@ -124,10 +127,19 @@ void Mapper::calculateExpansions(){
                 // is pos buildable?
                 int index = (x_offset + 0 - SEARCH_MIN_OFFSET) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) + (y_offset + 0 - SEARCH_MIN_OFFSET);
                 assert(0 <= index && index < static_cast<int>(results.size()));
-                if (!results[static_cast<std::size_t>(index)])
+                if (!results[static_cast<std::size_t>(index)]){
                     continue;
-
-                e.baseLocation = pos;
+                }
+                /**
+                if(e.initialized){
+                    if(sc2::DistanceSquared2D(center, pos) < sc2::DistanceSquared2D(center, e.baseLocation))
+                        e.baseLocation = pos;
+                }
+                else{
+                    e.baseLocation = pos;
+                    e.initialized = true;
+                }
+                std::cout << "base at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n"; */
             }
         }
 

@@ -1,7 +1,8 @@
 #include "Bot.h"
 
 using namespace sc2;
-
+const Unit* booper = nullptr;
+int hehe = 0;
 Bot::Bot() {
     wm = WorkerManager();
     gInterface.reset(new Interface(Observation(), Actions(), Query()));
@@ -26,6 +27,21 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 }
 
 void Bot::OnStep() {
+
+    if(booper != nullptr){
+        Point2D p = Point2D(booper->pos);
+
+        if(Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p)){
+            std::cout << "cc fits at (" << p.x << ", " << p.y <<")\n";
+        }
+        else {
+            std::cout <<"nope\n";
+        }
+
+        
+    } // end if booper != nullptr
+
+
     TryBuildSupplyDepot();
     TryBuildBarracks();
 
@@ -46,13 +62,15 @@ void Bot::OnUnitCreated(const Unit* unit_){
 void Bot::OnUnitIdle(const Unit* unit) {
     switch (unit->unit_type.ToType()){
         case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            if(Observation()->GetMinerals() >= 50){
+            if(Observation()->GetMinerals() >= 50 & hehe == 0){
                 Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_SCV);
                 std::cout << "CC idle & minerals available, training SCV" << std:: endl;
+                hehe = 1;
             }
             break;
         case UNIT_TYPEID::TERRAN_SCV:
-            wm.OnUnitIdle(unit);
+            booper = unit;
+            //wm.OnUnitIdle(unit);
             break;
         case UNIT_TYPEID::TERRAN_BARRACKS:
             Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_MARINE);
