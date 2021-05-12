@@ -20,12 +20,9 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 }
 
 void Bot::OnStep() {
+    // initialize mapper (find expansions and (soon) ramps)
     if(Observation()->GetGameLoop() == 50){
         map.initialize(); 
-    }
-
-    if(Observation()->GetGameLoop() == 60){
-        std::cout << "main has" << map.getStartingExpansion().gasGeysers.size() << " geysers\n";
     }
 
     tryBuildRefinery();
@@ -106,23 +103,22 @@ bool Bot::TryBuildStructure (ABILITY_ID ability_type_for_structure, UNIT_TYPEID 
         Actions()->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
-        Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f)
-        );
+            Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));
         return true;
     }
-    else if (Observation()->GetGameLoop() > 50 && ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
+    else if (Observation()->GetGameLoop() > 100 && ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
         // this needs to get fixed once we have multiple bases,
         // since this implementation will only work for main base
         if(map.getStartingExpansion().gasGeysers.size() <= 0){
+            std::cout << "no refinery at main\n";
             return false;
         }
-        sc2::Point2D gas = map.getStartingExpansion().gasGeysers.front();
+        const Unit* gas = map.getStartingExpansion().gasGeysers.front();
         Actions()->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
-            gas
-        );
+            gas);
         return true;
     }
     else return false;
