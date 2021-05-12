@@ -101,14 +101,13 @@ void Mapper::calculateExpansions(){
     }
 
     // assign the rest of the expansions a base location
-    for(auto e : expansions){
+    for(auto& e : expansions){
         if(e.isStartingLocation) continue;
         
-        // expansions are at (x+0.5, y+0.5) // TODO: or perhaps not
+        // expansions are at (x+0.5, y+0.5)
         auto center = sc2::Point2D(e.mineralMidpoint);
         center.x = static_cast<int>(center.x) + 0.5f;
         center.y = static_cast<int>(center.y) + 0.5f;
-        //e.baseLocation = center; ///////////////////////////////////
 
         // Find all possible cc locations for the expansion
         std::vector<sc2::QueryInterface::PlacementQuery> queries;
@@ -149,9 +148,9 @@ void Mapper::calculateExpansions(){
     std::cout << "expansion at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
     } // end for e : expansions
     std::cout << "total number of expansions: " << expansions.size() << "\n";
-    for(auto e: expansions) std::cout << "base at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
+    for(auto& e: expansions) std::cout << "base at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
     // assign gas geysers to an expansion
-    for(auto g : gasGeysers){
+    for(auto& g : gasGeysers){
         std::cout << "gas location: (" << g->pos.x << "," << g->pos.y << ")" << std::endl;
         int c = 0;
         for(int i = 0; i < expansions.size(); i++){
