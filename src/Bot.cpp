@@ -21,18 +21,28 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 
 void Bot::OnStep() {
     // initialize mapper (find expansions and (soon) ramps)
-    if(Observation()->GetGameLoop() == 50){
+    if(Observation()->GetGameLoop() == 50)
         map.initialize(); 
-    }
 
     tryBuildRefinery();
     TryBuildSupplyDepot();
     TryBuildBarracks();
 
+    const Unit* cc = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER)).front();
+    // if we have at least 50 minerals and cc is idle, train a scv
+    if(Observation()->GetMinerals() >= 50 && cc->orders.size() == 0){
+        Actions()->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
+        std::cout << "CC idle & minerals available, training SCV" << std:: endl;
+    }
+
+
+
     if(CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
         Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));
         for(const auto& m : marines){
-            Actions()->UnitCommand(m, ABILITY_ID::ATTACK_ATTACK,
+            Actions()->UnitCommand(
+                m,
+                ABILITY_ID::ATTACK_ATTACK,
                 Observation()->GetGameInfo().enemy_start_locations.front());
         } // end for loop
     } // end if marine count > 10
@@ -47,16 +57,16 @@ void Bot::OnUnitCreated(const Unit* unit_){
 void Bot::OnUnitIdle(const Unit* unit) {
     switch (unit->unit_type.ToType()){
         case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            if(Observation()->GetMinerals() >= 50){
-                Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_SCV);
-                std::cout << "CC idle & minerals available, training SCV" << std:: endl;
-            }
             break;
         case UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitIdle(unit);
             break;
         case UNIT_TYPEID::TERRAN_BARRACKS:
             Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_MARINE);
+        case UNIT_TYPEID::TERRAN_REFINERY:
+        case UNIT_TYPEID::TERRAN_REFINERYRICH:
+            std::cout << "bowo refinery is idle\n";
+            break;
         default:
             break;
     }
@@ -106,7 +116,7 @@ bool Bot::TryBuildStructure (ABILITY_ID ability_type_for_structure, UNIT_TYPEID 
             Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));
         return true;
     }
-    else if (Observation()->GetGameLoop() > 100 && ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
+    else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
         // this needs to get fixed once we have multiple bases,
         // since this implementation will only work for main base
@@ -143,7 +153,8 @@ bool Bot::TryBuildBarracks() {
 
 // temporary: only build one refinery
 bool Bot::tryBuildRefinery(){
-    if(CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) == 1) return false;
+    if(Observation()->GetGameLoop() < 100 || CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) == 1 ||
+        Observation()->GetMinerals() < 75) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }
 
