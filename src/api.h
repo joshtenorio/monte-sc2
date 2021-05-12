@@ -16,15 +16,18 @@ class Interface {
     public:
     Interface(const ObservationInterface* observation_,
         ActionInterface* actions_,
-        QueryInterface* query_){
+        QueryInterface* query_,
+        DebugInterface* debug_){
             observation = observation_;
             actions = actions_;
             query = query_;
+            debug = debug_;
         };
     
     const ObservationInterface* observation;
     ActionInterface* actions;
     QueryInterface* query;
+    DebugInterface* debug;
 };
 
 extern std::unique_ptr<Interface> gInterface;

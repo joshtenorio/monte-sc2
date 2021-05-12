@@ -1,11 +1,10 @@
 #include "Bot.h"
 
 using namespace sc2;
-const Unit* booper = nullptr;
-int hehe = 0;
+
 Bot::Bot() {
     wm = WorkerManager();
-    gInterface.reset(new Interface(Observation(), Actions(), Query()));
+    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug()));
     map = Mapper();
 
 }
@@ -13,11 +12,9 @@ Bot::Bot() {
 void Bot::OnGameStart(){
     std::cout << "boop" << std::endl;
 
-    //Overseer::MapImpl map;
 
-    //map.setBot(this);
-    //map.initialize();
-    //std::cout << "Overseer initialized" << std::endl;
+    // does nothing rn, calculateExpansions() is commented out in this function
+    // calculateExpansions() is ran in OnStep currently on the 50th game loop iteration
     map.initialize();
 }
 
@@ -26,20 +23,13 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
         "(" << building_->tag << ") constructed" << std::endl;
 }
 
+bool bowo = true;
 void Bot::OnStep() {
-
-    if(booper != nullptr){
-        Point2D p = Point2D(booper->pos);
-
-        if(Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p)){
-            std::cout << "cc fits at (" << p.x << ", " << p.y <<")\n";
-        }
-        else {
-            std::cout <<"nope\n";
-        }
-
-        
-    } // end if booper != nullptr
+    if(bowo && Observation()->GetGameLoop() == 50){
+        std::cout << "hehe\n";
+        map.calculateExpansions(); 
+        bowo = false;
+    }
 
 
     TryBuildSupplyDepot();
@@ -57,20 +47,19 @@ void Bot::OnStep() {
 void Bot::OnUnitCreated(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
         "(" << unit_->tag << ") was created" << std::endl;
+    
 }
 
 void Bot::OnUnitIdle(const Unit* unit) {
     switch (unit->unit_type.ToType()){
         case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            if(Observation()->GetMinerals() >= 50 & hehe == 0){
+            if(Observation()->GetMinerals() >= 50){
                 Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_SCV);
                 std::cout << "CC idle & minerals available, training SCV" << std:: endl;
-                hehe = 1;
             }
             break;
         case UNIT_TYPEID::TERRAN_SCV:
-            booper = unit;
-            //wm.OnUnitIdle(unit);
+            wm.OnUnitIdle(unit);
             break;
         case UNIT_TYPEID::TERRAN_BARRACKS:
             Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_MARINE);
@@ -125,7 +114,6 @@ bool Bot::TryBuildStructure (ABILITY_ID ability_type_for_structure, UNIT_TYPEID 
 }
 
 bool Bot::TryBuildSupplyDepot(){
-    //const ObservationInterface* observation = Observation(); // not needed perhaps?
 
     // if not supply capped, dont build supply depot
     if(Observation()->GetFoodUsed() <= Observation()->GetFoodCap() - 2)
@@ -136,9 +124,9 @@ bool Bot::TryBuildSupplyDepot(){
 }
 
 bool Bot::TryBuildBarracks() {
-    // check for depot and if we have 3 barracks already (ie build 3 barracks max)
+    // check for depot and if we have 5 barracks already
     if(CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1 ||
-        CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) == 3) return false;
+        CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) == 5) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
 }
 

@@ -1,7 +1,7 @@
 #include "Mapper.h"
 
 void Mapper::initialize(){
-    calculateExpansions();
+    //calculateExpansions();
 }
 
 Expansion Mapper::getClosestExpansion(sc2::Point3D point){
@@ -69,6 +69,7 @@ void Mapper::calculateExpansions(){
         e.mineralMidpoint.y = y / (float) n;
         e.mineralMidpoint.z = z / (float) n;
 
+        gInterface->debug->DebugSphereOut(e.mineralMidpoint, 20.5);
         expansions.push_back(e);
     } // end while !mineralPatches.empty()
 
@@ -95,42 +96,38 @@ void Mapper::calculateExpansions(){
     for(auto e : expansions){
         if(e.isStartingLocation) continue;
         
-        // expansions are at (x+0.5, y+0.5)
+        // expansions are at (x+0.5, y+0.5) // TODO: or perhaps not
         auto center = sc2::Point2D(e.mineralMidpoint);
         center.x = static_cast<int>(center.x) + 0.5f;
         center.y = static_cast<int>(center.y) + 0.5f;
-        e.baseLocation = center;
+        //e.baseLocation = center; ///////////////////////////////////
 
         // Find all possible cc locations for the expansion
         std::vector<sc2::QueryInterface::PlacementQuery> queries;
 
         queries.reserve((SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1));
-        for (int x_offset = SEARCH_MIN_OFFSET; x_offset <= SEARCH_MAX_OFFSET; ++x_offset) {
-            for (int y_offset = SEARCH_MIN_OFFSET; y_offset <= SEARCH_MAX_OFFSET; ++y_offset) {
-                sc2::Point2D pos(center.x + x_offset, center.y + y_offset);
+        for (int xOffset = SEARCH_MIN_OFFSET; xOffset <= SEARCH_MAX_OFFSET; ++xOffset) {
+            for (int yOffset = SEARCH_MIN_OFFSET; yOffset <= SEARCH_MAX_OFFSET; ++yOffset) {
+                sc2::Point2D pos(center.x + xOffset, center.y + yOffset);
                 queries.emplace_back(sc2::ABILITY_ID::BUILD_COMMANDCENTER, pos);
             }
         }
         auto results = gInterface->query->Placement(queries);
-        int trueResults = 0, total = 0;
+        int trueResults = 0;
         for(auto r : results){
-            total++;
             if(r) trueResults++;
         }
-        std::cout << "true results: " << trueResults << "\ttotal: " << total << "\n";
 
-        // narrow results
-        for (int x_offset = SEARCH_MIN_OFFSET; x_offset <= SEARCH_MAX_OFFSET; ++x_offset) {
-            for (int y_offset = SEARCH_MIN_OFFSET; y_offset <= SEARCH_MAX_OFFSET; ++y_offset) {
-                sc2::Point2D pos(center.x + x_offset, center.y + y_offset);
+        // narrow down results
+        for (int xOffset = SEARCH_MIN_OFFSET; xOffset <= SEARCH_MAX_OFFSET; ++xOffset) {
+            for (int yOffset = SEARCH_MIN_OFFSET; yOffset <= SEARCH_MAX_OFFSET; ++yOffset) {
+                sc2::Point2D pos(center.x + xOffset, center.y + yOffset);
 
                 // is pos buildable?
-                int index = (x_offset + 0 - SEARCH_MIN_OFFSET) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) + (y_offset + 0 - SEARCH_MIN_OFFSET);
+                int index = (xOffset + 0 - SEARCH_MIN_OFFSET) * (SEARCH_MAX_OFFSET - SEARCH_MIN_OFFSET + 1) + (yOffset + 0 - SEARCH_MIN_OFFSET);
                 assert(0 <= index && index < static_cast<int>(results.size()));
-                if (!results[static_cast<std::size_t>(index)]){
-                    continue;
-                }
-                /**
+                if (!results[static_cast<std::size_t>(index)]) continue;
+        
                 if(e.initialized){
                     if(sc2::DistanceSquared2D(center, pos) < sc2::DistanceSquared2D(center, e.baseLocation))
                         e.baseLocation = pos;
@@ -139,10 +136,8 @@ void Mapper::calculateExpansions(){
                     e.baseLocation = pos;
                     e.initialized = true;
                 }
-                std::cout << "base at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n"; */
             }
         }
-
     std::cout << "expansion at (" << e.baseLocation.x << ", " << e.baseLocation.y << ")\n";
     } // end for e : expansions
     std::cout << "total number of expansions: " << expansions.size() << "\n";
