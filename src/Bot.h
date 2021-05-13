@@ -22,6 +22,7 @@ private:
     Mapper map;
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
     ProductionManager pm;
+    
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   
     void OnStep() final;

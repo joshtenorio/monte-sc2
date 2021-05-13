@@ -13,10 +13,19 @@ void ProductionManager::OnStep(){
     }
 }
 
+void ProductionManager::OnGameStart(){
+    //strategy.initialize();
+    // do i need to do other stuff here?
+}
+
+void ProductionManager::setMapper(Mapper* map_){
+    map = map_;
+}
+
 bool ProductionManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type){
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
- Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
+    Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
     for(const auto& unit : units){
         for (const auto& order : unit->orders){
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
@@ -68,13 +77,13 @@ bool ProductionManager::TryBuildSupplyDepot(){
 bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 5 barracks already
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) == 5) return false;
+        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
 }
 
 // temporary: only build one refinery
 bool ProductionManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) == 1 ||
+    if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) >= 1 ||
         gInterface->observation->GetMinerals() < 75) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }

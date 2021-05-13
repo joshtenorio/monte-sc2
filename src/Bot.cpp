@@ -6,12 +6,13 @@ Bot::Bot(){
     wm = WorkerManager();
     gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug()));
     map = Mapper();
-    pm = ProductionManager(&map);
+    pm = ProductionManager();
 }
 
 void Bot::OnGameStart(){
     std::cout << "boop" << std::endl;
-
+    pm.OnGameStart();
+    pm.setMapper(&map);
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
