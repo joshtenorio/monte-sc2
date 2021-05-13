@@ -44,6 +44,6 @@ class Mapper {
     // sort by closest expansion to the parameter to farthest from the parameter
     void sortExpansions(sc2::Point2D point);
 
-    std::vector<Expansion> expansions;
+    static std::vector<Expansion> expansions;
     Expansion startingExpansion;
 };

@@ -1,5 +1,9 @@
 #include "Mapper.h"
 
+// initialize expansions
+std::vector<Expansion> Mapper::expansions;
+
+
 void Mapper::initialize(){
     calculateExpansions();
     sortExpansions(gInterface->observation->GetStartLocation());
