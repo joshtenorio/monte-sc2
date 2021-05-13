@@ -8,6 +8,7 @@
 #include <sc2api/sc2_unit_filters.h>
 #include "api.h"
 #include "WorkerManager.h"
+#include "ProductionManager.h"
 #include "Mapper.h"
 
 using namespace sc2;
@@ -20,6 +21,7 @@ public:
 private:
     Mapper map;
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
+    ProductionManager pm;
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   
     void OnStep() final;
@@ -30,13 +32,6 @@ private:
     void OnUpgradeCompleted(UpgradeID id_) final;
     void OnError(const std::vector<ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors = {}) final;
-
-    size_t CountUnitType(UNIT_TYPEID unitType); // maybe move this to api.cpp?
-    // TODO: these are temp functions, at some point move them to a manager class
-    bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
-    bool TryBuildSupplyDepot();
-    bool TryBuildBarracks();
-    bool tryBuildRefinery();
 
 
 };

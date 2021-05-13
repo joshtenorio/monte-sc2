@@ -8,10 +8,14 @@
 #pragma once
 #include <sc2api/sc2_control_interfaces.h>
 #include <sc2api/sc2_interfaces.h>
+#include <sc2api/sc2_unit_filters.h>
 #include <memory>
 
 using namespace sc2;
 
+namespace API {
+    size_t CountUnitType(UNIT_TYPEID unitType);
+} // end namespace API
 class Interface {
     public:
     Interface(const ObservationInterface* observation_,
