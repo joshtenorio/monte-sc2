@@ -43,15 +43,14 @@ bool WorkerManager::DistributeWorkers(int gasWorkers){
 }
 
 const Unit* WorkerManager::FindNearestMineralPatch(const Point3D& start){
-    Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral);
+    Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral, IsMineralPatch());
     float distance = std::numeric_limits<float>::max();
     const Unit* target = nullptr;
     for(const auto& u : units){
-        if(u->unit_type == UNIT_TYPEID::NEUTRAL_MINERALFIELD)
-            if(DistanceSquared3D(u->pos, start) < distance){
-                distance = DistanceSquared3D(u->pos, start);
-                target = u;
-            }
+        if(DistanceSquared3D(u->pos, start) < distance){
+            distance = DistanceSquared3D(u->pos, start);
+            target = u;
+        }
     } // end for loop
     return target;
 }
