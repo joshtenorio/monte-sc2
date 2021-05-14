@@ -25,6 +25,10 @@ Expansion Mapper::getStartingExpansion(){
     return startingExpansion;
 }
 
+Expansion Mapper::getNthExpansion(int n){
+    return expansions[n];
+}
+
 void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future
@@ -172,8 +176,10 @@ void Mapper::calculateExpansions(){
 void Mapper::sortExpansions(sc2::Point2D point){
 
     // get distances
-    std::vector<float> distances;
-    for(int i = 0; i < expansions.size(); i++){
-        distances[i] = sc2::DistanceSquared2D(point, expansions[i].baseLocation);
+    for (auto& e : expansions){
+        e.distanceToStart = sc2::DistanceSquared2D(point, e.baseLocation);
     }
+
+    // use std::sort
+    std::sort(expansions.begin(), expansions.end());
 }

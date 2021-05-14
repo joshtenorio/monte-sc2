@@ -41,7 +41,6 @@ void Bot::OnStep() {
 void Bot::OnUnitCreated(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
         "(" << unit_->tag << ") was created" << std::endl;
-    
 }
 
 void Bot::OnUnitIdle(const Unit* unit) {
