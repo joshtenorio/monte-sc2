@@ -7,6 +7,10 @@ void Strategy::pushOptionalStep(sc2::ABILITY_ID ability){
     optionalBuildOrder.push(ability);
 }
 
+void Strategy::initialize(){
+//kek FIXME:
+}
+
 sc2::ABILITY_ID Strategy::getNextPriorityStep(){
     // make sure there is a step in the priority order before returning
     if(!priorityBuildOrder.empty()){

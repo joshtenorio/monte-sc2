@@ -171,4 +171,9 @@ void Mapper::calculateExpansions(){
 
 void Mapper::sortExpansions(sc2::Point2D point){
 
+    // get distances
+    std::vector<float> distances;
+    for(int i = 0; i < expansions.size(); i++){
+        distances[i] = sc2::DistanceSquared2D(point, expansions[i].baseLocation);
+    }
 }

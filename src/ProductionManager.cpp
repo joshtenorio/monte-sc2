@@ -51,7 +51,6 @@ bool ProductionManager::TryBuildStructure(ABILITY_ID ability_type_for_structure,
         // this needs to get fixed once we have multiple bases,
         // since this implementation will only work for main base
         if(map->getStartingExpansion().gasGeysers.size() <= 0){
-            std::cout << "no refinery at main\n";
             return false;
         }
         const Unit* gas = map->getStartingExpansion().gasGeysers.front();

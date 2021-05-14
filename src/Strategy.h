@@ -10,7 +10,7 @@ class Strategy{
     Strategy() {};
     
     // add initial steps to build orders
-    //virtual void initialize(); // FIXME: does this need {} here? 
+    virtual void initialize(); // FIXME: does this need {} here? 
 
     // add more steps if needed
     void pushPriorityStep(sc2::ABILITY_ID ability);
@@ -27,4 +27,5 @@ class Strategy{
     protected:
     std::queue<sc2::ABILITY_ID> priorityBuildOrder;
     std::queue<sc2::ABILITY_ID> optionalBuildOrder;
+    int maxWorkers; // most useful for 1 base all ins. if this is negative it should be ignored
 };
