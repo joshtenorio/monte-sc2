@@ -14,12 +14,13 @@
 #include "Manager.h"
 
 // for Worker.job
-#define GATHERING_MINERALS 0
-#define GATHERING_GAS 1
-#define BUILDING 2
-#define BUILDING_GAS 3
-#define FIGHTING 4
-#define REPAIRING 5
+#define JOB_UNEMPLOYED          0
+#define JOB_GATHERING_MINERALS  1
+#define JOB_GATHERING_GAS       2
+#define JOB_BUILDING            3
+#define JOB_BUILDING_GAS        4
+#define JOB_FIGHTING            5
+#define JOB_REPAIRING           6
 
 using namespace sc2;
 typedef struct Worker_s_t {
@@ -28,16 +29,18 @@ typedef struct Worker_s_t {
 } Worker;
 
 class WorkerManager : public Manager {
-    protected:
-    std::vector<Unit> workers;
-
     public:
     WorkerManager() {}; // empty constructor
 
     void OnStep();
-    void OnUnitDestroyed();
+    void OnUnitCreated(const Unit* unit_);
+    void OnUnitDestroyed(const Unit* unit_);
     void OnUnitIdle(const Unit* unit_);
 
     bool DistributeWorkers(int gasWorkers = 3);
     const Unit* FindNearestMineralPatch(const Point3D& start);
+
+    protected:
+    std::vector<Worker> workers;
+    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit* 
 };
