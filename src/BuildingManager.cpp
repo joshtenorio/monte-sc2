@@ -38,10 +38,10 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
         // we are building a refinery!
         // this needs to get fixed once we have multiple bases,
         // since this implementation will only work for main base
-        if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0){
+        if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
-        }
-        const Unit* gas = gInterface->map->getStartingExpansion().gasGeysers.front();
+        
+        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,

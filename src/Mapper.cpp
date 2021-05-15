@@ -34,6 +34,7 @@ Expansion Mapper::getNthExpansion(int n){
 Expansion* Mapper::getNextExpansion(){
     for(auto& e : expansions)
         if(e.ownership == OWNER_NEUTRAL) return &e;
+    return nullptr;
 }
 
 void Mapper::calculateExpansions(){

@@ -29,9 +29,8 @@ typedef struct Expansion_s_t {
 
     bool isStartingLocation = false;
     bool initialized = false;
-
     float distanceToStart;
-
+    int numFriendlyRefineries = 0;
     char ownership = OWNER_NEUTRAL;
 
     // used for std::sort

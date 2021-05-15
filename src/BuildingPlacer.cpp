@@ -25,7 +25,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
     }
 }
 
-sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::Point3D* near){
+const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::Point3D* near){
     switch(building){
         case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
         case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
@@ -33,11 +33,13 @@ sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::Point3D
         case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
         case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
         case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
-        break;
-        case sc2::ABILITY_ID::BUILD_REFINERY:
+            return nullptr; // for now
+            break;
+        case sc2::ABILITY_ID::BUILD_REFINERY:{
             Expansion* e = gInterface->map->getClosestExpansion(*near);
             return findRefineryLocation(e);
-        break;
+            break;
+        }
         default:
             return nullptr; 
         break;
@@ -53,8 +55,13 @@ sc2::Point2D BuildingPlacer::findSupplyDepotLocation(){
 
 }
 */
-sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
-    
+const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
+    if(e->numFriendlyRefineries == 0)
+        return e->gasGeysers.front();
+    else if(e->numFriendlyRefineries == 1)
+        return e->gasGeysers.back();
+    else
+        return nullptr;
 }
 
 sc2::Point2D BuildingPlacer::findCommandCenterLocation(){
