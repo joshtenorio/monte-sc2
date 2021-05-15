@@ -12,7 +12,6 @@ class BuildingManager : public Manager {
     // used for if a worker assigned to a job or building under construction is killed
     void OnUnitDestroyed(const sc2::Unit* unit_);
     void build(sc2::ABILITY_ID);
-    void setMapper(Mapper* map);
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
     bool TryBuildSupplyDepot();

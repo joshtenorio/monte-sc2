@@ -6,10 +6,6 @@ void BuildingManager::OnStep(){
     TryBuildSupplyDepot();
 }
 
-void BuildingManager::setMapper(Mapper* map){
-    bp.setMapper(map);
-}
-
 bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type){
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
@@ -38,10 +34,10 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
         // we are building a refinery!
         // this needs to get fixed once we have multiple bases,
         // since this implementation will only work for main base
-        if(bp.getMapper()->getStartingExpansion().gasGeysers.size() <= 0){
+        if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0){
             return false;
         }
-        const Unit* gas = bp.getMapper()->getStartingExpansion().gasGeysers.front();
+        const Unit* gas = gInterface->map->getStartingExpansion().gasGeysers.front();
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,

@@ -21,7 +21,4 @@ void ProductionManager::OnGameStart(){
     // do i need to do other stuff here?
 }
 
-void ProductionManager::setMapper(Mapper* map_){
-    bm.setMapper(map_);
-}
 

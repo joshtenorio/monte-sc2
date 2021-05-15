@@ -1,5 +1,7 @@
 #include "Mapper.h"
 
+#include "api.h" // see WorkerManager.cpp for why this is here
+
 // initialize expansions
 std::vector<Expansion> Mapper::expansions;
 

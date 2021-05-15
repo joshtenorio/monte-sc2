@@ -7,7 +7,6 @@
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_unit_filters.h>
-#include "api.h"
 
 // max distance for a neighboring mineral patch
 #define PATCH_NEIGHBOR_DISTANCE 25.0  // 5^2 = 25
@@ -19,7 +18,7 @@
 
 typedef struct Expansion_s_t {
     Expansion_s_t(): isStartingLocation(false), initialized(false) {}
-    std::vector<Point3D> mineralLine;
+    std::vector<sc2::Point3D> mineralLine;
     sc2::Units gasGeysers;
     sc2::Point2D baseLocation;
     sc2::Point3D mineralMidpoint; // used to find base location

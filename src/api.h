@@ -11,6 +11,7 @@
 #include <sc2api/sc2_unit_filters.h>
 #include <memory>
 #include "WorkerManager.h"
+#include "Mapper.h"
 
 using namespace sc2;
 
@@ -25,12 +26,14 @@ class Interface {
         ActionInterface* actions_,
         QueryInterface* query_,
         DebugInterface* debug_,
-        WorkerManager* wm_){
+        WorkerManager* wm_,
+        Mapper* map_){
             observation = observation_;
             actions = actions_;
             query = query_;
             debug = debug_;
             wm = wm_;
+            map = map_;
         };
     
     const ObservationInterface* observation;
@@ -38,6 +41,7 @@ class Interface {
     QueryInterface* query;
     DebugInterface* debug;
     WorkerManager* wm;
+    Mapper* map;
 };
 
 extern std::unique_ptr<Interface> gInterface;

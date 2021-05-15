@@ -22,7 +22,6 @@ class ProductionManager : public Manager {
     void OnStep();
     void OnGameStart();
     void build();
-    void setMapper(Mapper* map_); // TODO: remove this when i figure out constructor, this is lazy solution
 
     protected:
     Strategy strategy;

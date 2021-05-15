@@ -9,9 +9,9 @@ class BuildingPlacer {
     public:
     BuildingPlacer() {};
     void setMapper(Mapper* map_);
-    sc2::Point2D findLocation(sc2::UNIT_TYPEID building);
+    sc2::Point2D findLocation(sc2::ABILITY_ID building);
     Mapper* getMapper();
 
     protected:
-    Mapper* map;
+
 };
