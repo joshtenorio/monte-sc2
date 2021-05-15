@@ -78,6 +78,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
                 wm.OnUnitDestroyed(unit_);
+                pm.OnUnitDestroyed(unit_);
                 break;
             default:
                 break;

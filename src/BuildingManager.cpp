@@ -55,10 +55,11 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
 bool BuildingManager::TryBuildSupplyDepot(){
 
     // if not supply capped, dont build supply depot
-    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2)
+    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2 || gInterface->observation->GetMinerals() < 100)
         return false;
     
     // else, try and build depot using a random scv
+    std::cout << "lets build depot\n";
     return TryBuildStructure (ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 

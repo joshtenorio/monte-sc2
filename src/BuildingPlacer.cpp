@@ -8,7 +8,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
             goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
-            // same logic as build barracks but different numbers obviously
+            // if depot count < 2, build at ramp
+            // else
             goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
@@ -17,10 +18,18 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
         default:
         useDefault:
             // TODO: make this behavior better (ie actually utilise freeRadius)
+            /**
             // currently, get a random location to build building within a 20x20 region where the scv is at the center
             float rx = sc2::GetRandomScalar();
             float ry = sc2::GetRandomScalar();
-            return Point2D(around->x + rx * 10.0f, around->y + ry * 10.0f);
+            return sc2::Point2D(around->x + rx * 10.0f, around->y + ry * 10.0f);
+            */
+            // idea: identify a square whose center is around and side length is 2*freeRadius
+            //       create a vector from around to the first unpathable point, and change the location of around
+            //       WARNING: might result in infinite looping if there is an unpathable at the edge of freeRadius
+            //       temp solution: add a minimum distance to move away from the unpathable
+            //       don't work with sc2::Point2D during the looping, just use x and y float vars until a suitable location is found
+            //       start at a random point within a 20x20 region where the scv is at the center
             break;
     }
 }

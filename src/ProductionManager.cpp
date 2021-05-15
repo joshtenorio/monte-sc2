@@ -21,4 +21,7 @@ void ProductionManager::OnGameStart(){
     // do i need to do other stuff here?
 }
 
+void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
+    bm.OnUnitDestroyed(unit_);
+}
 
