@@ -12,9 +12,13 @@
 #define PATCH_NEIGHBOR_DISTANCE 25.0  // 5^2 = 25
 
 // offsets used when searching for base location in Expansion
-#define SEARCH_MIN_OFFSET -10
-#define SEARCH_MAX_OFFSET 10
+#define SEARCH_MIN_OFFSET   -10
+#define SEARCH_MAX_OFFSET   10
 #define DISTANCE_ERR_MARGIN 10.0
+
+#define OWNER_NEUTRAL   0
+#define OWNER_SELF      1
+#define OWNER_ENEMY     2
 
 typedef struct Expansion_s_t {
     Expansion_s_t(): isStartingLocation(false), initialized(false) {}
@@ -28,7 +32,9 @@ typedef struct Expansion_s_t {
 
     float distanceToStart;
 
-    // used for sorting
+    char ownership = OWNER_NEUTRAL;
+
+    // used for std::sort
     bool operator < (const Expansion_s_t& e) const {
         return (distanceToStart < e.distanceToStart);
     }
@@ -46,9 +52,12 @@ class Mapper {
     public:
     Mapper() {};
     void initialize();
-    Expansion getClosestExpansion(sc2::Point3D point);
+    Expansion* getClosestExpansion(sc2::Point3D point);
     Expansion getStartingExpansion();
     Expansion getNthExpansion(int n);
+
+    // returns a pointer to the next expansion to build at
+    Expansion* getNextExpansion();
 
 
     protected:

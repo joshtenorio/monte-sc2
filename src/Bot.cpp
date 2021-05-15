@@ -72,18 +72,17 @@ void Bot::OnUnitIdle(const Unit* unit) {
 void Bot::OnUnitDestroyed(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
          "(" << unit_->tag << ") was destroyed" << std::endl;
-        
-    switch(unit_->unit_type.ToType()){
-    case UNIT_TYPEID::TERRAN_SCV:
-        wm.OnUnitDestroyed(unit_);
-        break;
-    default:
-        break;
-}
-}
+    
+    // we only care if one of our units dies (for now, perhaps)
+    if(unit_->alliance == Unit::Alliance::Self)
+        switch(unit_->unit_type.ToType()){
+            case UNIT_TYPEID::TERRAN_SCV:
+                wm.OnUnitDestroyed(unit_);
+                break;
+            default:
+                break;
+        }
 
-void Bot::OnUpgradeCompleted (UpgradeID id_){
-    std::cout << UpgradeIDToName(id_) << " completed" << std::endl;
 }
 
 void Bot::OnError(const std::vector<ClientError>& client_errors,

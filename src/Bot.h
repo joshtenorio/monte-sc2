@@ -30,7 +30,6 @@ private:
     void OnUnitCreated(const Unit* unit_) final;
     void OnUnitIdle(const Unit* unit_) final;
     void OnUnitDestroyed(const Unit* unit_) final;
-    void OnUpgradeCompleted(UpgradeID id_) final;
     void OnError(const std::vector<ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors = {}) final;
 

@@ -6,6 +6,10 @@ void BuildingManager::OnStep(){
     TryBuildSupplyDepot();
 }
 
+void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
+    
+}
+
 bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type){
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
@@ -21,13 +25,13 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
     }
 
     if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
-        // get a random location to build building within a 15x15 region where the scv is at a corner
-        float rx = GetRandomScalar();
-        float ry = GetRandomScalar();
+
+        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
-            Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));
+            loc);
+        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
         return true;
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
@@ -42,6 +46,7 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
             unit_to_build,
             ability_type_for_structure,
             gas);
+        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         return true;
     }
     else return false;

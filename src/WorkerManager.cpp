@@ -20,7 +20,6 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     w.job = JOB_UNEMPLOYED;
     w.scv = unit_;
     workers.emplace_back(w);
-    std::cout << workers.size() << "number of workers\n";
 }
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
@@ -30,7 +29,6 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
             itr = workers.erase(itr);
         else ++itr;
     }
-    std::cout << workers.size() << "number of workers after oopsy\n";
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 	Bot bot;
 	coordinator.SetParticipants({
 		CreateParticipant(Race::Terran, &bot, "Monte"),
-		CreateComputer(Race::Terran)
+		CreateComputer(Race::Protoss)
 	});
 
     coordinator.SetRealtime(true);

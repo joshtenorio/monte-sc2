@@ -9,10 +9,12 @@ class BuildingManager : public Manager {
     public:
     BuildingManager() {};
     void OnStep();
+    
     // used for if a worker assigned to a job or building under construction is killed
     void OnUnitDestroyed(const sc2::Unit* unit_);
-    void build(sc2::ABILITY_ID);
 
+    // used for resetting worker job and for setting ownership of expansion
+    void OnBuildingConstructionComplete(const Unit* building_);
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();

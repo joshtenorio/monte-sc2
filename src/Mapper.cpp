@@ -11,14 +11,14 @@ void Mapper::initialize(){
     sortExpansions(gInterface->observation->GetStartLocation());
 
     // get starting location's expansion
-    startingExpansion = getClosestExpansion(gInterface->observation->GetStartLocation());
+    startingExpansion = *getClosestExpansion(gInterface->observation->GetStartLocation());
 }
 
-Expansion Mapper::getClosestExpansion(sc2::Point3D point){
-    Expansion tmp = expansions.front();
-    for (auto e : expansions){
-        if(sc2::DistanceSquared2D(tmp.baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, sc2::Point2D(point)))
-            tmp = e;
+Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
+    Expansion* tmp = &(expansions.front());
+    for (auto& e : expansions){
+        if(sc2::DistanceSquared2D(tmp->baseLocation, Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, Point2D(point)))
+            tmp = &e;
     }
     return tmp;
 }
@@ -29,6 +29,11 @@ Expansion Mapper::getStartingExpansion(){
 
 Expansion Mapper::getNthExpansion(int n){
     return expansions[n];
+}
+
+Expansion* Mapper::getNextExpansion(){
+    for(auto& e : expansions)
+        if(e.ownership == OWNER_NEUTRAL) return &e;
 }
 
 void Mapper::calculateExpansions(){
@@ -100,16 +105,21 @@ void Mapper::calculateExpansions(){
     // manually assign starting location to an expansion
     const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
     if(cc != nullptr){
-        for(auto e : expansions){
+        for(auto& e : expansions){
             // find the mineral line close to starting location
             if(sc2::Distance2D(sc2::Point2D(e.mineralMidpoint), sc2::Point2D(cc->pos)) < DISTANCE_ERR_MARGIN){
                 e.baseLocation = sc2::Point2D(cc->pos);
+                e.ownership = OWNER_SELF;
                 e.isStartingLocation = true;
                 break;
             }
         } // end for e : expansions
     }
 
+    for(auto e : expansions)
+        if(e.ownership == OWNER_SELF) std::cout << "hehe nothing bork\n";
+    
+    
     // assign the rest of the expansions a base location
     for(auto& e : expansions){
         if(e.isStartingLocation) continue;
