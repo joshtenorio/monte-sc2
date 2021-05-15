@@ -14,28 +14,18 @@ using namespace sc2;
 class ProductionManager : public Manager {
     public:
     // constructors
-    ProductionManager() {};
-        ProductionManager(Mapper* map_){ // this one is probably temporary until i make an actual strategy
-        map = map_;
-    };
-    ProductionManager(Mapper* map_, Strategy strategy_){
-        map = map_;
+    ProductionManager() { bm = BuildingManager(); };
+    ProductionManager(Strategy strategy_){
         strategy = strategy_;
     };
 
     void OnStep();
     void OnGameStart();
     void build();
-
-    // owo, will probably go into BuildingManager when that is settled
     void setMapper(Mapper* map_); // TODO: remove this when i figure out constructor, this is lazy solution
-    bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
-    bool TryBuildSupplyDepot();
-    bool TryBuildBarracks();
-    bool tryBuildRefinery();
 
     protected:
-    Mapper* map;
     Strategy strategy;
+    BuildingManager bm;
 
 };
