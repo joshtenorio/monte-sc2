@@ -4,9 +4,10 @@ using namespace sc2;
 
 Bot::Bot(){
     wm = WorkerManager();
-    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug()));
     map = Mapper();
     pm = ProductionManager();
+
+    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm));
 }
 
 void Bot::OnGameStart(){

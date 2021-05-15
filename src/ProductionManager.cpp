@@ -4,6 +4,7 @@ void ProductionManager::OnStep(){
 
     // building manager
     bm.OnStep();
+    // testing global functionality for worker manager
 
     // TODO: make this into function?
     const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER)).front();

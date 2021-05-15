@@ -10,7 +10,6 @@
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
 #include <vector>
-#include "api.h"
 #include "Manager.h"
 
 // for Worker.job
@@ -40,7 +39,10 @@ class WorkerManager : public Manager {
     bool DistributeWorkers(int gasWorkers = 3);
     const Unit* FindNearestMineralPatch(const Point3D& start);
 
+    // return a pointer to the first unemployed worker in list
+    Worker* getUnemployedWorker();
+    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit* 
+
     protected:
     std::vector<Worker> workers;
-    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit* 
 };
