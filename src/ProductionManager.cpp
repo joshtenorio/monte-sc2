@@ -12,6 +12,21 @@ void ProductionManager::OnStep(){
         gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
         std::cout << "CC idle & minerals available, training SCV" << std:: endl;
     }
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0){
+        sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+        for(auto& b : barracks)
+            if(gInterface->observation->GetMinerals() >= 50 && b->orders.size() == 0)
+                gInterface->actions->UnitCommand(b, sc2::ABILITY_ID::TRAIN_MARINE);
+    }
+
+    // FIXME: this is very inconsistent, sometimes a barracks w/o reactor will queue 2 marines, sometimes a barracks w/ reactor will only queue 1 marine and sometimes it will queue 2
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR) > 0){
+        sc2::Units reactors = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR));
+        for(auto& r : reactors)
+            if(gInterface->observation->GetMinerals() >= 50 && r->orders.size() == 0)
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::TRAIN_MARINE);
+    }
+
 
     // make sure production facilities are producing stuff here according to Strategy
 }

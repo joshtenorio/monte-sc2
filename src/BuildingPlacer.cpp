@@ -18,18 +18,13 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
         default:
         useDefault:
             // TODO: make this behavior better (ie actually utilise freeRadius)
-            /**
+
             // currently, get a random location to build building within a 20x20 region where the scv is at the center
             float rx = sc2::GetRandomScalar();
             float ry = sc2::GetRandomScalar();
             return sc2::Point2D(around->x + rx * 10.0f, around->y + ry * 10.0f);
-            */
-            // idea: identify a square whose center is around and side length is 2*freeRadius
-            //       create a vector from around to the first unpathable point, and change the location of around
-            //       WARNING: might result in infinite looping if there is an unpathable at the edge of freeRadius
-            //       temp solution: add a minimum distance to move away from the unpathable
-            //       don't work with sc2::Point2D during the looping, just use x and y float vars until a suitable location is found
-            //       start at a random point within a 20x20 region where the scv is at the center
+
+
             break;
     }
 }
@@ -42,7 +37,7 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
         case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
         case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
         case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
-            return nullptr; // for now
+            return findUnitForAddon(building, near);
             break;
         case sc2::ABILITY_ID::BUILD_REFINERY:{
             Expansion* e = gInterface->map->getClosestExpansion(*near);
@@ -76,4 +71,33 @@ const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
 sc2::Point2D BuildingPlacer::findCommandCenterLocation(){
     Expansion* nextExpansion = gInterface->map->getNextExpansion();
     return nextExpansion->baseLocation;
+}
+
+const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near){
+    switch(building){
+        case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
+        if(near == nullptr){
+            sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+            for(auto& b : barracks){
+                sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
+                for(auto a : abilities.abilities){
+                    if(
+                        a.ability_id == sc2::ABILITY_ID::BUILD_TECHLAB || a.ability_id == sc2::ABILITY_ID::BUILD_REACTOR &&
+                        gInterface->query->Placement(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(b->pos.x + 2.5f, b->pos.y - 0.5f))
+                    )
+                        return b;
+                }
+            }
+            return nullptr;
+        }
+        case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
+
+        case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
+
+        default:
+            return nullptr;
+    }
 }

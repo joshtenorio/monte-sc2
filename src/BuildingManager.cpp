@@ -4,6 +4,14 @@ void BuildingManager::OnStep(){
     tryBuildRefinery();
     TryBuildBarracks();
     TryBuildSupplyDepot();
+
+    // FIXME: buildingmanager will still try to build a reactor even if it doesn't fit
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1){
+        const Unit* barracks = bp.findUnit(sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS, nullptr);
+        if(barracks != nullptr){
+            gInterface->actions->UnitCommand(barracks, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
+        }
+    }
 }
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -59,7 +67,6 @@ bool BuildingManager::TryBuildSupplyDepot(){
         return false;
     
     // else, try and build depot using a random scv
-    std::cout << "lets build depot\n";
     return TryBuildStructure (ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 

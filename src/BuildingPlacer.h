@@ -19,6 +19,6 @@ class BuildingPlacer {
     const sc2::Unit* findRefineryLocation(Expansion* e);
     sc2::Point2D findSupplyDepotLocation();     // will place supply depots at main ramp if <2 depots exist
     sc2::Point2D findCommandCenterLocation();
-    const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, sc2::Point2D* near);
+    const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near = nullptr);
 
 };

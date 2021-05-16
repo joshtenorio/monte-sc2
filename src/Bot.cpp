@@ -59,7 +59,7 @@ void Bot::OnUnitIdle(const Unit* unit) {
             wm.OnUnitIdle(unit);
             break;
         case UNIT_TYPEID::TERRAN_BARRACKS:
-            Actions()->UnitCommand(unit, ABILITY_ID::TRAIN_MARINE);
+            break;
         case UNIT_TYPEID::TERRAN_REFINERY:
         case UNIT_TYPEID::TERRAN_REFINERYRICH:
             std::cout << "bowo refinery is idle\n";
