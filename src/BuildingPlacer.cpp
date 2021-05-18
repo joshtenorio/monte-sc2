@@ -93,10 +93,36 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         }
         case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
         case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
-
+        if(near == nullptr){
+            sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+            for(auto& b : factories){
+                sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
+                for(auto a : abilities.abilities){
+                    if(
+                        a.ability_id == sc2::ABILITY_ID::BUILD_TECHLAB || a.ability_id == sc2::ABILITY_ID::BUILD_REACTOR &&
+                        gInterface->query->Placement(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(b->pos.x + 2.5f, b->pos.y - 0.5f))
+                    )
+                        return b;
+                }
+            }
+            return nullptr;
+        }
         case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
         case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
-
+            if(near == nullptr){
+                sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+                for(auto& b : starports){
+                    sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
+                    for(auto a : abilities.abilities){
+                        if(
+                            a.ability_id == sc2::ABILITY_ID::BUILD_TECHLAB || a.ability_id == sc2::ABILITY_ID::BUILD_REACTOR &&
+                            gInterface->query->Placement(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(b->pos.x + 2.5f, b->pos.y - 0.5f))
+                        )
+                            return b;
+                    }
+                }
+                return nullptr;
+            }
         default:
             return nullptr;
     }

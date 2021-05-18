@@ -10,8 +10,10 @@ void Mapper::initialize(){
     calculateExpansions();
     sortExpansions(gInterface->observation->GetStartLocation());
 
-    // get starting location's expansion
+    // get starting location's expansion and define its ramp
     startingExpansion = *getClosestExpansion(gInterface->observation->GetStartLocation());
+    Ramp r;
+    // sc2::GameInfo::map_name comparing ...
 }
 
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){

@@ -37,13 +37,15 @@ typedef struct Expansion_s_t {
     bool operator < (const Expansion_s_t& e) const {
         return (distanceToStart < e.distanceToStart);
     }
+    Ramp ramp;
 
 } Expansion;
 
 typedef struct Ramp_s_t {
     bool isMainRamp = false;
-    std::vector<sc2::Point3D> points;
-    std::queue<sc2::Point2D> supplyDepotPoints;
+    std::vector<sc2::Point2D> supplyDepotPoints;
+    sc2::Point2D barracksPos;
+    sc2::Point2D barracksWithAddonPos; // probably the more useful one
 
 } Ramp;
 
