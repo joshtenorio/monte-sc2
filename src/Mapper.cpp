@@ -12,8 +12,43 @@ void Mapper::initialize(){
 
     // get starting location's expansion and define its ramp
     startingExpansion = *getClosestExpansion(gInterface->observation->GetStartLocation());
-    Ramp r;
-    // sc2::GameInfo::map_name comparing ...
+
+    Ramp* r = &(startingExpansion.ramp);
+    r->isMainRamp = true;
+    if(gInterface->observation->GetGameInfo().map_name == "Ever Dream 5.0.6"){
+        if(
+            sc2::DistanceSquared2D(startingExpansion.baseLocation, sc2::Point2D(141, 148)) <
+            sc2::DistanceSquared2D(startingExpansion.baseLocation, sc2::Point2D(56, 61))
+        ){ // use top right locations
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(141, 148));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(144, 151));
+            r->barracksPos = sc2::Point2D(141.5, 150.5);
+            r->barracksWithAddonPos = sc2::Point2D(139.5, 150.5);
+        }
+        else{ // use bottom left locations
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(56, 61));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(59, 64));
+            r->barracksPos = sc2::Point2D(58.5, 61.5);
+            r->barracksWithAddonPos = sc2::Point2D(58.5, 61.5);
+        }
+    }
+    else if(gInterface->observation->GetGameInfo().map_name == "Submarine 5.0.6"){
+        if(
+            sc2::DistanceSquared2D(startingExpansion.baseLocation, sc2::Point2D(128, 47)) <
+            sc2::DistanceSquared2D(startingExpansion.baseLocation, sc2::Point2D(40, 117))
+        ){ // use bottom right locations
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(128, 47));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(125, 50));
+            r->barracksPos = sc2::Point2D(125.5, 47.5);
+            r->barracksWithAddonPos = sc2::Point2D(123.5, 47.5);
+        }
+        else{ // use top left locations
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(40, 117));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(43, 114));
+            r->barracksPos = sc2::Point2D(42.5, 116.5);
+            r->barracksWithAddonPos = sc2::Point2D(42.5, 116.5);
+        }
+    }
 }
 
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){

@@ -13,18 +13,23 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     std::cout << "boop" << std::endl;
     pm.OnGameStart();
+    std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
+
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
     std::cout << UnitTypeToName(building_->unit_type) <<
         "(" << building_->tag << ") constructed" << std::endl;
+
+    // if it is a supply depot, lower it
+    if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
+        Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
 }
 
 void Bot::OnStep() {
     // initialize mapper (find expansions and (soon) ramps)
     if(Observation()->GetGameLoop() == 50)
         map.initialize(); 
-
     pm.OnStep();
 
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){

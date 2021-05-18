@@ -4,21 +4,39 @@
 #include <queue>
 #include <limits>
 #include <algorithm>
+#include <string>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_unit_filters.h>
+#include <sc2api/sc2_map_info.h>
 
 // max distance for a neighboring mineral patch
-#define PATCH_NEIGHBOR_DISTANCE 25.0  // 5^2 = 25
+#define PATCH_NEIGHBOR_DISTANCE 25.0f  // 5^2 = 25
 
 // offsets used when searching for base location in Expansion
 #define SEARCH_MIN_OFFSET   -10
 #define SEARCH_MAX_OFFSET   10
-#define DISTANCE_ERR_MARGIN 10.0
+#define DISTANCE_ERR_MARGIN 10.0f
 
+// used for defining ownership of an Expansion
 #define OWNER_NEUTRAL   0
 #define OWNER_SELF      1
 #define OWNER_ENEMY     2
+
+// map names (needs to be updated every season, at least until we properly calculate ramps)
+// only have ever dream and submarine for now, just waiting on AIE maps to be released since those will probably be used for next season
+#define EVERDREAM 0
+#define SUBMARINE 1
+
+typedef struct Ramp_s_t {
+    Ramp_s_t() {}
+    bool isMainRamp = false;
+    std::vector<sc2::Point2D> supplyDepotPoints;
+    sc2::Point2D barracksPos;
+    sc2::Point2D barracksWithAddonPos; // probably the more useful one
+
+} Ramp;
+
 
 typedef struct Expansion_s_t {
     Expansion_s_t(): isStartingLocation(false), initialized(false) {}
@@ -32,22 +50,17 @@ typedef struct Expansion_s_t {
     float distanceToStart;
     int numFriendlyRefineries = 0;
     char ownership = OWNER_NEUTRAL;
+    Ramp ramp;
 
     // used for std::sort
     bool operator < (const Expansion_s_t& e) const {
         return (distanceToStart < e.distanceToStart);
     }
-    Ramp ramp;
+
 
 } Expansion;
 
-typedef struct Ramp_s_t {
-    bool isMainRamp = false;
-    std::vector<sc2::Point2D> supplyDepotPoints;
-    sc2::Point2D barracksPos;
-    sc2::Point2D barracksWithAddonPos; // probably the more useful one
 
-} Ramp;
 
 class Mapper {
     public:

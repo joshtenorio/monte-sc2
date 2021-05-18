@@ -4,13 +4,15 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
     switch(building){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
-            // else
-            goto useDefault;
+            if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
+                return findBarracksLocation();
+            else goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
-            // else
-            goto useDefault;
+            if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 2)
+                return findSupplyDepotLocation();
+            else goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
             return findCommandCenterLocation();
@@ -50,15 +52,18 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
     }
 }
 
-/**
-sc2::Point2D BuildingPlacer::findBarracksLocation(){
 
+sc2::Point2D BuildingPlacer::findBarracksLocation(){
+    return gInterface->map->getStartingExpansion().ramp.barracksWithAddonPos;
 }
 
 sc2::Point2D BuildingPlacer::findSupplyDepotLocation(){
-
+    size_t numDepots = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
+    if(numDepots == 0)
+        return gInterface->map->getStartingExpansion().ramp.supplyDepotPoints.front();
+    else return gInterface->map->getStartingExpansion().ramp.supplyDepotPoints.back();
 }
-*/
+
 const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
     if(e->numFriendlyRefineries == 0)
         return e->gasGeysers.front();
