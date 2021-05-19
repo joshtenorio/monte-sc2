@@ -4,7 +4,6 @@ void ProductionManager::OnStep(){
 
     // building manager
     bm.OnStep();
-    // testing global functionality for worker manager
 
     // TODO: make this into function?
     const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER)).front();
@@ -28,7 +27,7 @@ void ProductionManager::OnStep(){
     }
 
 
-    // make sure production facilities are producing stuff here according to Strategy
+    // TODO: make sure production facilities are producing stuff here according to Strategy
 }
 
 void ProductionManager::OnGameStart(){
@@ -38,5 +37,9 @@ void ProductionManager::OnGameStart(){
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
+}
+
+void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
+    bm.OnUnitCreated(unit_);
 }
 

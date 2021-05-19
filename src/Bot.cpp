@@ -24,6 +24,27 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
         Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+    
+    switch(building_->unit_type.ToType()){
+        case UNIT_TYPEID::TERRAN_ARMORY:
+        case UNIT_TYPEID::TERRAN_BARRACKS:
+        case UNIT_TYPEID::TERRAN_BUNKER:
+        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case UNIT_TYPEID::TERRAN_FACTORY:
+        case UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case UNIT_TYPEID::TERRAN_REFINERY:
+        case UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case UNIT_TYPEID::TERRAN_STARPORT:
+        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+            pm.OnUnitCreated(building_);
+            break;
+        default:
+            break;
+    }
 }
 
 void Bot::OnStep() {
@@ -50,6 +71,22 @@ void Bot::OnUnitCreated(const Unit* unit_){
     switch(unit_->unit_type.ToType()){
         case UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
+            break;
+        case UNIT_TYPEID::TERRAN_ARMORY:
+        case UNIT_TYPEID::TERRAN_BARRACKS:
+        case UNIT_TYPEID::TERRAN_BUNKER:
+        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case UNIT_TYPEID::TERRAN_FACTORY:
+        case UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case UNIT_TYPEID::TERRAN_REFINERY:
+        case UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case UNIT_TYPEID::TERRAN_STARPORT:
+        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+            pm.OnUnitCreated(unit_);
             break;
         default:
             break;
@@ -82,7 +119,25 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
     if(unit_->alliance == Unit::Alliance::Self)
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
+                // the pm gets called first, bc we need to remove worker pointer from 
+                // a Construction if it is building it
+                pm.OnUnitDestroyed(unit_);
                 wm.OnUnitDestroyed(unit_);
+                break;
+            case UNIT_TYPEID::TERRAN_ARMORY:
+            case UNIT_TYPEID::TERRAN_BARRACKS:
+            case UNIT_TYPEID::TERRAN_BUNKER:
+            case UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+            case UNIT_TYPEID::TERRAN_FACTORY:
+            case UNIT_TYPEID::TERRAN_FUSIONCORE:
+            case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+            case UNIT_TYPEID::TERRAN_MISSILETURRET:
+            case UNIT_TYPEID::TERRAN_REFINERY:
+            case UNIT_TYPEID::TERRAN_REFINERYRICH:
+            case UNIT_TYPEID::TERRAN_SENSORTOWER:
+            case UNIT_TYPEID::TERRAN_STARPORT:
+            case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
                 pm.OnUnitDestroyed(unit_);
                 break;
             default:

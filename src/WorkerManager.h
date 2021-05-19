@@ -10,6 +10,7 @@
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
 #include <vector>
+#include <limits>
 #include "Manager.h"
 
 // for Worker.job
@@ -41,7 +42,9 @@ class WorkerManager : public Manager {
 
     // return a pointer to the first unemployed worker in list
     Worker* getUnemployedWorker();
-    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit* 
+    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*
+    // TODO: add implementation for getting closest worker who has a specific job
+    Worker* getClosestWorker(sc2::Point2D pos, int jobType = -1);
 
     protected:
     std::vector<Worker> workers;

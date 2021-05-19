@@ -73,3 +73,15 @@ Worker* WorkerManager::getWorker(const Unit* unit_){
     }
     return nullptr;
 }
+
+Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
+    Worker* closestWorker = nullptr;
+    float distance = std::numeric_limits<float>::max();
+    for(auto& w : workers){
+        if(distance > sc2::DistanceSquared2D(pos, w.scv->pos)){
+            distance = sc2::DistanceSquared2D(pos, w.scv->pos);
+            closestWorker = &w;
+        }
+    }
+    return closestWorker;
+}

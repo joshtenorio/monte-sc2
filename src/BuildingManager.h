@@ -1,9 +1,12 @@
 #pragma once
 
+#include <vector>
 #include <sc2api/sc2_unit.h>
 #include "api.h"
 #include "Manager.h"
 #include "BuildingPlacer.h"
+
+typedef std::pair<const sc2::Unit*, Worker*> Construction;
 
 class BuildingManager : public Manager {
     public:
@@ -15,13 +18,18 @@ class BuildingManager : public Manager {
 
     // used for resetting worker job and for setting ownership of expansion, and for updating num of friendly refineries in an expansion
     void OnBuildingConstructionComplete(const Unit* building_);
+    void OnUnitCreated(const Unit* building_);
+
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
+    
+    // TODO: should this be in production manager?
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();
     bool tryBuildRefinery();
 
     protected:
     BuildingPlacer bp;
+    std::vector<Construction> inProgressBuildings;
 
     private:
     // put functions here to help determine what building to build from (for upgrades) or if an scv needs to be called

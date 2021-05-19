@@ -15,10 +15,47 @@ void BuildingManager::OnStep(){
 }
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
-    
+    // if its an in-prog building that died, release the worker and remove Construction from list
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+        if((*itr).first->tag == unit_->tag){ // the building is the one who died
+            (*itr).second->job = JOB_UNEMPLOYED;
+            itr = inProgressBuildings.erase(itr);
+            return;
+        }
+        else if((*itr).second->scv->tag == unit_->tag){
+            // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
+            // so all we need to do is assign a new worker
+            // TODO: hopefully this doesn't return the same worker that just died :grimacing:
+            Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
+            (*itr).second = newWorker;
+            return;
+        }
+        else ++itr;
+    }
 }
 
-bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type){
+void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
+    // remove Construction from list and set worker to unemployed
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+        if((*itr).first->tag == building_->tag){
+            (*itr).second->job = JOB_UNEMPLOYED;
+            itr = inProgressBuildings.erase(itr);
+        }
+        else ++itr;
+    }
+}
+
+void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
+    // assume the closest worker to the building is assigned to construct it
+    Worker* w = gInterface->wm->getClosestWorker(building_->pos);
+    if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+        w->job = JOB_BUILDING_GAS;
+    else 
+        w->job = JOB_BUILDING;
+    inProgressBuildings.emplace_back(std::make_pair(building_, w));
+}
+
+bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
@@ -27,19 +64,17 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
                 return false;
         }
-        // get SCV to build structure
+        // identify SCV to build structure
         if(unit->unit_type == unit_type)
             unit_to_build = unit;
     }
 
     if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
-
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
             loc);
-        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
         return true;
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
@@ -54,7 +89,6 @@ bool BuildingManager::TryBuildStructure(ABILITY_ID ability_type_for_structure, U
             unit_to_build,
             ability_type_for_structure,
             gas);
-        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         return true;
     }
     else return false;
@@ -67,7 +101,7 @@ bool BuildingManager::TryBuildSupplyDepot(){
         return false;
     
     // else, try and build depot using a random scv
-    return TryBuildStructure (ABILITY_ID::BUILD_SUPPLYDEPOT);
+    return TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
 bool BuildingManager::TryBuildBarracks() {
