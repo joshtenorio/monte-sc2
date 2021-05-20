@@ -6,6 +6,8 @@
 #include "Manager.h"
 #include "BuildingPlacer.h"
 
+// first: building
+// second: Worker object
 typedef std::pair<const sc2::Unit*, Worker*> Construction;
 
 class BuildingManager : public Manager {
@@ -22,7 +24,7 @@ class BuildingManager : public Manager {
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
     
-    // TODO: should this be in production manager?
+    // TODO: move this to production manager
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();
     bool tryBuildRefinery();

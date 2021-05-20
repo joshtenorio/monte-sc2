@@ -40,6 +40,14 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
-    bm.OnUnitCreated(unit_);
+    // only run this after the 50th loop
+    // necessary to avoid crashing when the main cc is created
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0)
+        bm.OnUnitCreated(unit_);
+}
+
+void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
+    bm.OnBuildingConstructionComplete(building_);
+
 }
 

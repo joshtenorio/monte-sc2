@@ -24,10 +24,25 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
         }
         else if((*itr).second->scv->tag == unit_->tag){
             // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
-            // so all we need to do is assign a new worker
-            // TODO: hopefully this doesn't return the same worker that just died :grimacing:
+            // so we just need to assign a new, different worker
+            // BUG: sometimes crashes sometimes doesn't. very inconsistent
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
+            size_t n = 0;
+            while(newWorker->scv->tag == unit_->tag){
+                newWorker = gInterface->wm->getNthWorker(n);
+                n++;
+                std::cout << n << "\n";
+            }
+            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << newWorker->scv->tag << "\n";
             (*itr).second = newWorker;
+            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
+                gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first);
+                newWorker->job = JOB_BUILDING_GAS;
+            }
+            else{
+                gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first->pos);
+                newWorker->job = JOB_BUILDING;
+            }
             return;
         }
         else ++itr;
@@ -36,16 +51,23 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed
-    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
-        if((*itr).first->tag == building_->tag){
-            (*itr).second->job = JOB_UNEMPLOYED;
-            itr = inProgressBuildings.erase(itr);
+    int index = 0;
+    for(int i = 0; i < inProgressBuildings.size(); i++){
+        if(inProgressBuildings[i].first->tag == building_->tag){
+            inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
+            index = i;
+            break;
         }
-        else ++itr;
-    }
+        
+    } // end for
+    inProgressBuildings.erase(inProgressBuildings.begin() + index);
 }
 
 void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
+    // if building_'s tag is identical to a building in inProgress, don't do anything
+    for(auto& c : inProgressBuildings)
+        if(c.first->tag == building_->tag) return;
+
     // assume the closest worker to the building is assigned to construct it
     Worker* w = gInterface->wm->getClosestWorker(building_->pos);
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
@@ -106,7 +128,7 @@ bool BuildingManager::TryBuildSupplyDepot(){
 
 bool BuildingManager::TryBuildBarracks() {
     // check for depot and if we have 5 barracks already
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1 ||
+    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
         API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
     return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
 }

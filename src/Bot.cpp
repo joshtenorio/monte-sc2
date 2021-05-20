@@ -40,7 +40,7 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
         case UNIT_TYPEID::TERRAN_SENSORTOWER:
         case UNIT_TYPEID::TERRAN_STARPORT:
         case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
-            pm.OnUnitCreated(building_);
+            pm.OnBuildingConstructionComplete(building_);
             break;
         default:
             break;
