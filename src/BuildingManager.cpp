@@ -5,6 +5,11 @@ void BuildingManager::OnStep(){
     TryBuildBarracks();
     TryBuildSupplyDepot();
 
+    for(auto c : inProgressBuildings){
+        std::cout << "building: " << c.first->tag << "\tworker: " << c.second->scv->tag << "\t";
+    }
+    std::cout << "\n";
+
     // FIXME: buildingmanager will still try to build a reactor even if it doesn't fit
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1){
         const Unit* barracks = bp.findUnit(sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS, nullptr);
@@ -16,7 +21,11 @@ void BuildingManager::OnStep(){
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if its an in-prog building that died, release the worker and remove Construction from list
+    std::cout << "in prog list size: " << inProgressBuildings.size() << std::endl;
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+        std::cout << "in loop\t";
+        std::cout << "building tag: " << (*itr).first->tag << "\t";
+        std::cout << "worker tag: " << (*itr).second->scv->tag << "\n";
         if((*itr).first->tag == unit_->tag){ // the building is the one who died
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
@@ -26,25 +35,28 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
         else if((*itr).second->scv->tag == unit_->tag){
             // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
             // so we just need to assign a new, different worker
-            // BUG: sometimes crashes sometimes doesn't. very inconsistent
+            // BUG: crashes when worker dies sometimes
+            // BUG: when 3rd worker sent to barracks dies it doesn't send another
+            // BUG: the two above (or at least the first) occurs when worker tag is empty
+            // thought: worker tag disappears bc maybe the Unit obj for the worker gets deleted already?
+            //          i think this can be fixed by making my own id for Workers instead of relying on the Unit tag for this
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
-            while(newWorker->scv->tag == unit_->tag){
+            while(newWorker->scv->tag == unit_->tag){ // make sure new worker isn't the same one that just died
                 newWorker = gInterface->wm->getNthWorker(n);
                 n++;
-                std::cout << n << "\n";
             }
-            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << newWorker->scv->tag << "\n";
             (*itr).second = newWorker;
+            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << (*itr).second->scv->tag << "\n";
             gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
             if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
             else
                 newWorker->job = JOB_BUILDING;
-            return;
+            break;
         }
         else ++itr;
-    }
+    } // end for loop
 }
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
@@ -56,8 +68,7 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
             index = i;
             break;
         }
-        
-    } // end for
+    }
     inProgressBuildings.erase(inProgressBuildings.begin() + index);
 }
 
@@ -73,6 +84,7 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     else 
         w->job = JOB_BUILDING;
     inProgressBuildings.emplace_back(std::make_pair(building_, w));
+    std::cout << "Construction created - worker tag: " << w->scv->tag << "\n";
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){

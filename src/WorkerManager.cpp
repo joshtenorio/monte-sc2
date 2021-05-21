@@ -24,11 +24,13 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
     Tag key = unit_->tag;
+    std::cout << "erasing worker tag" << unit_->tag << std::endl;
     for(auto itr = workers.begin(); itr != workers.end(); ){
         if((*itr).scv->tag == key)
             itr = workers.erase(itr);
         else ++itr;
     }
+    
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
