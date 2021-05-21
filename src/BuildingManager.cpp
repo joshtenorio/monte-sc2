@@ -6,7 +6,7 @@ void BuildingManager::OnStep(){
     TryBuildSupplyDepot();
 
     for(auto c : inProgressBuildings){
-        std::cout << "building: " << c.first->tag << "\tworker: " << c.second->scv->tag << "\t";
+        std::cout << "building: " << c.first->tag << "\tworker: " << c.second->tag << "\t";
     }
     std::cout << "\n";
 
@@ -25,14 +25,14 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
         std::cout << "in loop\t";
         std::cout << "building tag: " << (*itr).first->tag << "\t";
-        std::cout << "worker tag: " << (*itr).second->scv->tag << "\n";
+        std::cout << "worker tag: " << (*itr).second->tag << "\n";
         if((*itr).first->tag == unit_->tag){ // the building is the one who died
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
             std::cout << unit_->unit_type.to_string() << " was removed from inprogress list" << std::endl;
             return;
         }
-        else if((*itr).second->scv->tag == unit_->tag){
+        else if((*itr).second->tag == unit_->tag){
             // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
             // so we just need to assign a new, different worker
             // BUG: crashes when worker dies sometimes
@@ -42,12 +42,12 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
             //          i think this can be fixed by making my own id for Workers instead of relying on the Unit tag for this
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
-            while(newWorker->scv->tag == unit_->tag){ // make sure new worker isn't the same one that just died
+            while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
                 newWorker = gInterface->wm->getNthWorker(n);
                 n++;
             }
             (*itr).second = newWorker;
-            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << (*itr).second->scv->tag << "\n";
+            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << (*itr).second->tag << "\n";
             gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
             if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
@@ -124,6 +124,13 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         return true;
     }
     else return false;
+}
+
+bool BuildingManager::checkConstructions(sc2::UNIT_TYPEID building){
+    for(auto c : inProgressBuildings)
+        if(c.first->unit_type.ToType() == building) return true;
+
+    return false;
 }
 
 bool BuildingManager::TryBuildSupplyDepot(){

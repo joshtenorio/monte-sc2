@@ -23,6 +23,7 @@ class BuildingManager : public Manager {
     void OnUnitCreated(const Unit* building_);
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
+    bool checkConstructions(sc2::UNIT_TYPEID building);
     
     // TODO: move this to production manager
     bool TryBuildSupplyDepot();
