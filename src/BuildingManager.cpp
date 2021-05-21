@@ -20,6 +20,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
         if((*itr).first->tag == unit_->tag){ // the building is the one who died
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
+            std::cout << unit_->unit_type.to_string() << " was removed from inprogress list" << std::endl;
             return;
         }
         else if((*itr).second->scv->tag == unit_->tag){
@@ -35,14 +36,11 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
             }
             std::cout << "dead worker: " << unit_->tag << "\t new worker: " << newWorker->scv->tag << "\n";
             (*itr).second = newWorker;
-            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
-                gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first);
+            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
+            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
-            }
-            else{
-                gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first->pos);
+            else
                 newWorker->job = JOB_BUILDING;
-            }
             return;
         }
         else ++itr;
