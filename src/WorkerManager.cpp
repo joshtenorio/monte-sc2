@@ -19,7 +19,7 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     Worker w;
     w.job = JOB_UNEMPLOYED;
     w.scv = unit_;
-    w.tag = unit_->tag;
+    w.tag = (*unit_).tag;
     workers.emplace_back(w);
 }
 

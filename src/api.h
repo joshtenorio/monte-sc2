@@ -19,6 +19,9 @@ using namespace sc2;
 
 namespace API {
     size_t CountUnitType(UNIT_TYPEID unitType);
+
+    // convert ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT
+    sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser
 } // end namespace API
 class Interface {
     public:

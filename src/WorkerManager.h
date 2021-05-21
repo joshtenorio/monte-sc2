@@ -41,6 +41,7 @@ class WorkerManager : public Manager {
     bool DistributeWorkers(int gasWorkers = 3);
     const Unit* FindNearestMineralPatch(const Point3D& start);
 
+    // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list
     Worker* getUnemployedWorker();
     Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*

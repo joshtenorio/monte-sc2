@@ -5,18 +5,41 @@ void BuildingManager::OnStep(){
     TryBuildBarracks();
     TryBuildSupplyDepot();
 
-    for(auto c : inProgressBuildings){
-        std::cout << "building: " << c.first->tag << "\tworker: " << c.second->tag << "\t";
-    }
-    std::cout << "\n";
-
     // FIXME: buildingmanager will still try to build a reactor even if it doesn't fit
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1){
         const Unit* barracks = bp.findUnit(sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS, nullptr);
-        if(barracks != nullptr){
+        if(barracks != nullptr)
             gInterface->actions->UnitCommand(barracks, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
-        }
     }
+
+    // make sure all in-progress buildings are being worked on
+    // kinda inefficient method
+    bool workedOn = false;
+    if(!inProgressBuildings.empty()) // make sure its not empty
+    for(auto& c : inProgressBuildings){
+        sc2::Tag tag = c.first->tag;
+        // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
+        //       here, pos would be location of the in progress building
+        sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+        for(auto& w : workers){
+            if(!w->orders.empty())
+                if(w->orders.front().target_unit_tag == tag){
+                    workedOn = true;
+                    break;
+                }
+        }
+        if(!workedOn){ // building is not being worked on, so get a worker to work on it
+            Worker* w = gInterface->wm->getClosestWorker(c.first->pos);
+            if(w != nullptr){
+                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, c.first); // target the building
+                if(c.first->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || c.first->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+                    w->job = JOB_BUILDING_GAS;
+                else
+                    w->job = JOB_BUILDING;
+            }
+        } // end if !workedOn
+    } // end for c : inProg
+
 }
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -35,11 +58,11 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
         else if((*itr).second->tag == unit_->tag){
             // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
             // so we just need to assign a new, different worker
-            // BUG: crashes when worker dies sometimes
-            // BUG: when 3rd worker sent to barracks dies it doesn't send another
-            // BUG: the two above (or at least the first) occurs when worker tag is empty
-            // thought: worker tag disappears bc maybe the Unit obj for the worker gets deleted already?
-            //          i think this can be fixed by making my own id for Workers instead of relying on the Unit tag for this
+            // BUG: sometimes will not send a new worker -> i've noticed tag sometimes change, maybe this could be it?
+            //      this always happens on the second building worker death
+            //      idea: in the OnStep() function, loop through the workers and check their order tag, if 
+            //            an in-progress building tag doesnt show up then send a worker to finish building
+
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
             while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
@@ -84,13 +107,17 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     else 
         w->job = JOB_BUILDING;
     inProgressBuildings.emplace_back(std::make_pair(building_, w));
-    std::cout << "Construction created - worker tag: " << w->scv->tag << "\n";
+    std::cout << "Construction created - worker tag: " << w->tag << "\n";
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
+
+    // if there is an in progress building, don't immediately build another
+    // this one is for if worker dies
+    if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
     for(const auto& unit : units){
         for (const auto& order : unit->orders){
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
