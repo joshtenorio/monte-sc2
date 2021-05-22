@@ -25,8 +25,12 @@ class ProductionManager : public Manager {
     // probably useful for going to the next step if something should be blocking
     void OnBuildingConstructionComplete(const Unit* building_);
     void OnUnitCreated(const Unit* unit_); // pass to building manager
-    void OnUnitDestroyed(const sc2::Unit* unit_); // to be passed to building manager
+    void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
     void build();
+
+    bool TryBuildSupplyDepot();
+    bool TryBuildBarracks();
+    bool tryBuildRefinery();
 
     protected:
     Strategy strategy;

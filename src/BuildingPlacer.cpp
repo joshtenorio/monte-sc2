@@ -47,7 +47,7 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
             break;
         }
         default:
-            return nullptr; 
+            return nullptr;
         break;
     }
 }

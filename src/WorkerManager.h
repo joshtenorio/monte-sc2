@@ -44,10 +44,12 @@ class WorkerManager : public Manager {
     // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list
     Worker* getUnemployedWorker();
+    Worker* getFreeWorker();
     Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*
     Worker* getNthWorker(size_t n);
     // TODO: add implementation for getting closest worker who has a specific job
     Worker* getClosestWorker(sc2::Point2D pos, int jobType = -1);
+    int getNumWorkers();
 
     protected:
     std::vector<Worker> workers;

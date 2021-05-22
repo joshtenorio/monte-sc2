@@ -1,9 +1,6 @@
 #include "BuildingManager.h"
 
 void BuildingManager::OnStep(){
-    tryBuildRefinery();
-    TryBuildBarracks();
-    TryBuildSupplyDepot();
 
     // FIXME: buildingmanager will still try to build a reactor even if it doesn't fit
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1){
@@ -15,7 +12,7 @@ void BuildingManager::OnStep(){
     // make sure all in-progress buildings are being worked on
     // kinda inefficient method
     bool workedOn = false;
-    if(!inProgressBuildings.empty()) // make sure its not empty
+    if(!inProgressBuildings.empty() && gInterface->observation->GetGameLoop() % 20 == 0) // make sure its not empty, and only do this every 20 loops
     for(auto& c : inProgressBuildings){
         sc2::Tag tag = c.first->tag;
         // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
@@ -44,25 +41,16 @@ void BuildingManager::OnStep(){
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if its an in-prog building that died, release the worker and remove Construction from list
-    std::cout << "in prog list size: " << inProgressBuildings.size() << std::endl;
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
-        std::cout << "in loop\t";
-        std::cout << "building tag: " << (*itr).first->tag << "\t";
-        std::cout << "worker tag: " << (*itr).second->tag << "\n";
         if((*itr).first->tag == unit_->tag){ // the building is the one who died
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
-            std::cout << unit_->unit_type.to_string() << " was removed from inprogress list" << std::endl;
             return;
         }
+        // TODO: is this sequence unecessary? i already handle it in OnStep
         else if((*itr).second->tag == unit_->tag){
             // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
             // so we just need to assign a new, different worker
-            // BUG: sometimes will not send a new worker -> i've noticed tag sometimes change, maybe this could be it?
-            //      this always happens on the second building worker death
-            //      idea: in the OnStep() function, loop through the workers and check their order tag, if 
-            //            an in-progress building tag doesnt show up then send a worker to finish building
-
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
             while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
@@ -70,7 +58,6 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
                 n++;
             }
             (*itr).second = newWorker;
-            std::cout << "dead worker: " << unit_->tag << "\t new worker: " << (*itr).second->tag << "\n";
             gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
             if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
@@ -107,14 +94,13 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     else 
         w->job = JOB_BUILDING;
     inProgressBuildings.emplace_back(std::make_pair(building_, w));
-    std::cout << "Construction created - worker tag: " << w->tag << "\n";
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
+    /**
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
-
     // if there is an in progress building, don't immediately build another
     // this one is for if worker dies
     if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
@@ -127,27 +113,39 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(unit->unit_type == unit_type)
             unit_to_build = unit;
     }
+    */
+
+    // check if there is already an in-progress build that doesn't have a worker
+    if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
+    for(int i = 0; i < gInterface->wm->getNumWorkers(); i++){
+        const sc2::Unit* scv = gInterface->wm->getNthWorker(i)->scv;
+        for (const auto&  order : scv->orders){
+            if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
+            return false;
+        }
+    }
+    Worker* builder = gInterface->wm->getFreeWorker();
 
     if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
-        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(unit_to_build->pos));
+        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(builder->scv->pos));
         gInterface->actions->UnitCommand(
-            unit_to_build,
+            builder->scv,
             ability_type_for_structure,
             loc);
+        builder->job = JOB_BUILDING;
         return true;
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
-        // this needs to get fixed once we have multiple bases,
-        // since this implementation will only work for main base
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         
-        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
+        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(builder->scv->pos));
         gInterface->actions->UnitCommand(
-            unit_to_build,
+            builder->scv,
             ability_type_for_structure,
             gas);
+        builder->job = JOB_BUILDING_GAS;
         return true;
     }
     else return false;
@@ -160,26 +158,3 @@ bool BuildingManager::checkConstructions(sc2::UNIT_TYPEID building){
     return false;
 }
 
-bool BuildingManager::TryBuildSupplyDepot(){
-
-    // if not supply capped, dont build supply depot
-    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2 || gInterface->observation->GetMinerals() < 100)
-        return false;
-    
-    // else, try and build depot using a random scv
-    return TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT);
-}
-
-bool BuildingManager::TryBuildBarracks() {
-    // check for depot and if we have 5 barracks already
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
-    return TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
-}
-
-// temporary: only build one refinery
-bool BuildingManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) >= 1 ||
-        gInterface->observation->GetMinerals() < 75) return false;
-    return TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
-}

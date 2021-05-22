@@ -68,6 +68,17 @@ Worker* WorkerManager::getUnemployedWorker(){
     return nullptr;
 }
 
+Worker* WorkerManager::getFreeWorker(){
+    for(auto& w : workers)
+        if(
+            w.job == JOB_UNEMPLOYED ||
+            w.job == JOB_GATHERING_GAS ||
+            w.job == JOB_GATHERING_MINERALS
+        ) return &w;
+    
+    return nullptr;
+}
+
 Worker* WorkerManager::getWorker(const Unit* unit_){
     Tag key = unit_->tag;
     for(auto& w : workers){
@@ -91,4 +102,8 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
         }
     }
     return closestWorker;
+}
+
+int WorkerManager::getNumWorkers(){
+    return workers.size();
 }
