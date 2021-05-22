@@ -64,8 +64,18 @@ Expansion Mapper::getStartingExpansion(){
     return startingExpansion;
 }
 
-Expansion Mapper::getNthExpansion(int n){
-    return expansions[n];
+Expansion* Mapper::getNthExpansion(int n){
+    return &(expansions[n]);
+}
+
+Expansion* Mapper::getCurrentExpansion(){
+    int n = 0;
+    while(n < expansions.size() - 1){
+        // if the next expansion is not owned by myself, return the current expansion
+        if(getNthExpansion(n + 1)->ownership != OWNER_SELF) return getNthExpansion(n);
+        n++;
+    }
+    return nullptr;
 }
 
 Expansion* Mapper::getNextExpansion(){

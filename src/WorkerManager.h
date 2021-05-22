@@ -50,6 +50,7 @@ class WorkerManager : public Manager {
     // TODO: add implementation for getting closest worker who has a specific job
     Worker* getClosestWorker(sc2::Point2D pos, int jobType = -1);
     int getNumWorkers();
+    bool isFree(Worker* w);
 
     protected:
     std::vector<Worker> workers;

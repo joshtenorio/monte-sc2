@@ -97,10 +97,10 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
-    /**
+
     // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
-    Units units = gInterface->observation->GetUnits(Unit::Alliance::Self);
+    Units units = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
     // if there is an in progress building, don't immediately build another
     // this one is for if worker dies
     if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
@@ -110,29 +110,17 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
                 return false;
         }
         // identify SCV to build structure
-        if(unit->unit_type == unit_type)
+        if(unit->unit_type == unit_type && gInterface->wm->isFree(gInterface->wm->getWorker(unit)))
             unit_to_build = unit;
     }
-    */
-
-    // check if there is already an in-progress build that doesn't have a worker
-    if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
-    for(int i = 0; i < gInterface->wm->getNumWorkers(); i++){
-        const sc2::Unit* scv = gInterface->wm->getNthWorker(i)->scv;
-        for (const auto&  order : scv->orders){
-            if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
-            return false;
-        }
-    }
-    Worker* builder = gInterface->wm->getFreeWorker();
+    
 
     if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
-        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(builder->scv->pos));
+        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
-            builder->scv,
+            unit_to_build,
             ability_type_for_structure,
             loc);
-        builder->job = JOB_BUILDING;
         return true;
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
@@ -140,12 +128,11 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         
-        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(builder->scv->pos));
+        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
-            builder->scv,
+           unit_to_build,
             ability_type_for_structure,
             gas);
-        builder->job = JOB_BUILDING_GAS;
         return true;
     }
     else return false;

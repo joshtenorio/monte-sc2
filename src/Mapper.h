@@ -68,7 +68,8 @@ class Mapper {
     void initialize();
     Expansion* getClosestExpansion(sc2::Point3D point);
     Expansion getStartingExpansion();
-    Expansion getNthExpansion(int n);
+    Expansion* getNthExpansion(int n);
+    Expansion* getCurrentExpansion();
 
     // returns a pointer to the next expansion to build at
     Expansion* getNextExpansion();

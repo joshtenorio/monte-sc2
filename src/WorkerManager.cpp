@@ -107,3 +107,12 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
 int WorkerManager::getNumWorkers(){
     return workers.size();
 }
+
+bool WorkerManager::isFree(Worker* w){
+    if(
+        w->job == JOB_GATHERING_GAS ||
+        w->job == JOB_GATHERING_MINERALS ||
+        w->job == JOB_UNEMPLOYED
+    ) return true;
+    else return false;
+}

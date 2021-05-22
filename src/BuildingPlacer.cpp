@@ -42,8 +42,11 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
             return findUnitForAddon(building, near);
             break;
         case sc2::ABILITY_ID::BUILD_REFINERY:{
-            Expansion* e = gInterface->map->getClosestExpansion(*near);
-            return findRefineryLocation(e);
+            Expansion* e = gInterface->map->getCurrentExpansion();
+            if(e != nullptr)
+                return findRefineryLocation(e);
+            else
+                return nullptr;
             break;
         }
         default:
