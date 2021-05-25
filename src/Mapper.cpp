@@ -84,6 +84,10 @@ Expansion* Mapper::getNextExpansion(){
     return nullptr;
 }
 
+int Mapper::numOfExpansions(){
+    return expansions.size();
+}
+
 void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future

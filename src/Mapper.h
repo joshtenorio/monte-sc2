@@ -57,6 +57,13 @@ typedef struct Expansion_s_t {
         return (distanceToStart < e.distanceToStart);
     }
 
+    bool operator == (const Expansion_s_t& e) const {
+        if(baseLocation.x == e.baseLocation.x && baseLocation.y == e.baseLocation.y)
+            return true;
+        else
+            return false;
+    }
+
 
 } Expansion;
 
@@ -67,12 +74,20 @@ class Mapper {
     Mapper() {};
     void initialize();
     Expansion* getClosestExpansion(sc2::Point3D point);
+
+    // TODO: change this so it returns an Expansion*
     Expansion getStartingExpansion();
+
+    // returns a pointer to the nth closest expansion to the starting location
     Expansion* getNthExpansion(int n);
+
+    // returns a pointer to the newest owned expansion
     Expansion* getCurrentExpansion();
 
     // returns a pointer to the next expansion to build at
     Expansion* getNextExpansion();
+
+    int numOfExpansions();
 
 
     protected:
@@ -87,5 +102,5 @@ class Mapper {
     static std::vector<Expansion> expansions;
     static std::vector<Ramp> ramps;
 
-    Expansion startingExpansion; // TODO: could this be a pointer instead?
+    Expansion startingExpansion; // TODO: could this be a pointer instead? i.e. yes it can
 };

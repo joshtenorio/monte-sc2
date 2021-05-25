@@ -70,19 +70,23 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
         }
     }
 
-    // 2. fill mineral lines
+    // 2. send to next base if base is overfull
     sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
     for(auto& cc : ccs){
-        if(cc->assigned_harvesters < cc->ideal_harvesters){
-            // make sure to not get a worker who is already at the mineral line
-            // idea: check if worker is within a certain distance of the cc
-            // also: if total workers < ideal harvesters, just continue;
-        }
-        
-    // 3. send long distance miners
         if(cc->assigned_harvesters > cc->ideal_harvesters){
             Worker* w = getClosestWorker(cc->pos, JOB_GATHERING_MINERALS);
-            Expansion* e = gInterface->map->getNextExpansion();
+            
+            // grab the next base in general
+            Expansion* e = gInterface->map->getClosestExpansion(cc->pos);
+            int n = 0;
+            Expansion* next = gInterface->map->getNthExpansion(n);
+            while(!(e == next)){
+                n++;
+                next = gInterface->map->getNthExpansion(n);
+            }
+            // n is the current expansion, so send worker to expansion n + 1
+            e = gInterface->map->getNthExpansion(n+1);
+            
             if(e != nullptr){
                 sc2::Point3D mineral = e->mineralLine.front();
                 gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
