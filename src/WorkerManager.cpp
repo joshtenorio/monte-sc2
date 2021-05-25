@@ -89,10 +89,12 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
                 next = gInterface->map->getNthExpansion(n);
             }
             // n is the current expansion, so send worker to expansion n + 1
-            e = gInterface->map->getNthExpansion(n+1);
+            if(n < gInterface->map->numOfExpansions()){
+                e = gInterface->map->getNthExpansion(n+1);
+            }
             
             if(e != nullptr){
-                const sc2::Unit* mineral = e->mineralLine.front();
+                const sc2::Unit* mineral = FindNearestMineralPatch(e->baseLocation);
                 gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
                 w->job = JOB_GATHERING_MINERALS;
             }
@@ -100,13 +102,13 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     } // end for cc : ccs
 }
 
-const Unit* WorkerManager::FindNearestMineralPatch(const Point3D& start){
+const Unit* WorkerManager::FindNearestMineralPatch(const Point2D& start){
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral, IsMineralPatch());
     float distance = std::numeric_limits<float>::max();
     const Unit* target = nullptr;
     for(const auto& u : units){
-        if(DistanceSquared3D(u->pos, start) < distance){
-            distance = DistanceSquared3D(u->pos, start);
+        if(DistanceSquared2D(u->pos, start) < distance){
+            distance = DistanceSquared2D(u->pos, start);
             target = u;
         }
     } // end for loop
