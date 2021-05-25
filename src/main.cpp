@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 		CreateComputer(Race::Protoss)
 	});
 
-    coordinator.SetRealtime(false);
+    coordinator.SetRealtime(true);
     
 	coordinator.LaunchStarcraft();
     // TODO: use the commented-out main function when I start having reasons to test on multiple maps

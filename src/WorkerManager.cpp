@@ -72,14 +72,23 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, r);
             w->job = JOB_GATHERING_GAS;
         }
+        else if (r->assigned_harvesters > gasWorkers){
+            // too much gas workers
+            Worker* w = getClosestWorker(r->pos, JOB_GATHERING_GAS);
+            const sc2::Unit* mineral = FindNearestMineralPatch(w->scv->pos);
+            gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
+            w->job = JOB_GATHERING_MINERALS;
+
+        }
     }
 
     // 2. send to next base if base is overfull
     sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
     for(auto& cc : ccs){
         if(cc->assigned_harvesters > cc->ideal_harvesters){
-            Worker* w = getClosestWorker(cc->pos, JOB_GATHERING_MINERALS);
-            
+            // worker to move
+            Worker* w = getClosestWorker(cc->pos);
+
             // grab the next base in general
             Expansion* e = gInterface->map->getClosestExpansion(cc->pos);
             int n = 0;
