@@ -99,22 +99,22 @@ void Mapper::calculateExpansions(){
     // third: calculate mineral lines and use to create expansions
     expansions.reserve(16);
     while(!mineralPatches.empty()){
-        std::queue<sc2::Point3D> mineralFrontier;
-        mineralFrontier.push(mineralPatches.front()->pos);
+        std::queue<const sc2::Unit*> mineralFrontier;
+        mineralFrontier.push(mineralPatches.front());
         Expansion e;
         e.mineralLine.reserve(8);
         e.mineralLine.push_back(mineralFrontier.front());
         mineralPatches.erase(mineralPatches.begin());
 
         while(!mineralPatches.empty() && !mineralFrontier.empty()){
-            auto mineralPos = mineralFrontier.front();
+            auto mineral = mineralFrontier.front();
             auto closestPatch = mineralPatches.front();
             float distance = std::numeric_limits<float>::max();
 
             // get closest patch to mineral frontier.front
             for(const auto& u: mineralPatches){
-                if(sc2::DistanceSquared2D(u->pos, mineralPos) < distance){
-                    distance = sc2::DistanceSquared2D(u->pos, mineralPos);
+                if(sc2::DistanceSquared2D(u->pos, mineral->pos) < distance){
+                    distance = sc2::DistanceSquared2D(u->pos, mineral->pos);
                     closestPatch = u;
                 }
             } // end for loop
@@ -125,8 +125,8 @@ void Mapper::calculateExpansions(){
                 continue;
             }
 
-            mineralFrontier.push(closestPatch->pos);
-            e.mineralLine.push_back(closestPatch->pos);
+            mineralFrontier.push(closestPatch);
+            e.mineralLine.push_back(closestPatch);
 
             // remove closest patch from mineralPatches
             auto itr = std::find(mineralPatches.begin(), mineralPatches.end(), closestPatch);
@@ -138,13 +138,12 @@ void Mapper::calculateExpansions(){
         float x = 0.0, y = 0.0, z = 0.0;
         int n = 0;
         for(auto& m : e.mineralLine){
-            x += m.x; y += m.y; z += m.z; n++;
+            x += m->pos.x; y += m->pos.y; z += m->pos.z; n++;
         }
         e.mineralMidpoint.x = x / (float) n;
         e.mineralMidpoint.y = y / (float) n;
         e.mineralMidpoint.z = z / (float) n;
 
-        gInterface->debug->DebugSphereOut(e.mineralMidpoint, 20.5);
         expansions.push_back(e);
     } // end while !mineralPatches.empty()
 
@@ -168,10 +167,6 @@ void Mapper::calculateExpansions(){
         } // end for e : expansions
     }
 
-    for(auto e : expansions)
-        if(e.ownership == OWNER_SELF) std::cout << "hehe nothing bork\n";
-    
-    
     // assign the rest of the expansions a base location
     for(auto& e : expansions){
         if(e.isStartingLocation) continue;

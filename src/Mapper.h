@@ -40,7 +40,7 @@ typedef struct Ramp_s_t {
 
 typedef struct Expansion_s_t {
     Expansion_s_t(): isStartingLocation(false), initialized(false) {}
-    std::vector<sc2::Point3D> mineralLine;
+    sc2::Units mineralLine;
     sc2::Units gasGeysers;
     sc2::Point2D baseLocation;
     sc2::Point3D mineralMidpoint; // used to find base location

@@ -82,6 +82,5 @@ bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) >= 2 ||
         gInterface->observation->GetMinerals() < 75) return false;
 
-    std::cout << "lets build a refinery!\n"; 
     return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }

@@ -38,12 +38,16 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
-    // just using tutorial code for now, gas not yet taken into consideration
-    // if unit idle send to closest mineral
-    const Unit* mineralTarget = FindNearestMineralPatch(unit_->pos);
-    if(!mineralTarget) return;
-    gInterface->actions->UnitCommand(unit_, ABILITY_ID::SMART, mineralTarget);
-    getWorker(unit_)->job = JOB_GATHERING_MINERALS;
+    // send to mine at the closest base
+    Expansion* e = gInterface->map->getCurrentExpansion();
+    if (e != nullptr){
+        const sc2::Unit* mineralTarget = e->mineralLine.front();
+        gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
+        getWorker(unit_)->job = JOB_GATHERING_MINERALS;
+    }
+    else{
+        std::cout << "e is null ptr !!!\n";
+    }
 }
 
 void WorkerManager::DistributeWorkers(int gasWorkers){
@@ -88,7 +92,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             e = gInterface->map->getNthExpansion(n+1);
             
             if(e != nullptr){
-                sc2::Point3D mineral = e->mineralLine.front();
+                const sc2::Unit* mineral = e->mineralLine.front();
                 gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
                 w->job = JOB_GATHERING_MINERALS;
             }

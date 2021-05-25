@@ -129,7 +129,6 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
             return false;
         
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
-        std::cout << "gas location: (" << gas->pos.x << ", " << gas->pos.y << ")\n";
         gInterface->actions->UnitCommand(
            unit_to_build,
             ability_type_for_structure,
