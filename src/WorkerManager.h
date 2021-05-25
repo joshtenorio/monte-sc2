@@ -38,12 +38,14 @@ class WorkerManager : public Manager {
     void OnUnitDestroyed(const Unit* unit_);
     void OnUnitIdle(const Unit* unit_);
 
-    bool DistributeWorkers(int gasWorkers = 3);
+    void DistributeWorkers(int gasWorkers = 3);
     const Unit* FindNearestMineralPatch(const Point3D& start);
 
     // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list
     Worker* getUnemployedWorker();
+
+    // free worker is defined as a worker who is either unemployed or gathering minerals
     Worker* getFreeWorker();
     Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*
     Worker* getNthWorker(size_t n);

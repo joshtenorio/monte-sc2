@@ -12,7 +12,10 @@
 using namespace sc2;
 
 void WorkerManager::OnStep(){
-    DistributeWorkers(0); // TODO: only have this function run every x steps instead of every step
+
+    // run distributeWorkers every 15 loops
+    if(gInterface->observation->GetGameLoop() % 15 == 0)
+        DistributeWorkers();
 }
 
 void WorkerManager::OnUnitCreated(const Unit* unit_){
@@ -43,8 +46,28 @@ void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
     getWorker(unit_)->job = JOB_GATHERING_MINERALS;
 }
 
-bool WorkerManager::DistributeWorkers(int gasWorkers){
-    return true;
+void WorkerManager::DistributeWorkers(int gasWorkers){
+    // 1. handle gas workers
+    sc2::Units refineries = gInterface->observation->GetUnits(
+        sc2::Unit::Alliance::Self,
+        [](const sc2::Unit& unit){
+            if(unit.build_progress < 1.0) return false;
+            return unit.unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
+                unit.unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH;
+        }
+    );
+
+    for(auto& r : refineries){
+        if(r->assigned_harvesters < r->ideal_harvesters){
+            // add one worker at a time
+            Worker* w = getFreeWorker();
+            gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, r);
+            w->job = JOB_GATHERING_GAS;
+        }
+    }
+
+    // 2. fill mineral lines
+    // 3. send long distance miners
 }
 
 const Unit* WorkerManager::FindNearestMineralPatch(const Point3D& start){
@@ -70,11 +93,7 @@ Worker* WorkerManager::getUnemployedWorker(){
 
 Worker* WorkerManager::getFreeWorker(){
     for(auto& w : workers)
-        if(
-            w.job == JOB_UNEMPLOYED ||
-            w.job == JOB_GATHERING_GAS ||
-            w.job == JOB_GATHERING_MINERALS
-        ) return &w;
+        if(isFree(&w)) return &w;
     
     return nullptr;
 }
@@ -110,7 +129,6 @@ int WorkerManager::getNumWorkers(){
 
 bool WorkerManager::isFree(Worker* w){
     if(
-        w->job == JOB_GATHERING_GAS ||
         w->job == JOB_GATHERING_MINERALS ||
         w->job == JOB_UNEMPLOYED
     ) return true;

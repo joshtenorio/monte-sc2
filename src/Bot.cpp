@@ -52,6 +52,8 @@ void Bot::OnStep() {
     if(Observation()->GetGameLoop() == 50)
         map.initialize(); 
     pm.OnStep();
+    wm.OnStep();
+
 
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
         Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));
