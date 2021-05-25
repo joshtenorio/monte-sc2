@@ -53,6 +53,11 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
+    // if it is a refinery then increment the refinery count for that expansion
+    if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
+        building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+        gInterface->map->getClosestExpansion(building_->pos)->numFriendlyRefineries++;
+
 }
 
 bool ProductionManager::TryBuildSupplyDepot(){
@@ -76,5 +81,7 @@ bool ProductionManager::TryBuildBarracks() {
 bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) >= 2 ||
         gInterface->observation->GetMinerals() < 75) return false;
+
+    std::cout << "lets build a refinery!\n"; 
     return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }

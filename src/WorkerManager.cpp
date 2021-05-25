@@ -47,6 +47,10 @@ void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
 }
 
 void WorkerManager::DistributeWorkers(int gasWorkers){
+    // 0. sanity check gasWorkers
+    if(gasWorkers > 3) gasWorkers = 3;
+    else if(gasWorkers < 0) gasWorkers = 0;
+
     // 1. handle gas workers
     sc2::Units refineries = gInterface->observation->GetUnits(
         sc2::Unit::Alliance::Self,
@@ -58,7 +62,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     );
 
     for(auto& r : refineries){
-        if(r->assigned_harvesters < r->ideal_harvesters){
+        if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
             Worker* w = getFreeWorker();
             gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, r);
@@ -67,7 +71,25 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 
     // 2. fill mineral lines
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    for(auto& cc : ccs){
+        if(cc->assigned_harvesters < cc->ideal_harvesters){
+            // make sure to not get a worker who is already at the mineral line
+            // idea: check if worker is within a certain distance of the cc
+            // also: if total workers < ideal harvesters, just continue;
+        }
+        
     // 3. send long distance miners
+        if(cc->assigned_harvesters > cc->ideal_harvesters){
+            Worker* w = getClosestWorker(cc->pos, JOB_GATHERING_MINERALS);
+            Expansion* e = gInterface->map->getNextExpansion();
+            if(e != nullptr){
+                sc2::Point3D mineral = e->mineralLine.front();
+                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
+                w->job = JOB_GATHERING_MINERALS;
+            }
+        } // end if cc->assigned_harvesters > cc->ideal_harvesters
+    } // end for cc : ccs
 }
 
 const Unit* WorkerManager::FindNearestMineralPatch(const Point3D& start){
@@ -114,13 +136,24 @@ Worker* WorkerManager::getNthWorker(size_t n){
 Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     Worker* closestWorker = nullptr;
     float distance = std::numeric_limits<float>::max();
-    for(auto& w : workers){
-        if(distance > sc2::DistanceSquared2D(pos, w.scv->pos)){
-            distance = sc2::DistanceSquared2D(pos, w.scv->pos);
-            closestWorker = &w;
+    if(jobType == -1){ // default: get any worker
+        for(auto& w : workers){
+            if(distance > sc2::DistanceSquared2D(pos, w.scv->pos)){
+                distance = sc2::DistanceSquared2D(pos, w.scv->pos);
+                closestWorker = &w;
+            }
         }
+        return closestWorker;
     }
-    return closestWorker;
+    else{
+        for(auto& w : workers){
+            if(distance > sc2::DistanceSquared2D(pos, w.scv->pos) && w.job == jobType){
+                distance = sc2::DistanceSquared2D(pos, w.scv->pos);
+                closestWorker = &w;
+            }
+        }
+        return closestWorker;
+    }
 }
 
 int WorkerManager::getNumWorkers(){
