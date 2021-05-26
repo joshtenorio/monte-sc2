@@ -26,6 +26,9 @@ class ProductionManager : public Manager {
     void OnBuildingConstructionComplete(const Unit* building_);
     void OnUnitCreated(const Unit* unit_); // pass to building manager
     void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
+
+    // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure
+    void parseStep();
     void build();
 
     bool TryBuildSupplyDepot();

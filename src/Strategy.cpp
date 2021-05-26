@@ -1,63 +1,59 @@
 #include "Strategy.h"
 
-void Strategy::pushPriorityStep(sc2::ABILITY_ID ability){
-    priorityBuildOrder.push(ability);
+void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, int supply){
+    priorityBuildOrder.emplace_back(Step(ability, supply));
 }
-void Strategy::pushOptionalStep(sc2::ABILITY_ID ability){
-    optionalBuildOrder.push(ability);
+void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, int supply){
+    optionalBuildOrder.emplace_back(Step(ability, supply));
 }
 
 void Strategy::initialize(){
-//kek FIXME:
+// FIXME: kekek
 }
 
-sc2::ABILITY_ID Strategy::getNextPriorityStep(){
+Step Strategy::popNextPriorityStep(){
     // make sure there is a step in the priority order before returning
     if(!priorityBuildOrder.empty()){
-        sc2::ABILITY_ID step = priorityBuildOrder.front();
-        priorityBuildOrder.pop();
+        Step step = priorityBuildOrder.front();
+        priorityBuildOrder.pop_front();
         return step;
     }
     else{
-        // TODO: find a better way to do this
-        return (sc2::ABILITY_ID) -1; // i really hope there isn't an ability that uses -1 lol
+        return STEP_NULL; 
     }
 }
 
-sc2::ABILITY_ID Strategy::getNextOptionalStep(){
+Step Strategy::popNextOptionalStep(){
     // make sure there is a step in the optional order before returning
     if(!optionalBuildOrder.empty()){
-        sc2::ABILITY_ID step = optionalBuildOrder.front();
-        optionalBuildOrder.pop();
+        Step step = optionalBuildOrder.front();
+        optionalBuildOrder.pop_front();
         return step;
     }
     else{
-        // TODO: find a better way to do this
-        return (sc2::ABILITY_ID) -1; // i really hope there isn't an ability that uses -1 lol
+        return STEP_NULL;
     }
 }
 
-sc2::ABILITY_ID Strategy::peekNextPriorityStep(){
+Step Strategy::peekNextPriorityStep(){
     // make sure there is a step in the priority order before returning
     if(!priorityBuildOrder.empty()){
-        sc2::ABILITY_ID step = priorityBuildOrder.front();
-        priorityBuildOrder.pop();
+        Step step = priorityBuildOrder.front();
+        priorityBuildOrder.pop_front();
         return step;
     }
     else{
-        // TODO: find a better way to do this
-        return (sc2::ABILITY_ID) -1; // i really hope there isn't an ability that uses -1 lol
+        return STEP_NULL;
     }
 }
 
-sc2::ABILITY_ID Strategy::peekNextOptionalStep(){
+Step Strategy::peekNextOptionalStep(){
     // make sure there is a step in the optional order before returning
     if(!optionalBuildOrder.empty()){
-        sc2::ABILITY_ID step = optionalBuildOrder.front();
+        Step step = optionalBuildOrder.front();
         return step;
     }
     else{
-        // TODO: find a better way to do this
-        return (sc2::ABILITY_ID) -1; // i really hope there isn't an ability that uses -1 lol
+        return STEP_NULL;
     }
 }

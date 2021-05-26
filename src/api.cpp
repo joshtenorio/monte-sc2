@@ -40,3 +40,5 @@ sc2::UNIT_TYPEID API::abilityToUnitTypeID(sc2::ABILITY_ID ability){
         break;
     }
 }
+
+// TODO: make a unitToAbilityTypeID function which does the inverse of the above
