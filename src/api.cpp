@@ -1,14 +1,19 @@
 #include "api.h"
 
-using namespace sc2;
+namespace API {
 
-std::unique_ptr<Interface> gInterface;
+size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
+    return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
+}
+sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
 
-size_t API::CountUnitType(UNIT_TYPEID unitType) {
-    return gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(unitType)).size();
 }
 
-sc2::UNIT_TYPEID API::abilityToUnitTypeID(sc2::ABILITY_ID ability){
+sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
+
+}
+
+sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
     switch(ability){
         case sc2::ABILITY_ID::BUILD_ARMORY:
             return sc2::UNIT_TYPEID::TERRAN_ARMORY;
@@ -43,7 +48,7 @@ sc2::UNIT_TYPEID API::abilityToUnitTypeID(sc2::ABILITY_ID ability){
 
 // TODO: make a unitToAbilityTypeID function which does the inverse of the above
 
-char API::parseStep(Step s){
+char parseStep(Step s){
     switch(s.ability){
         case sc2::ABILITY_ID::BUILD_ARMORY:
         case sc2::ABILITY_ID::BUILD_BARRACKS:
@@ -134,3 +139,8 @@ char API::parseStep(Step s){
             break;
     }
 }
+} // end namespace
+std::unique_ptr<Interface> gInterface;
+
+
+
