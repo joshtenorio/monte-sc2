@@ -8,12 +8,15 @@ void ProductionManager::OnStep(){
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
         tryBuildRefinery();
         TryBuildBarracks();
-        TryBuildSupplyDepot();
     }
+
+    // build a supply depot if needed regardless of whether or not we have a queue
+    TryBuildSupplyDepot();
 
     // act on items in the queue
     parseQueue();
 
+    //std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
     // building manager
     bm.OnStep();
@@ -54,10 +57,8 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
         gInterface->map->getClosestExpansion(building_->pos)->numFriendlyRefineries++;
 
-    // TODO: optimize this
-    // requires: unitToAbility function in api.cpp
-    // for now, loop through production queue to check which Step corresponds to
-    //      the structure that just finished
+    // loop through production queue to check which Step corresponds to
+    // the structure that just finished
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
             itr = productionQueue.erase(itr);
@@ -72,10 +73,8 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0)
         bm.OnUnitCreated(unit_);
     
-    // TODO: optimize this
-    // requires: unitToAbility function in api.cpp
-    // for now, loop through production queue to check which Step corresponds to
-    //      the unit that just finished (make sure that unit created is a unit not a structure)
+    // loop through production queue to check which Step corresponds to the unit
+    // that just finished (make sure that unit created is a unit not a structure)
     if(API::isStructure(unit_->unit_type.ToType())) return;
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
@@ -87,6 +86,7 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // TODO: remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
+    
 }
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -115,6 +115,10 @@ void ProductionManager::fillQueue(){
 //          then depending on the char pass s to buildStructure(), etc.
 void ProductionManager::parseQueue(){
     for(auto& s : productionQueue){
+        // skip step if we don't have enough supply for step
+        // if s.reqSupply is negative, disregard it
+        if(gInterface->observation->GetFoodUsed() < s.reqSupply && s.reqSupply > 0) continue;
+
         if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
         else if(API::parseStep(s) == ABIL_TRAIN) trainUnit(s);
         else if(API::parseStep(s) == ABIL_RESEARCH) researchUpgrade(s);

@@ -10,7 +10,7 @@ sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
 }
 
 sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
-
+    return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
 
 sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
