@@ -54,8 +54,15 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
         gInterface->map->getClosestExpansion(building_->pos)->numFriendlyRefineries++;
 
-    // TODO: remove relevant thing from the production queue
+    // TODO: optimize this
     // requires: unitToAbility function in api.cpp
+    // for now, loop through production queue to check which Step corresponds to
+    //      the structure that just finished
+    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
+        if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
+            itr = productionQueue.erase(itr);
+        else ++itr;
+    }
 
 }
 
@@ -65,8 +72,16 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0)
         bm.OnUnitCreated(unit_);
     
-    // TODO: remove relevant thing from the production queue
+    // TODO: optimize this
     // requires: unitToAbility function in api.cpp
+    // for now, loop through production queue to check which Step corresponds to
+    //      the unit that just finished (make sure that unit created is a unit not a structure)
+    if(API::isStructure(unit_->unit_type.ToType())) return;
+    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
+        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
+            itr = productionQueue.erase(itr);
+        else ++itr;
+    }
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){

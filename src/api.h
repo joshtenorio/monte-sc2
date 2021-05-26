@@ -31,6 +31,8 @@ namespace API {
     sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit);
     sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade);
 
+    bool isStructure(sc2::UNIT_TYPEID unit);
+
     char parseStep(Step s);
 
 } // end namespace API

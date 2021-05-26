@@ -6,7 +6,7 @@ size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
     return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
 }
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
-
+    return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
 
 sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
@@ -41,8 +41,63 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
             return sc2::UNIT_TYPEID::TERRAN_STARPORT;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             return sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT;
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+            return sc2::UNIT_TYPEID::TERRAN_BANSHEE;
+        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
+            return sc2::UNIT_TYPEID::TERRAN_MEDIVAC;
+        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
+            return sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER;
+        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
+            return sc2::UNIT_TYPEID::TERRAN_LIBERATOR;
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+            return sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER;
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+            return sc2::UNIT_TYPEID::TERRAN_RAVEN;
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+            return sc2::UNIT_TYPEID::TERRAN_MARAUDER;
+        case sc2::ABILITY_ID::TRAIN_MARINE:
+            return sc2::UNIT_TYPEID::TERRAN_MARINE;
+        case sc2::ABILITY_ID::TRAIN_REAPER:
+            return sc2::UNIT_TYPEID::TERRAN_REAPER;
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+            return sc2::UNIT_TYPEID::TERRAN_GHOST;
+        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
+            return sc2::UNIT_TYPEID::TERRAN_WIDOWMINE;
+        case sc2::ABILITY_ID::TRAIN_HELLION:
+            return sc2::UNIT_TYPEID::TERRAN_HELLION;
+        case sc2::ABILITY_ID::TRAIN_HELLBAT:
+            return sc2::UNIT_TYPEID::TERRAN_HELLIONTANK;
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+            return sc2::UNIT_TYPEID::TERRAN_CYCLONE;
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+            return sc2::UNIT_TYPEID::TERRAN_SIEGETANK;
+        case sc2::ABILITY_ID::TRAIN_THOR:
+            return sc2::UNIT_TYPEID::TERRAN_THOR;
         default:
+            return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
         break;
+    }
+}
+
+bool isStructure(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case UNIT_TYPEID::TERRAN_ARMORY:
+        case UNIT_TYPEID::TERRAN_BARRACKS:
+        case UNIT_TYPEID::TERRAN_BUNKER:
+        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case UNIT_TYPEID::TERRAN_FACTORY:
+        case UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case UNIT_TYPEID::TERRAN_REFINERY:
+        case UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case UNIT_TYPEID::TERRAN_STARPORT:
+        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+            return true;
+        default:
+            return false;
     }
 }
 
