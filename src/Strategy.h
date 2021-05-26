@@ -3,15 +3,34 @@
 #include <list>
 #include <sc2api/sc2_unit.h>
 
-#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, -1)
+#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, -1, false)
 
 typedef struct Step_s_t {
-    Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_) : ability(ability_), reqSupply(reqSupply_) {}
+    Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_) : ability(ability_), reqSupply(reqSupply_), blocking(blocking_) {}
     sc2::ABILITY_ID ability;
-    int reqSupply = -1; // build at a specific supply, if negative ignore it
 
-    // TODO: maybe add an == operator overload?
+    // build at a specific supply, if negative ignore it
+    int reqSupply = -1;
+
+    // if true, don't go to next Step in strategy until this step is complete
+    bool blocking;
+
+    bool operator == (const Step_s_t& s) const {
+        if(
+            ability == s.ability &&
+            reqSupply == s.reqSupply &&
+            blocking == s.blocking
+        ) return true;
+        else return false;
+    }
+
+    void operator = (const Step_s_t& s) {
+        ability = s.ability;
+        reqSupply = s.reqSupply;
+        blocking = s.blocking;
+    }
 } Step;
+
 class Strategy{
     public:
     Strategy() {};
@@ -20,8 +39,8 @@ class Strategy{
     virtual void initialize(); // TODO: does this need {} here? 
 
     // add more steps if needed
-    void pushPriorityStep(sc2::ABILITY_ID ability, int supply = -1);
-    void pushOptionalStep(sc2::ABILITY_ID ability, int supply = -1);
+    void pushPriorityStep(sc2::ABILITY_ID ability, bool blocking = true, int supply = -1);
+    void pushOptionalStep(sc2::ABILITY_ID ability, bool blocking = true, int supply = -1);
 
     // get the next step in order and pop it
     Step popNextPriorityStep();

@@ -3,7 +3,8 @@
 #include "api.h"
 #include "Strategy.h"
 
-class MarinePush : Strategy {
+class MarinePush : public Strategy {
+    public:
     MarinePush() {};
     void initialize();
 };

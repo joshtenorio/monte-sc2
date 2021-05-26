@@ -12,7 +12,13 @@
 #include <memory>
 #include "WorkerManager.h"
 #include "Mapper.h"
+#include "Strategy.h"
 
+#define ABIL_BUILD      0
+#define ABIL_TRAIN      1
+#define ABIL_RESEARCH   2
+#define ABIL_MORPH      3 // includes building addons
+#define ABIL_NULL       -1
 using namespace sc2;
 
 //class WorkerManager;
@@ -22,6 +28,8 @@ namespace API {
 
     // convert ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT
     sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser
+
+    char parseStep(Step s);
 } // end namespace API
 class Interface {
     public:

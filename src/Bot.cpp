@@ -2,16 +2,18 @@
 
 using namespace sc2;
 
+MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
-    pm = ProductionManager();
+
+    strategy = new MarinePush();
+    pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
 
     gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
 }
 
 void Bot::OnGameStart(){
-    std::cout << "boop" << std::endl;
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
 
@@ -48,7 +50,7 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 }
 
 void Bot::OnStep() {
-    // initialize mapper (find expansions and (soon) ramps)
+    // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
         map.initialize(); 
     pm.OnStep();
@@ -64,6 +66,10 @@ void Bot::OnStep() {
                 Observation()->GetGameInfo().enemy_start_locations.front());
         } // end for loop
     } // end if marine count > 10
+}
+
+void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
+    pm.OnUpgradeCompleted(upgrade_);
 }
 
 void Bot::OnUnitCreated(const Unit* unit_){
@@ -159,4 +165,6 @@ void Bot::OnError(const std::vector<ClientError>& client_errors,
         std::cerr << "Encountered protocol error: " << i << std::endl;
 }
 
-
+void Bot::OnGameEnd(){
+    delete strategy;
+}
