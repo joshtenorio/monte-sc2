@@ -1,9 +1,10 @@
 .DS_Store
 build/
 .vscode/
-notes/
 Maps
+Monte
 build.bat
 run.bat
+debug-build.bat
 bot-architecture.png
 commit-guideline.png

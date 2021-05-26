@@ -9,6 +9,8 @@ include_directories(SYSTEM
 
 link_directories(${PROJECT_BINARY_DIR}/contrib/cpp-sc2/bin)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
 # Create the executable.
 add_executable(Monte ${BOT_SOURCES})
 target_link_libraries(Monte
