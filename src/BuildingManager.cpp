@@ -75,14 +75,17 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
     int index = 0;
     for(int i = 0; i < inProgressBuildings.size(); i++){
         if(inProgressBuildings[i].first->tag == building_->tag){
+            index = i;
             if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
                 building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
                 inProgressBuildings[i].second->job = JOB_GATHERING_GAS;
-                index = i;
+            }
+            else if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER){
+                inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
+                gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
             }
             else{
                 inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
-                index = i;
             }
             break;
         }

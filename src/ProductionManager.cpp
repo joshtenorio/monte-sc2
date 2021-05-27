@@ -148,7 +148,7 @@ void ProductionManager::buildStructure(Step s){
 }
 
 void ProductionManager::trainUnit(Step s){
-
+    tryTrainUnit(s.ability);
 }
 
 void ProductionManager::researchUpgrade(Step s){
@@ -187,4 +187,37 @@ bool ProductionManager::tryBuildRefinery(){
 bool ProductionManager::tryBuildCommandCenter(){
     if(gInterface->observation->GetMinerals() < 400) return false;
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
+}
+
+// TODO: this is an interesting challenge
+// if i want to use this for both building units while Strategy is active and after it is done,
+// it needs to be able to differentiate between the two, because if the unit to train is part of
+// a strategy, it should only build one, but if strategy is already done then it should build as much
+// as possible
+bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
+    switch(unitToTrain){
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
+        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+        break;
+        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
+        case sc2::ABILITY_ID::TRAIN_HELLION:
+        case sc2::ABILITY_ID::TRAIN_HELLBAT:
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+        case sc2::ABILITY_ID::TRAIN_THOR:
+        break;
+        case sc2::ABILITY_ID::TRAIN_MARINE:
+        case sc2::ABILITY_ID::TRAIN_REAPER:
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+        
+        break;
+        case sc2::ABILITY_ID::TRAIN_SCV:
+        default:
+        break;
+    }
 }

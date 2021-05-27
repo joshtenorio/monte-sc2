@@ -42,6 +42,7 @@ class ProductionManager : public Manager {
     bool TryBuildBarracks();
     bool tryBuildRefinery();
     bool tryBuildCommandCenter();
+    bool tryTrainUnit(sc2::ABILITY_ID unitToTrain);
 
     protected:
     Strategy* strategy;
