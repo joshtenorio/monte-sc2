@@ -42,7 +42,6 @@ void ProductionManager::OnStep(){
     }
 
 
-
 }
 
 void ProductionManager::OnGameStart(){
@@ -52,11 +51,34 @@ void ProductionManager::OnGameStart(){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
-    // if it is a refinery then increment the refinery count for that expansion
-    if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
-        building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
-        gInterface->map->getClosestExpansion(building_->pos)->numFriendlyRefineries++;
-
+    switch(building_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
+            gInterface->map->getClosestExpansion(building_->pos)->numFriendlyRefineries++;
+            break;
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+            ArmyBuilding a;
+            a.addon = nullptr;
+            a.addonTag = -1; // TODO: put -1 in some define somewhere for unused tag
+            a.building = building_;
+            a.buildingTag = building_->tag;
+            a.order = ARMYBUILDING_UNUSED;
+            armyBuildings.emplace_back(a);
+            break;
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+            // find the closest army building and add to that armyBuilding struct
+            // or perhaps, search through armybuildings and see whose
+            // addon_tag matches building_
+            break;
+    }
+    
     // loop through production queue to check which Step corresponds to
     // the structure that just finished
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
@@ -124,6 +146,11 @@ void ProductionManager::parseQueue(){
         else if(API::parseStep(s) == ABIL_RESEARCH) researchUpgrade(s);
         else if(API::parseStep(s) == ABIL_MORPH) morphStructure(s);
     }
+}
+
+void ProductionManager::swapAddon(ArmyBuilding* b1, ArmyBuilding* b2){
+    // lift both buildings
+
 }
 
 void ProductionManager::buildStructure(Step s){

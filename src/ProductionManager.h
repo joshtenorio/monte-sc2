@@ -13,9 +13,9 @@ using namespace sc2;
 #define ARMYBUILDING_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
 
 typedef struct ArmyBuilding_s_t {
-    sc2::Unit* building;
+    const sc2::Unit* building;
     sc2::ABILITY_ID order; // used for continuous production of units
-    sc2::Unit* addon;
+    const sc2::Unit* addon;
 
     // tags
     sc2::Tag buildingTag;
@@ -43,7 +43,7 @@ class ProductionManager : public Manager {
     // fill queue with stuff to do
     void fillQueue();
 
-    // swap army buildings
+    // swap addons
     void swapAddon(ArmyBuilding* b1, ArmyBuilding* b2);
 
     // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure

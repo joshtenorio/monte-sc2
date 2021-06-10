@@ -7,7 +7,7 @@
 #include "WorkerManager.h"
 
 #include "api.h" // this breaks our "code style," but it is necessary for now to avoid circular definition
-// TODO: is there a way to avoid having to break our style?
+// TODO: is there a way to avoid this workaround ?
 
 using namespace sc2;
 
