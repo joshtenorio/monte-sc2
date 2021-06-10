@@ -3,10 +3,11 @@
 #include <list>
 #include <sc2api/sc2_unit.h>
 
-#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, -1, false)
+#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, -1, false, false)
 
 typedef struct Step_s_t {
-    Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_) : ability(ability_), reqSupply(reqSupply_), blocking(blocking_) {}
+    Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, bool produceSingle_) :
+                ability(ability_), reqSupply(reqSupply_), blocking(blocking_), produceSingle(produceSingle_) {}
     sc2::ABILITY_ID ability;
 
     // build at a specific supply, if negative ignore it
@@ -14,6 +15,9 @@ typedef struct Step_s_t {
 
     // if true, don't go to next Step in strategy until this step is complete
     bool blocking;
+
+    // only applicable for units; if true then ArmyBuilding will only produce one of this unit
+    bool produceSingle = true;
 
     bool operator == (const Step_s_t& s) const {
         if(
@@ -39,8 +43,8 @@ class Strategy{
     virtual void initialize(); // TODO: does this need {} here? 
 
     // add more steps if needed
-    void pushPriorityStep(sc2::ABILITY_ID ability, bool blocking = true, int supply = -1);
-    void pushOptionalStep(sc2::ABILITY_ID ability, bool blocking = true, int supply = -1);
+    void pushPriorityStep(sc2::ABILITY_ID ability, bool blocking = true, bool produceSingle = true, int supply = -1);
+    void pushOptionalStep(sc2::ABILITY_ID ability, bool blocking = true, bool produceSingle = true, int supply = -1);
 
     // get the next step in order and pop it
     Step popNextPriorityStep();

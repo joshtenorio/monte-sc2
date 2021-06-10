@@ -1,10 +1,10 @@
 #include "Strategy.h"
 
-void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, int supply){
-    priorityBuildOrder.emplace_back(Step(ability, supply, blocking));
+void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
+    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
 }
-void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, int supply){
-    optionalBuildOrder.emplace_back(Step(ability, supply, blocking));
+void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
+    optionalBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
 }
 
 void Strategy::initialize(){
