@@ -8,7 +8,7 @@ void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, int supp
 }
 
 void Strategy::initialize(){
-// FIXME: kekek
+// TODO: what should go here?
 }
 
 Step Strategy::popNextPriorityStep(){
