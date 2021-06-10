@@ -10,6 +10,14 @@
 
 using namespace sc2;
 
+#define ARMYBUILDING_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
+
+struct ArmyBuilding {
+    sc2::Unit* building;
+    sc2::ABILITY_ID order; // used for continuous production of units
+    sc2::Unit* addon;
+};
+
 class ProductionManager : public Manager {
     public:
     // constructors
