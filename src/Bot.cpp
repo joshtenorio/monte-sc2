@@ -56,6 +56,20 @@ void Bot::OnStep() {
     pm.OnStep();
     wm.OnStep();
 
+    // raise supply depots if enemy is nearby
+    sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT));
+    sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
+    for (auto& d : depots){
+        bool enemyNearby = false;
+        for (auto& e : enemies){
+            if(sc2::DistanceSquared3D(d->pos, e->pos) < 15){ // TODO: tune this value
+                enemyNearby = true;
+                break;
+            }
+        } // end e : enemies
+        if(enemyNearby) Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
+        else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+    } // end d : depots
 
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
         Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));

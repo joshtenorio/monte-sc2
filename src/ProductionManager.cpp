@@ -40,8 +40,6 @@ void ProductionManager::OnStep(){
             if(gInterface->observation->GetMinerals() >= 50 && r->orders.size() == 0)
                 gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::TRAIN_MARINE);
     }
-
-
 }
 
 void ProductionManager::OnGameStart(){
@@ -73,9 +71,17 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
-            // find the closest army building and add to that armyBuilding struct
-            // or perhaps, search through armybuildings and see whose
+        case sc2::UNIT_TYPEID::TERRAN_REACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_TECHLAB:
+            // search through armybuildings and see whose
             // addon_tag matches building_
+            for (auto& a : armyBuildings){
+                if(a.building->add_on_tag == building_->tag){
+                    a.addon = building_;
+                    a.addonTag = building_->tag;
+                    break;
+                }
+            }
             break;
     }
     
@@ -113,6 +119,19 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
+    // remove army building or addon from army building if applicable
+    for(auto itr = armyBuildings.begin(); itr != armyBuildings.end(); ){
+        if(unit_->tag == (*itr).buildingTag){
+            itr = armyBuildings.erase(itr);
+            break;
+        }
+        else if(unit_->tag == (*itr).addonTag){
+            (*itr).addon = nullptr;
+            (*itr).addonTag = -1;
+            break;
+        }
+        else ++ itr;
+    }
 }
 
 void ProductionManager::fillQueue(){
