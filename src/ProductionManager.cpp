@@ -23,21 +23,21 @@ void ProductionManager::OnStep(){
 
     // TODO: make this into function?
     const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER)).front();
-    if(gInterface->observation->GetMinerals() >= 50 && cc->orders.size() == 0)
+    if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
         gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
     
     // train marines
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0){
         sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
         for(auto& b : barracks)
-            if(gInterface->observation->GetMinerals() >= 50 && b->orders.size() == 0)
+            if(gInterface->observation->GetMinerals() >= 50 && b->orders.empty())
                 gInterface->actions->UnitCommand(b, sc2::ABILITY_ID::TRAIN_MARINE);
     }
     // FIXME: this is very inconsistent, sometimes a barracks w/o reactor will queue 2 marines, sometimes a barracks w/ reactor will only queue 1 marine
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR) > 0){
         sc2::Units reactors = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR));
         for(auto& r : reactors)
-            if(gInterface->observation->GetMinerals() >= 50 && r->orders.size() == 0)
+            if(gInterface->observation->GetMinerals() >= 50 && r->orders.empty())
                 gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::TRAIN_MARINE);
     }
 }
