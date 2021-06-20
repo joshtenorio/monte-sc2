@@ -157,7 +157,7 @@ void ProductionManager::fillQueue(){
 void ProductionManager::parseQueue(){
     for(auto& s : productionQueue){
         // skip step if we don't have enough supply for step
-        // if s.reqSupply is negative, disregard it
+        // if s.reqSupply is negative, disregard the supply check
         if(gInterface->observation->GetFoodUsed() < s.reqSupply && s.reqSupply > 0) continue;
 
         if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
