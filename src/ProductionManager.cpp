@@ -198,7 +198,15 @@ void ProductionManager::trainUnit(Step s){
 }
 
 void ProductionManager::researchUpgrade(Step s){
-
+    // find research building that corresponds to the research ability
+    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
+    for(auto b : buildings){
+        if(b->orders.empty()){
+            gInterface->actions->UnitCommand(b, s.ability);
+            return;
+        }
+    }
 }
 
 void ProductionManager::morphStructure(Step s){
