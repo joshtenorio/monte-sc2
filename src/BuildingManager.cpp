@@ -136,6 +136,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
+        // make sure there are refineries
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         

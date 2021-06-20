@@ -33,8 +33,6 @@ class ProductionManager : public Manager {
 
     void OnStep();
     void OnGameStart();
-
-    // probably useful for going to the next step if something should be blocking
     void OnBuildingConstructionComplete(const Unit* building_);
     void OnUnitCreated(const Unit* unit_);
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);

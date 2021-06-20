@@ -205,36 +205,6 @@ void ProductionManager::morphStructure(Step s){
 
 }
 
-bool ProductionManager::TryBuildSupplyDepot(){
-
-    // if not supply capped, dont build supply depot
-    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2 || gInterface->observation->GetMinerals() < 100)
-        return false;
-    
-    // else, try and build depot using a random scv
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT);
-}
-
-bool ProductionManager::TryBuildBarracks() {
-    // check for depot and if we have 5 barracks already
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
-}
-
-// FIXME: this only builds two refineryies, we need to update this at some point
-bool ProductionManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || API::CountUnitType(UNIT_TYPEID::TERRAN_REFINERY) >= 2 ||
-        gInterface->observation->GetMinerals() < 75) return false;
-
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
-}
-
-bool ProductionManager::tryBuildCommandCenter(){
-    if(gInterface->observation->GetMinerals() < 400) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
-}
-
 // TODO: this is an interesting challenge
 // if i want to use this for both building units while Strategy is active and after it is done,
 // it needs to be able to differentiate between the two, because if the unit to train is part of
@@ -266,4 +236,33 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
         default:
         break;
     }
+    return true; // placeholder so compiling will work
+}
+
+bool ProductionManager::TryBuildSupplyDepot(){
+
+    // if not supply capped, dont build supply depot
+    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2 || gInterface->observation->GetMinerals() < 100)
+        return false;
+    
+    // else, try and build depot using a random scv
+    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT);
+}
+
+bool ProductionManager::TryBuildBarracks() {
+    // check for depot and if we have 5 barracks already
+    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
+        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
+    return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+}
+
+bool ProductionManager::tryBuildRefinery(){
+    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75) return false;
+
+    return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
+}
+
+bool ProductionManager::tryBuildCommandCenter(){
+    if(gInterface->observation->GetMinerals() < 400) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
 }

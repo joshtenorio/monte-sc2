@@ -8,6 +8,8 @@
 typedef struct Step_s_t {
     Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, bool produceSingle_) :
                 ability(ability_), reqSupply(reqSupply_), blocking(blocking_), produceSingle(produceSingle_) {}
+
+    // ability that corresponds to the one that does the thing
     sc2::ABILITY_ID ability;
 
     // build at a specific supply, if negative ignore it
