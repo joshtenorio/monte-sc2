@@ -49,7 +49,7 @@ class ProductionManager : public Manager {
     void buildStructure(Step s);
     void trainUnit(Step s);
     void researchUpgrade(Step s);
-    void morphStructure(Step s);
+    void morphStructure(Step s); // TODO: could we use researchUpgrade for morphs?
 
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();

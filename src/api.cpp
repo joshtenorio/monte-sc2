@@ -121,6 +121,22 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::RESEARCH_INFERNALPREIGNITER:
         case sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE:
             return sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB;
+
+        // morphs...
+        case sc2::ABILITY_ID::MORPH_ORBITALCOMMAND:
+        case sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS:
+            return sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER;
+        case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
+            return sc2::UNIT_TYPEID::TERRAN_BARRACKS;
+        case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
+            return sc2::UNIT_TYPEID::TERRAN_FACTORY;
+        case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
+            return sc2::UNIT_TYPEID::TERRAN_STARPORT;
+        case sc2::ABILITY_ID::BUILD_REACTOR: // not sure what to do with these, probably just return default
+        case sc2::ABILITY_ID::BUILD_TECHLAB:
         default:
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
@@ -243,6 +259,3 @@ char parseStep(Step s){
 }
 } // end namespace
 std::unique_ptr<Interface> gInterface;
-
-
-

@@ -210,7 +210,14 @@ void ProductionManager::researchUpgrade(Step s){
 }
 
 void ProductionManager::morphStructure(Step s){
-
+    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
+    for(auto b : buildings){
+        if(b->orders.empty()){
+            gInterface->actions->UnitCommand(b, s.ability);
+            return;
+        }
+    }
 }
 
 // TODO: this is an interesting challenge
@@ -258,7 +265,7 @@ bool ProductionManager::TryBuildSupplyDepot(){
 }
 
 bool ProductionManager::TryBuildBarracks() {
-    // check for depot and if we have 5 barracks already
+    // check for depot and if we have 8 barracks already
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
         API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
     return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
