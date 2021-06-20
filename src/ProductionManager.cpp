@@ -16,6 +16,9 @@ void ProductionManager::OnStep(){
     // act on items in the queue
     parseQueue();
 
+    // handle ArmyBuildings that have an order set
+    handleArmyBuildings();
+
     //std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
     // building manager
@@ -26,6 +29,7 @@ void ProductionManager::OnStep(){
     if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
         gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
     
+    /**
     // train marines
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0){
         sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
@@ -40,6 +44,7 @@ void ProductionManager::OnStep(){
             if(gInterface->observation->GetMinerals() >= 50 && r->orders.empty())
                 gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::TRAIN_MARINE);
     }
+    */
 }
 
 void ProductionManager::OnGameStart(){
@@ -160,6 +165,7 @@ void ProductionManager::parseQueue(){
         // if s.reqSupply is negative, disregard the supply check
         if(gInterface->observation->GetFoodUsed() < s.reqSupply && s.reqSupply > 0) continue;
 
+        // this could probably be switch statement especially if i combine researchUpgrade and morphStructure
         if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
         else if(API::parseStep(s) == ABIL_TRAIN) trainUnit(s);
         else if(API::parseStep(s) == ABIL_RESEARCH) researchUpgrade(s);
@@ -194,9 +200,16 @@ void ProductionManager::buildStructure(Step s){
 }
 
 void ProductionManager::trainUnit(Step s){
-    tryTrainUnit(s.ability);
+    if(s.produceSingle){
+        tryTrainUnit(s.ability);
+    }
+    else{
+        setArmyBuildingOrder(nullptr, s.ability);
+    }
+    
 }
 
+// TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::researchUpgrade(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
@@ -218,40 +231,6 @@ void ProductionManager::morphStructure(Step s){
             return;
         }
     }
-}
-
-// TODO: this is an interesting challenge
-// if i want to use this for both building units while Strategy is active and after it is done,
-// it needs to be able to differentiate between the two, because if the unit to train is part of
-// a strategy, it should only build one, but if strategy is already done then it should build as much
-// as possible
-bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
-    switch(unitToTrain){
-        case sc2::ABILITY_ID::TRAIN_BANSHEE:
-        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
-        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
-        case sc2::ABILITY_ID::TRAIN_RAVEN:
-        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
-        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
-        break;
-        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
-        case sc2::ABILITY_ID::TRAIN_HELLION:
-        case sc2::ABILITY_ID::TRAIN_HELLBAT:
-        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
-        case sc2::ABILITY_ID::TRAIN_CYCLONE:
-        case sc2::ABILITY_ID::TRAIN_THOR:
-        break;
-        case sc2::ABILITY_ID::TRAIN_MARINE:
-        case sc2::ABILITY_ID::TRAIN_REAPER:
-        case sc2::ABILITY_ID::TRAIN_MARAUDER:
-        case sc2::ABILITY_ID::TRAIN_GHOST:
-        
-        break;
-        case sc2::ABILITY_ID::TRAIN_SCV:
-        default:
-        break;
-    }
-    return true; // placeholder so compiling will work
 }
 
 bool ProductionManager::TryBuildSupplyDepot(){
@@ -280,4 +259,47 @@ bool ProductionManager::tryBuildRefinery(){
 bool ProductionManager::tryBuildCommandCenter(){
     if(gInterface->observation->GetMinerals() < 400) return false;
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
+}
+
+// if armybuilding has an order, manage them
+void ProductionManager::handleArmyBuildings(){
+    for(auto& a : armyBuildings){
+        if(a.order != ARMYBUILDING_UNUSED && a.building->orders.empty()){
+            gInterface->actions->UnitCommand(a.building, a.order);
+        }
+    }
+}
+
+// if a == nullptr, give all barracks/factories/starports same order
+// if a is an actual ArmyBuilding, then only set order for that one
+void ProductionManager::setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order){
+    if(a == nullptr){
+        sc2::UNIT_TYPEID buildingID = API::buildingForUnit(order);
+        for(auto& a : armyBuildings)
+            if(a.building->unit_type.ToType() == buildingID) a.order = order;
+    }
+    else{
+        a->order = order;
+    }
+}
+
+// trains a single unit
+bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
+    sc2::UNIT_TYPEID buildingID = API::buildingForUnit(unitToTrain);
+    // prioritise a ArmyBuilding that doesn't have an order
+    for(auto& a : armyBuildings){
+        if(a.order == ARMYBUILDING_UNUSED && a.building->unit_type.ToType() == buildingID && a.building->orders.empty()){
+            gInterface->actions->UnitCommand(a.building, unitToTrain);
+            return true;
+        }
+    }
+
+    // if function reaches this point, it is likely there is no armybuilding w/o an order so just pick a valid armybuilding
+    for(auto& a : armyBuildings){
+        if(a.building->unit_type.ToType() == buildingID && a.building->orders.empty()){
+            gInterface->actions->UnitCommand(a.building, unitToTrain);
+            return true;
+        }
+    }
+    return false;
 }

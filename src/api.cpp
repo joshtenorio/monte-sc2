@@ -142,6 +142,35 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
     }
 }
 
+sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit){
+    switch(unit){
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
+        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+            return sc2::UNIT_TYPEID::TERRAN_STARPORT;
+        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
+        case sc2::ABILITY_ID::TRAIN_HELLION:
+        case sc2::ABILITY_ID::TRAIN_HELLBAT:
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+        case sc2::ABILITY_ID::TRAIN_THOR:
+            return sc2::UNIT_TYPEID::TERRAN_FACTORY;
+        case sc2::ABILITY_ID::TRAIN_MARINE:
+        case sc2::ABILITY_ID::TRAIN_REAPER:
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+            return sc2::UNIT_TYPEID::TERRAN_BARRACKS;
+        case sc2::ABILITY_ID::TRAIN_SCV:
+            // don't know what to do for this one since it is townhall
+            break;
+        default:
+            return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
+    }
+}
+
 bool isStructure(sc2::UNIT_TYPEID unit){
     switch(unit){
         case UNIT_TYPEID::TERRAN_ARMORY:

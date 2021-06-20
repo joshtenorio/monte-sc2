@@ -55,6 +55,10 @@ class ProductionManager : public Manager {
     bool TryBuildBarracks();
     bool tryBuildRefinery();
     bool tryBuildCommandCenter();
+
+    // ArmyBuilding related stuff
+    void handleArmyBuildings();
+    void setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order);
     bool tryTrainUnit(sc2::ABILITY_ID unitToTrain);
 
     protected:

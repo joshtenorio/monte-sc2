@@ -30,6 +30,7 @@ namespace API {
     sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser
     sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit);
     sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade);
+    sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit);
 
     bool isStructure(sc2::UNIT_TYPEID unit);
 
