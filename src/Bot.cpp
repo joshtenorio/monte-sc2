@@ -42,6 +42,14 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
         case UNIT_TYPEID::TERRAN_SENSORTOWER:
         case UNIT_TYPEID::TERRAN_STARPORT:
         case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+        case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+        case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
             pm.OnBuildingConstructionComplete(building_);
             break;
         default:
@@ -127,7 +135,6 @@ void Bot::OnUnitIdle(const Unit* unit) {
             break;
         case UNIT_TYPEID::TERRAN_REFINERY:
         case UNIT_TYPEID::TERRAN_REFINERYRICH:
-            std::cout << "bowo refinery is idle\n";
             break;
         default:
             break;

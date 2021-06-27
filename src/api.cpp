@@ -6,6 +6,24 @@ size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
     return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
 }
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+            return sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS;
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+            return sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS;
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+            return sc2::ABILITY_ID::BUILD_REACTOR_FACTORY;
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+            return sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY;
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+            return sc2::ABILITY_ID::BUILD_REACTOR_STARPORT;
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+            return sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT;
+        case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+            return sc2::ABILITY_ID::MORPH_ORBITALCOMMAND;
+        case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+            return sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS;
+    }
     return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
 
@@ -15,7 +33,7 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
 
 sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
     switch(ability){
-        // build structure/train units...
+        // build structures...
         case sc2::ABILITY_ID::BUILD_ARMORY:
             return sc2::UNIT_TYPEID::TERRAN_ARMORY;
         case sc2::ABILITY_ID::BUILD_BARRACKS:
@@ -42,6 +60,8 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
             return sc2::UNIT_TYPEID::TERRAN_STARPORT;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             return sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT;
+        
+        // train units...
         case sc2::ABILITY_ID::TRAIN_BANSHEE:
             return sc2::UNIT_TYPEID::TERRAN_BANSHEE;
         case sc2::ABILITY_ID::TRAIN_MEDIVAC:

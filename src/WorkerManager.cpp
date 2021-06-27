@@ -13,17 +13,20 @@ using namespace sc2;
 
 void WorkerManager::OnStep(){
 
-    // run distributeWorkers every 15 loops
-    if(gInterface->observation->GetGameLoop() % 15 == 0)
+    // run distributeWorkers every 15 loops and after everything initializes
+    if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500)
         DistributeWorkers();
+    
 }
 
 void WorkerManager::OnUnitCreated(const Unit* unit_){
     Worker w;
-    w.job = JOB_UNEMPLOYED;
+    if(gInterface->observation->GetGameLoop() < 20) w.job = JOB_GATHERING_MINERALS;
+    else w.job = JOB_UNEMPLOYED;
     w.scv = unit_;
     w.tag = (*unit_).tag;
     workers.emplace_back(w);
+    if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
 }
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
@@ -109,6 +112,11 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             }
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
     } // end for cc : ccs
+
+    // 3. handle leftover workers that are unemployed
+    for(auto& w : workers){
+        if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.scv);
+    }
 }
 
 const Unit* WorkerManager::FindNearestMineralPatch(const Point2D& start){
