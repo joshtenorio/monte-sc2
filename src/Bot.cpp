@@ -107,10 +107,11 @@ void Bot::OnUnitCreated(const Unit* unit_){
         case UNIT_TYPEID::TERRAN_REFINERYRICH:
         case UNIT_TYPEID::TERRAN_SENSORTOWER:
         case UNIT_TYPEID::TERRAN_STARPORT:
-        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
             pm.OnUnitCreated(unit_);
             break;
         default:
+            pm.OnUnitCreated(unit_);
             break;
     }
 }
