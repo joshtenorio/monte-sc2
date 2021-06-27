@@ -42,11 +42,12 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
             return findUnitForAddon(building, near);
             break;
         case sc2::ABILITY_ID::BUILD_REFINERY:{
-            Expansion* e = gInterface->map->getCurrentExpansion();
-            if(e != nullptr)
-                return findRefineryLocation(e);
-            else
-                return nullptr;
+            if(gInterface->observation->GetGameLoop() > 70)
+                for(int i = 0; i < gInterface->map->numOfExpansions(); i++){
+                    Expansion* e = gInterface->map->getNthExpansion(i);
+                    if(findRefineryLocation(e) != nullptr) return findRefineryLocation(e);
+                }
+            return nullptr;
             break;
         }
         default:
