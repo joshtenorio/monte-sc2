@@ -1,15 +1,24 @@
 #include "Strategy.h"
 
+
+
 void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
     priorityBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
 }
+
+void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, int supply){
+    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, false));
+}
+
 void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
     optionalBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
 }
 
-void Strategy::initialize(){
-// TODO: what should go here?
+void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, int supply){
+    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, false));
 }
+
+void Strategy::initialize(){}
 
 Step Strategy::popNextPriorityStep(){
     // make sure there is a step in the priority order before returning
@@ -38,8 +47,8 @@ Step Strategy::popNextOptionalStep(){
 Step Strategy::peekNextPriorityStep(){
     // make sure there is a step in the priority order before returning
     if(!priorityBuildOrder.empty()){
-        Step step = priorityBuildOrder.front();
-        return step;
+        //Step step = priorityBuildOrder.front();
+        return priorityBuildOrder.front();;
     }
     else{
         return STEP_NULL;

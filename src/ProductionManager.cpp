@@ -5,9 +5,11 @@ void ProductionManager::OnStep(){
     // if prod queue is empty, fill it with stuff from 
     if(productionQueue.empty()) fillQueue();
 
+    // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
         tryBuildRefinery();
         TryBuildBarracks();
+        // TODO: add more things here such as building more command centers
     }
 
     // build a supply depot if needed regardless of whether or not we have a queue
@@ -19,32 +21,14 @@ void ProductionManager::OnStep(){
     // handle ArmyBuildings that have an order set
     handleArmyBuildings();
 
-    //std::cout << "prod queue size: " << productionQueue.size() << std::endl;
-
     // building manager
     bm.OnStep();
 
     // TODO: make this into function?
-    const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER)).front();
+    const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall()).front();
     if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
         gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
     
-    /**
-    // train marines
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0){
-        sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
-        for(auto& b : barracks)
-            if(gInterface->observation->GetMinerals() >= 50 && b->orders.empty())
-                gInterface->actions->UnitCommand(b, sc2::ABILITY_ID::TRAIN_MARINE);
-    }
-    // FIXME: this is very inconsistent, sometimes a barracks w/o reactor will queue 2 marines, sometimes a barracks w/ reactor will only queue 1 marine
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR) > 0){
-        sc2::Units reactors = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR));
-        for(auto& r : reactors)
-            if(gInterface->observation->GetMinerals() >= 50 && r->orders.empty())
-                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::TRAIN_MARINE);
-    }
-    */
 }
 
 void ProductionManager::OnGameStart(){
@@ -80,10 +64,10 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_TECHLAB:
             // search through armybuildings and see whose
             // addon_tag matches building_
-            for (auto& a : armyBuildings){
-                if(a.building->add_on_tag == building_->tag){
-                    a.addon = building_;
-                    a.addonTag = building_->tag;
+            for (auto& ab : armyBuildings){
+                if(ab.building->add_on_tag == building_->tag){
+                    ab.addon = building_;
+                    ab.addonTag = building_->tag;
                     break;
                 }
             }
@@ -107,8 +91,9 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
-    // that just finished (make sure that unit created is a unit not a structure)
-    if(API::isStructure(unit_->unit_type.ToType())) return;
+    // that just finished and make sure that unit created is a unit, not a structure
+    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
+    std::cout << "gotta remove a " << unit_->unit_type.to_string() << "\n";
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
             itr = productionQueue.erase(itr);
@@ -157,13 +142,11 @@ void ProductionManager::fillQueue(){
     }
 }
 
-// TODO: move the switch statement into api.cpp and have that return a char,
-//          then depending on the char pass s to buildStructure(), etc.
 void ProductionManager::parseQueue(){
     for(auto& s : productionQueue){
         // skip step if we don't have enough supply for step
-        // if s.reqSupply is negative, disregard the supply check
-        if(gInterface->observation->GetFoodUsed() < s.reqSupply && s.reqSupply > 0) continue;
+        int currSupply = gInterface->observation->GetFoodUsed();
+        if(currSupply < s.reqSupply) continue;
 
         // this could probably be switch statement especially if i combine researchUpgrade and morphStructure
         if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
@@ -275,8 +258,8 @@ void ProductionManager::handleArmyBuildings(){
 void ProductionManager::setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order){
     if(a == nullptr){
         sc2::UNIT_TYPEID buildingID = API::buildingForUnit(order);
-        for(auto& a : armyBuildings)
-            if(a.building->unit_type.ToType() == buildingID) a.order = order;
+        for(auto& ab : armyBuildings)
+            if(ab.building->unit_type.ToType() == buildingID) ab.order = order;
     }
     else{
         a->order = order;
