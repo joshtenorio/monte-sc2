@@ -2,8 +2,8 @@
 
 void ProductionManager::OnStep(){
 
-    // if prod queue is empty, fill it with stuff from 
-    if(productionQueue.empty()) fillQueue();
+    // fill queue with steps
+    fillQueue();
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
