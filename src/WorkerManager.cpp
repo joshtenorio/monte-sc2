@@ -41,8 +41,9 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
-    // send to mine at the closest base
-    Expansion* e = gInterface->map->getCurrentExpansion();
+    // send to mine at the current base
+    //Expansion* e = gInterface->map->getCurrentExpansion();
+    Expansion* e = gInterface->map->getNthExpansion(0); // temporary
     if (e != nullptr){
         const sc2::Unit* mineralTarget = e->mineralLine.front();
         gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
