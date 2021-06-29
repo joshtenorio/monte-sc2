@@ -1,4 +1,6 @@
-
+// The MIT License (MIT)
+//
+// Copyright (c) 2021 Alexander Kurbatov
 #include <sc2api/sc2_coordinator.h>
 #include <sc2api/sc2_gametypes.h>
 #include <sc2utils/sc2_arg_parser.h>
@@ -108,7 +110,7 @@ int main(int argc, char* argv[])
             CreateComputer(
                 sc2::Race::Protoss,
                 sc2::Difficulty::MediumHard,
-                sc2::AIBuild::Rush,
+                sc2::AIBuild::Rush
                 )
         });
 

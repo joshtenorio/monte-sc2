@@ -1,8 +1,8 @@
 # monte-bot
 
 ## About
-Monte is a StarCraft II Bot built to play Terran.
-Its architecture is based off of parts of CommandCenter and Suvorov/MulleMech I liked.
+Monte is a StarCraft II Terran bot.
+Its architecture is based off of parts of CommandCenter I liked.
 
 ## Building
 ### Windows
@@ -34,6 +34,7 @@ $ mkdir build && cd build
 # Generate a Makefile.
 # Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debuginfo is needed
 # Debug build also contains additional debug features and chat commands support.
+# or use 'cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0 ../' to build for aiarena ladder
 $ cmake ../
 
 # Build the project.
@@ -44,5 +45,5 @@ $ ./bin/Monte "/Users/josht/.../EverDream506.SC2Map"
 ```
 
 ## Thanks
-- ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot)
+- ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot).
 - the procedure for finding expansions is from [MulleMech](https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp)
