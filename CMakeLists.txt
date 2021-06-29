@@ -1,3 +1,7 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2021 Alexander Kurbatov
+
 cmake_minimum_required(VERSION 3.1)
 
 project(Monte)
@@ -16,6 +20,8 @@ set(BUILD_API_TESTS OFF CACHE INTERNAL "" FORCE)
 
 # Dont build sc2renderer in the sc2api submodule.
 set(BUILD_SC2_RENDERER OFF CACHE INTERNAL "" FORCE)
+
+option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
 
 add_subdirectory("contrib/cpp-sc2")
 add_subdirectory("src")

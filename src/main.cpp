@@ -6,57 +6,31 @@
 #include <iostream>
 #include "Bot.h"
 
-// ladder code is from suvorov-bot
-using namespace sc2;
-#ifdef DEBUG
-int main(int argc, char* argv[]) {
-	Coordinator coordinator;
-	coordinator.LoadSettings(argc, argv);
+// ladder code is from blankbot
+#ifdef BUILD_FOR_LADDER
+namespace
+{
 
-	Bot bot;
-	coordinator.SetParticipants({
-		CreateParticipant(Race::Terran, &bot, "Monte"),
-		CreateComputer(Race::Protoss)
-	});
-
-    coordinator.SetRealtime(true);
-    
-	coordinator.LaunchStarcraft();
-
-    coordinator.StartGame(argv[1]);
-
-	while (coordinator.Update()) {
-    }
-
-    return 0;
-}
-
-#else
-namespace {
-
-struct Options {
-    Options(): GamePort(0), StartPort(0), ComputerOpponent(false) {
-    }
+struct Options
+{
+    Options(): GamePort(0), StartPort(0)
+    {}
 
     int32_t GamePort;
     int32_t StartPort;
     std::string ServerAddress;
     std::string OpponentId;
-    bool ComputerOpponent;
-    sc2::Difficulty ComputerDifficulty;
-    sc2::Race ComputerRace;
 };
 
-void ParseArguments(int argc, char* argv[], Options* options_) {
+void ParseArguments(int argc, char* argv[], Options* options_)
+{
     sc2::ArgParser arg_parser(argv[0]);
-    arg_parser.AddOptions({
+    arg_parser.AddOptions(
+        {
             {"-g", "--GamePort", "Port of client to connect to", false},
             {"-o", "--StartPort", "Starting server port", false},
             {"-l", "--LadderServer", "Ladder server address", false},
             {"-x", "--OpponentId", "PlayerId of opponent", false},
-            {"-c", "--ComputerOpponent", "If we set up a computer opponent", false},
-            {"-a", "--ComputerRace", "Race of computer oppent", false},
-            {"-d", "--ComputerDifficulty", "Difficulty of computer opponent", false}
         });
 
     arg_parser.Parse(argc, argv);
@@ -74,48 +48,77 @@ void ParseArguments(int argc, char* argv[], Options* options_) {
         options_->OpponentId = OpponentId;
 
     arg_parser.Get("LadderServer", options_->ServerAddress);
-
-    std::string CompOpp;
-    if (arg_parser.Get("ComputerOpponent", CompOpp)) {
-        options_->ComputerOpponent = true;
-        std::string CompRace;
-    }
 }
 
 }  // namespace
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     Options options;
     ParseArguments(argc, argv, &options);
 
     sc2::Coordinator coordinator;
     Bot bot;
 
-    size_t num_agents;
-    if (options.ComputerOpponent) {
-        num_agents = 1;
-        coordinator.SetParticipants({
-            CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
-            CreateComputer(Race::Protoss)
-            });
-    } else {
-        num_agents = 2;
-        coordinator.SetParticipants({
-            CreateParticipant(sc2::Race::Terran, &bot, "Monte")
-            });
-    }
+    size_t num_agents = 2;
+    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Terran, &bot, "Monte") });
 
     std::cout << "Connecting to port " << options.GamePort << std::endl;
     coordinator.Connect(options.GamePort);
     coordinator.SetupPorts(num_agents, options.StartPort, false);
+
+    // NB (alkurbatov): Increase speed of steps processing.
+    // Disables ability to control your bot during game.
+    // Recommended for competitions.
     coordinator.SetRawAffectsSelection(true);
+
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
     std::cout << "Successfully joined game" << std::endl;
 
-    while (coordinator.Update()) {
-    }
+    while (coordinator.Update())
+    {}
 
     return 0;
 }
+
+#else
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
+        std::cerr << "Provide either name of the map file or path to it!" << std::endl;
+        return 1;
+    }
+
+    sc2::Coordinator coordinator;
+    coordinator.LoadSettings(argc, argv);
+
+    // NOTE: Uncomment to start the game in full screen mode.
+    // coordinator.SetFullScreen(true);
+
+    // NOTE: Uncomment to play at normal speed.
+    // coordinator.SetRealtime(true);
+
+    Bot bot;
+    coordinator.SetParticipants(
+        {
+            CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
+            CreateComputer(
+                sc2::Race::Protoss,
+                sc2::Difficulty::MediumHard,
+                sc2::AIBuild::Rush,
+                )
+        });
+
+    coordinator.LaunchStarcraft();
+    coordinator.StartGame(argv[1]);
+
+    while (coordinator.Update())
+    {}
+
+    return 0;
+}
+
 #endif
