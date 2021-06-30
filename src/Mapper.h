@@ -9,6 +9,7 @@
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2api/sc2_map_info.h>
+#include "Ramp.h"
 
 // max distance for a neighboring mineral patch
 #define PATCH_NEIGHBOR_DISTANCE 25.0f  // 5^2 = 25
@@ -22,21 +23,6 @@
 #define OWNER_NEUTRAL   0
 #define OWNER_SELF      1
 #define OWNER_ENEMY     2
-
-// map names (needs to be updated every season, at least until we properly calculate ramps)
-// only have ever dream and submarine for now, just waiting on AIE maps to be released since those will probably be used for next season
-#define EVERDREAM 0
-#define SUBMARINE 1
-
-typedef struct Ramp_s_t {
-    Ramp_s_t() {}
-    bool isMainRamp = false;
-    std::vector<sc2::Point2D> supplyDepotPoints;
-    sc2::Point2D barracksPos;
-    sc2::Point2D barracksWithAddonPos; // probably the more useful one
-
-} Ramp;
-
 
 typedef struct Expansion_s_t {
     Expansion_s_t(): isStartingLocation(false), initialized(false) {}
