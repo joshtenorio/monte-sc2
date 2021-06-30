@@ -192,10 +192,8 @@ void Mapper::calculateExpansions(){
                 c = i;
             }
         }
-        gInterface->debug->DebugTextOut(std::to_string(c), g->pos);
         expansions[c].gasGeysers.emplace_back(g);
     }
-    gInterface->debug->SendDebug();
 } // end void Mapper::calculateExpansions()
 
 void Mapper::sortExpansions(sc2::Point2D point){

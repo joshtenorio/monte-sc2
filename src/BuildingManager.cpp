@@ -128,9 +128,6 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
-        
-        gInterface->debug->DebugSphereOut(gas->pos, 3);
-        gInterface->debug->SendDebug();
 
         gInterface->actions->UnitCommand(
            unit_to_build,
