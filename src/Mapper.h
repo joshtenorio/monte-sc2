@@ -85,6 +85,9 @@ class Mapper {
     // sort by closest expansion to the parameter to farthest from the parameter
     void sortExpansions(sc2::Point2D point);
 
+    // for debugging purposes
+    void validateGeysers();
+
     static std::vector<Expansion> expansions;
     static std::vector<Ramp> ramps;
 

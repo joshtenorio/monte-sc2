@@ -17,6 +17,8 @@ void Mapper::initialize(){
     r->isMainRamp = true;
     findRamp(r, startingExpansion.baseLocation);
 
+    //validateGeysers();
+
 }
 
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
@@ -205,4 +207,18 @@ void Mapper::sortExpansions(sc2::Point2D point){
 
     // use std::sort
     std::sort(expansions.begin(), expansions.end());
+}
+
+void Mapper::validateGeysers(){
+    std::vector<sc2::QueryInterface::PlacementQuery> queries;
+    for(auto& e : expansions){
+        for(auto& g : e.gasGeysers)
+        queries.emplace_back(sc2::ABILITY_ID::BUILD_REFINERY, g->pos);
+    }
+    auto results = gInterface->query->Placement(queries);
+    int trueResults = 0;
+    for(auto r : results){
+        if(r) trueResults++;
+    }
+    //printf("%d of %d valid\n", trueResults, results.size());
 }
