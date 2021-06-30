@@ -16,6 +16,7 @@ void Mapper::initialize(){
     Ramp* r = &(startingExpansion.ramp);
     r->isMainRamp = true;
     findRamp(r, startingExpansion.baseLocation);
+
 }
 
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
@@ -183,20 +184,16 @@ void Mapper::calculateExpansions(){
     std::cout << "total number of expansions: " << expansions.size() << "\n";
     // assign gas geysers to an expansion
     for(auto& g : gasGeysers){
-        //std::cout << "gas location: (" << g->pos.x << "," << g->pos.y << ")" << std::endl;
         int c = 0;
         for(int i = 0; i < expansions.size(); i++){
             if(sc2::DistanceSquared2D(g->pos, expansions[i].baseLocation) < sc2::DistanceSquared2D(g->pos, expansions[c].baseLocation)){
                 c = i;
             }
         }
+        gInterface->debug->DebugTextOut(std::to_string(c), g->pos);
         expansions[c].gasGeysers.emplace_back(g);
-        //std::cout << "an expansion has " << expansions[c].gasGeysers.size() << " geysers\n";
     }
-
-    //for(auto e : expansions) std::cout << "boop has " << e.gasGeysers.size() << " geysers\n";
-
-
+    gInterface->debug->SendDebug();
 } // end void Mapper::calculateExpansions()
 
 void Mapper::sortExpansions(sc2::Point2D point){

@@ -107,8 +107,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     // the structure that just finished, doesn't apply to morphs
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
-            {itr = productionQueue.erase(itr);
-            std::cout << "removed a " << building_->unit_type.to_string() << std::endl;}
+            itr = productionQueue.erase(itr);
         else ++itr;
     }
 }
@@ -263,7 +262,6 @@ bool ProductionManager::TryBuildBarracks() {
 
 bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75) return false;
-    std::cout << "refinery passed pm check\n";
     return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }
 

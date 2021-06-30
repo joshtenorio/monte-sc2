@@ -46,7 +46,6 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                 for(int i = 0; i < gInterface->map->numOfExpansions(); i++){
                     Expansion* e = gInterface->map->getNthExpansion(i);
                     if(findRefineryLocation(e) != nullptr){
-                        std::cout << "we found a refinery location!!!\n";
                         return findRefineryLocation(e);
                     }
                 }
