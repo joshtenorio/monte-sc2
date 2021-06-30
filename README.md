@@ -19,8 +19,6 @@ $ cmake ../ -G "Visual Studio 15 2017 Win64"
 
 :: Build the project.
 $ cmake --build . --parallel
-:: For the debug build.
-$ cmake --build . --config Debug --parallel
 
 :: Launch the bot with the specified path to a SC2 map, e.g.
 $ bin\Debug\Monte.exe Maps/EverDream506.SC2Map

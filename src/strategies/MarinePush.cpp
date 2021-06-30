@@ -11,4 +11,5 @@ void MarinePush::initialize(){
     pushPriorityStep(sc2::ABILITY_ID::BUILD_FACTORY, STEP_NONBLOCKING);
     pushPriorityStep(sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS, STEP_NONBLOCKING);
     pushPriorityStep(sc2::ABILITY_ID::BUILD_REFINERY, STEP_NONBLOCKING);
+    pushPriorityStep(sc2::ABILITY_ID::BUILD_STARPORT, STEP_NONBLOCKING);
 }

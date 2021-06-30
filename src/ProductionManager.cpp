@@ -10,7 +10,22 @@ void ProductionManager::OnStep(){
         tryBuildRefinery();
         TryBuildBarracks();
         // TODO: add more things here such as building more command centers
-    }
+
+        // check if any army buildings are unused
+        for(auto& a : armyBuildings){
+            if(a.order == ARMYBUILDING_UNUSED){
+                switch(a.building->unit_type.ToType()){
+                    case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+                        a.order = sc2::ABILITY_ID::TRAIN_MARINE;
+                    break;
+                    case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+                    break;
+                    case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+                    break;
+                }
+            }
+        } // end for loop
+    } // end if prod queue empty
 
     // build a supply depot if needed regardless of whether or not we have a queue
     TryBuildSupplyDepot();
@@ -25,9 +40,10 @@ void ProductionManager::OnStep(){
     bm.OnStep();
 
     // TODO: make this into function?
-    const Unit* cc = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall()).front();
-    if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
-        gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
+    Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
+    for(auto& cc : ccs)
+        if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
+            gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
     
 }
 
@@ -262,7 +278,6 @@ void ProductionManager::handleArmyBuildings(){
         }
     }
 }
-
 
 void ProductionManager::setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order){
     // if a == nullptr, give all barracks/factories/starports same order
