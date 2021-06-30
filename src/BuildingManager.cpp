@@ -72,10 +72,6 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
                 building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
                 inProgressBuildings[i].second->job = JOB_GATHERING_GAS;
             }
-            else if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER){
-                inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
-                gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
-            }
             else{
                 inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
             }
@@ -128,10 +124,10 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
     }
     else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
-        // make sure there are refineries
+        // make sure there are geysers
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
-        
+        std::cout << "refinery passed bm check\n";
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         gInterface->actions->UnitCommand(
            unit_to_build,

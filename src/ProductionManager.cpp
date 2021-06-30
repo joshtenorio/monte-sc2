@@ -15,17 +15,20 @@ void ProductionManager::OnStep(){
         for(auto& a : armyBuildings){
             if(a.order == ARMYBUILDING_UNUSED){
                 switch(a.building->unit_type.ToType()){
-                    case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+                    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: // TODO: if barracks has a tech lab, should it train marauders instead?
                         a.order = sc2::ABILITY_ID::TRAIN_MARINE;
                     break;
                     case sc2::UNIT_TYPEID::TERRAN_FACTORY:
                     break;
                     case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+                        a.order = sc2::ABILITY_ID::TRAIN_MEDIVAC;
                     break;
                 }
             }
         } // end for loop
     } // end if prod queue empty
+
+    if(gInterface->observation->GetGameLoop() % 400 == 0) std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
     // build a supply depot if needed regardless of whether or not we have a queue
     TryBuildSupplyDepot();
@@ -94,18 +97,20 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
                     itr = productionQueue.erase(itr);
                 else ++itr;
             }
-            std::cout << "prod queue size: " << productionQueue.size() << std::endl;
             return;
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
+            break;
     }
     
     // loop through production queue to check which Step corresponds to
-    // the structure that just finished
+    // the structure that just finished, doesn't apply to morphs
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
-            itr = productionQueue.erase(itr);
+            {itr = productionQueue.erase(itr);
+            std::cout << "removed a " << building_->unit_type.to_string() << std::endl;}
         else ++itr;
     }
-    std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
@@ -117,14 +122,12 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    std::cout << "gotta remove a " << unit_->tag << "\n";
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
             itr = productionQueue.erase(itr);
         else ++itr;
     }
 
-    std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
@@ -223,7 +226,7 @@ void ProductionManager::researchUpgrade(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
-    for(auto b : buildings){
+    for(auto& b : buildings){
         if(b->orders.empty()){
             gInterface->actions->UnitCommand(b, s.ability);
             return;
@@ -234,10 +237,9 @@ void ProductionManager::researchUpgrade(Step s){
 void ProductionManager::morphStructure(Step s){
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
-    for(auto b : buildings){
+    for(auto& b : buildings){
         if(b->orders.empty()){
             gInterface->actions->UnitCommand(b, s.ability);
-            return;
         }
     }
 }
@@ -261,7 +263,7 @@ bool ProductionManager::TryBuildBarracks() {
 
 bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75) return false;
-
+    std::cout << "refinery passed pm check\n";
     return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }
 
