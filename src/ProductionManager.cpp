@@ -7,12 +7,14 @@ void ProductionManager::OnStep(){
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
-        tryBuildRefinery();
         TryBuildBarracks();
+        tryBuildRefinery();
+        tryBuildCommandCenter();
         // TODO: add more things here such as building more command centers
 
-        // check if any army buildings are unused
+        // check on army buildings
         for(auto& a : armyBuildings){
+            // if army building is unused, give it an order
             if(a.order == ARMYBUILDING_UNUSED){
                 switch(a.building->unit_type.ToType()){
                     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: // TODO: if barracks has a tech lab, should it train marauders instead?
@@ -25,6 +27,8 @@ void ProductionManager::OnStep(){
                     break;
                 }
             }
+
+            // if army building is a barrack, then place a reactor if possible
         } // end for loop
     } // end if prod queue empty
 
@@ -261,7 +265,7 @@ bool ProductionManager::TryBuildBarracks() {
 }
 
 bool ProductionManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75) return false;
+    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= 6) return false;
     return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
 }
 
