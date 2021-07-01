@@ -14,8 +14,11 @@ using namespace sc2;
 void WorkerManager::OnStep(){
 
     // run distributeWorkers every 15 loops and after everything initializes
-    if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500)
+    if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
+        std::cout << "distributing workers..." << std::endl;
+    }
+        
     
 }
 
@@ -32,12 +35,22 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
     Tag key = unit_->tag;
     std::cout << "erasing worker tag" << unit_->tag << std::endl;
+    /**
     for(auto itr = workers.begin(); itr != workers.end(); ){
         if((*itr).scv->tag == key)
             itr = workers.erase(itr);
         else ++itr;
     }
-    
+    */
+   int index = 0;
+   for(int i = 0; i < workers.size(); i++){
+       if(workers[i].scv->tag == key){
+           index = i;
+           break;
+       }
+   }
+   workers.erase(workers.begin() + index);
+    std::cout << "worker removed successfully" << std::endl;
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
