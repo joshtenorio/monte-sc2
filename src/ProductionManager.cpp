@@ -63,6 +63,7 @@ void ProductionManager::OnGameStart(){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
+    int index = 0;
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
         case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
@@ -104,7 +105,6 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
                     itr = productionQueue.erase(itr);
                 else ++itr;
             }*/
-            int index = 0;
             for(int i = 0; i < productionQueue.size(); i++){
                 if(productionQueue[i].ability == API::unitTypeIDToAbilityID(building_->unit_type.ToType())){
                     index = i;
@@ -127,7 +127,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         else ++itr;
     }
     */
-    int index = 0;
+    index = 0;
     for(int i = 0; i < productionQueue.size(); i++){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
             index = i;
@@ -154,13 +154,12 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
         }
     }
     productionQueue.erase(productionQueue.begin() + index);
-
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // TODO: remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
-    
+
 }
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
