@@ -64,7 +64,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed, unless building was a refinery (in which case the new job is gathering gas)
-    int index = 0;
+    int index = -1;
     for(int i = 0; i < inProgressBuildings.size(); i++){
         if(inProgressBuildings[i].first->tag == building_->tag){
             index = i;
@@ -78,7 +78,8 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
             break;
         }
     }
-    inProgressBuildings.erase(inProgressBuildings.begin() + index);
+    if(index >= 0)
+        inProgressBuildings.erase(inProgressBuildings.begin() + index);
 }
 
 void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
