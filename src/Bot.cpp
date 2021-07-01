@@ -60,7 +60,8 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 void Bot::OnStep() {
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
-        map.initialize(); 
+        map.initialize();
+
     pm.OnStep();
     wm.OnStep();
 
@@ -78,6 +79,7 @@ void Bot::OnStep() {
         if(enemyNearby) Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
+
 
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
         Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));

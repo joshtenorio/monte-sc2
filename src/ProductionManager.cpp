@@ -37,8 +37,6 @@ void ProductionManager::OnStep(){
 
     if(gInterface->observation->GetGameLoop() % 400 == 0) std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
-    
-
     // act on items in the queue
     parseQueue();
 
@@ -63,7 +61,7 @@ void ProductionManager::OnGameStart(){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
-    int index = 0;
+    int index = -1;
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
         case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
@@ -111,7 +109,8 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
                     break;
                 }
             }
-            productionQueue.erase(productionQueue.begin() + index);
+            if(index >= 0)
+                productionQueue.erase(productionQueue.begin() + index);
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
@@ -127,14 +126,15 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         else ++itr;
     }
     */
-    index = 0;
+    index = -1;
     for(int i = 0; i < productionQueue.size(); i++){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
             index = i;
             break;
         }
     }
-    productionQueue.erase(productionQueue.begin() + index);
+    if(index >= 0)
+        productionQueue.erase(productionQueue.begin() + index);
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
@@ -146,14 +146,15 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    int index = 0;
+    int index = -1;
     for(int i = 0; i < productionQueue.size(); i++){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
             index = i;
             break;
         }
     }
-    productionQueue.erase(productionQueue.begin() + index);
+    if(index >= 0)
+        productionQueue.erase(productionQueue.begin() + index);
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
