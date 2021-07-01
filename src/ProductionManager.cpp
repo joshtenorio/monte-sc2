@@ -5,6 +5,9 @@ void ProductionManager::OnStep(){
     // fill queue with steps
     fillQueue();
 
+    // build a supply depot if needed
+    TryBuildSupplyDepot();
+
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
         TryBuildBarracks();
@@ -34,8 +37,7 @@ void ProductionManager::OnStep(){
 
     if(gInterface->observation->GetGameLoop() % 400 == 0) std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
-    // build a supply depot if needed regardless of whether or not we have a queue
-    TryBuildSupplyDepot();
+    
 
     // act on items in the queue
     parseQueue();
@@ -280,6 +282,15 @@ void ProductionManager::handleArmyBuildings(){
         if(a.order != ARMYBUILDING_UNUSED && a.building->orders.empty()){
             gInterface->actions->UnitCommand(a.building, a.order);
         }
+        if(a.order != ARMYBUILDING_UNUSED && a.addon != nullptr && a.building->orders.size() <= 1){
+            if(
+                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
+                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
+                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
+                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REACTOR
+            )
+                gInterface->actions->UnitCommand(a.building, a.order);
+        } // end if order not unused and addon not null
     }
 }
 
