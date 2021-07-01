@@ -42,6 +42,7 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
             return findUnitForAddon(building, near);
             break;
         case sc2::ABILITY_ID::BUILD_REFINERY:{
+            /**
             if(gInterface->observation->GetGameLoop() > 70)
                 for(int i = 0; i < gInterface->map->numOfExpansions(); i++){
                     Expansion* e = gInterface->map->getNthExpansion(i);
@@ -49,7 +50,18 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                         return findRefineryLocation(e);
                     }
                 }
-            return nullptr;
+            */
+            sc2::Units geysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
+            const sc2::Unit* geyserToBuild = nullptr;
+            float distSquared = 9000;
+            for(auto& g : geysers){
+                if(distSquared > sc2::DistanceSquared2D(g->pos, *near) && gInterface->query->Placement(sc2::ABILITY_ID::BUILD_REFINERY, g->pos)){
+                    distSquared = sc2::DistanceSquared2D(g->pos, *near);
+                    geyserToBuild = g;
+                }
+            }
+            return geyserToBuild;
+            //return nullptr;
             break;
         }
         default:
