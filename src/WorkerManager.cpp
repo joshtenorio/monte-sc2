@@ -16,7 +16,6 @@ void WorkerManager::OnStep(){
     // run distributeWorkers every 15 loops and after everything initializes
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
-        std::cout << "distributing workers..." << std::endl;
     }
         
     

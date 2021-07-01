@@ -98,11 +98,20 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
             std::cout << "i am a addon or cc morph and i made it here\n";
             // search through production queue to remove 
+            /**
             for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
                 if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).ability)
                     itr = productionQueue.erase(itr);
                 else ++itr;
+            }*/
+            int index = 0;
+            for(int i = 0; i < productionQueue.size(); i++){
+                if(productionQueue[i].ability == API::unitTypeIDToAbilityID(building_->unit_type.ToType())){
+                    index = i;
+                    break;
+                }
             }
+            productionQueue.erase(productionQueue.begin() + index);
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
@@ -111,11 +120,21 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     
     // loop through production queue to check which Step corresponds to
     // the structure that just finished, doesn't apply to morphs
+    /**
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
             itr = productionQueue.erase(itr);
         else ++itr;
     }
+    */
+    int index = 0;
+    for(int i = 0; i < productionQueue.size(); i++){
+        if(building_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
+            index = i;
+            break;
+        }
+    }
+    productionQueue.erase(productionQueue.begin() + index);
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
@@ -127,11 +146,14 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
-            itr = productionQueue.erase(itr);
-        else ++itr;
+    int index = 0;
+    for(int i = 0; i < productionQueue.size(); i++){
+        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
+            index = i;
+            break;
+        }
     }
+    productionQueue.erase(productionQueue.begin() + index);
 
 }
 
