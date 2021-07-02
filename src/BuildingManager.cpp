@@ -12,11 +12,14 @@ void BuildingManager::OnStep(){
         //       here, pos would be location of the in progress building
         sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         for(auto& w : workers){
-            if(!w->orders.empty())
-                if(w->orders.front().target_unit_tag == tag){
-                    workedOn = true;
-                    break;
-                }
+            if(w != nullptr){ // TODO: not sure if this check is necessary
+                if(!w->orders.empty())
+                    if(w->orders.front().target_unit_tag == tag){
+                        workedOn = true;
+                        break;
+                    }
+            }
+
         }
         if(!workedOn){ // building is not being worked on, so get a worker to work on it
             Worker* w = gInterface->wm->getClosestWorker(c.first->pos);
@@ -34,32 +37,34 @@ void BuildingManager::OnStep(){
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if its an in-prog building that died, release the worker and remove Construction from list
-    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
-        if((*itr).first->tag == unit_->tag){ // the building is the one who died
-            (*itr).second->job = JOB_UNEMPLOYED;
-            itr = inProgressBuildings.erase(itr);
-            return;
-        }
-        // TODO: is this sequence unecessary? i already handle it in OnStep
-        else if((*itr).second->tag == unit_->tag){
-            // worker is already gonna be destroyed when wm.OnUnitDestroyed(unit_) gets called in Bot.cpp
-            // so we just need to assign a new, different worker
+    int index = -1;
+    for(int i = 0; i < inProgressBuildings.size(); i++){
+       // the building died, so release the worker and remove Construction
+       if(inProgressBuildings[i].first->tag == unit_->tag){
+           inProgressBuildings[i].second->job == JOB_UNEMPLOYED;
+           index = i;
+           break;
+       }
+       // the worker died so need to assign a new, differnent worker
+       // dead worker's object will already be taken care of in workermanager
+       else if(inProgressBuildings[i].second->tag == unit_->tag){
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
             while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
                 newWorker = gInterface->wm->getNthWorker(n);
                 n++;
             }
-            (*itr).second = newWorker;
-            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
-            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, inProgressBuildings[i].first); // target the building
+            if(inProgressBuildings[i].first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || inProgressBuildings[i].first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
             else
                 newWorker->job = JOB_BUILDING;
+            inProgressBuildings[i].second = newWorker;
             break;
-        }
-        else ++itr;
-    } // end for loop
+       }
+    }
+    if(index >=0)
+        inProgressBuildings.erase(inProgressBuildings.begin() + index);
 }
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
