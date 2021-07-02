@@ -147,25 +147,33 @@ const Unit* WorkerManager::FindNearestMineralPatch(const Point2D& start){
 
 Worker* WorkerManager::getUnemployedWorker(){
     for(auto& w : workers)
-        if(w.job == JOB_UNEMPLOYED) return &w;
+        if(w.job == JOB_UNEMPLOYED){
+            return &w;
+        }
     
     // no unemployed workers found
+    std::cout << "getUnemployedWorker: returning nullptr\n"; 
     return nullptr;
 }
 
 Worker* WorkerManager::getFreeWorker(){
     for(auto& w : workers)
-        if(isFree(&w)) return &w;
-    
+        if(isFree(&w)){
+            return &w;
+        }
+    std::cout << "getFreeWorker: returning nullptr\n"; 
     return nullptr;
 }
 
 Worker* WorkerManager::getWorker(const Unit* unit_){
     Tag key = unit_->tag;
     for(auto& w : workers){
-        if(w.scv->tag == key)
-            return &w;
+        if(w.scv->tag == key){
+            return &w; 
+        }
+            
     }
+    std::cout << "getWorker: returning nullptr\n"; 
     return nullptr;
 }
 
@@ -183,6 +191,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
                 closestWorker = &w;
             }
         }
+        std::cout << "getClosestWorker: returning tag " << closestWorker->tag << "\n";
         return closestWorker;
     }
     else{
@@ -192,6 +201,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
                 closestWorker = &w;
             }
         }
+        std::cout << "getClosestWorker: returning tag " << closestWorker->tag << "\n";
         return closestWorker;
     }
 }

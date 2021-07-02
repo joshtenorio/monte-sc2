@@ -59,6 +59,9 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
     }
 }
 
+// TODO: when making combatcommander class, move/delete this
+// used for marine control
+bool reachedEnemyMain = false;
 void Bot::OnStep() {
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
@@ -82,16 +85,46 @@ void Bot::OnStep() {
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
 
-
+    // handle marines
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
-        Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));
+        sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+        sc2::Units enemy = Observation()->GetUnits(Unit::Alliance::Enemy);
         for(const auto& m : marines){
-            Actions()->UnitCommand(
-                m,
-                ABILITY_ID::ATTACK_ATTACK,
-                Observation()->GetGameInfo().enemy_start_locations.front());
+            if(25 > sc2::DistanceSquared2D(Observation()->GetGameInfo().enemy_start_locations.front(), m->pos))
+                reachedEnemyMain = true;
+            
+            if(!reachedEnemyMain)
+                Actions()->UnitCommand(
+                        m,
+                        ABILITY_ID::ATTACK_ATTACK,
+                        Observation()->GetGameInfo().enemy_start_locations.front());
+            else if(!enemy.empty())
+                Actions()->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, enemy.front()->pos);
+                
         } // end for loop
     } // end if marine count > 10
+
+    // handle medivacs every so often
+    if(Observation()->GetGameLoop() % 25 == 0){
+        sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+        for(auto& med : medivacs){
+            // move each medivac to the closest marine
+            sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+            const sc2::Unit* closestMarine = nullptr;
+            float d = 10000;
+            for(auto& ma : marines){
+                if(ma != nullptr)
+                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
+                        closestMarine = ma;
+                        d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                    }
+            } // end marine loop
+            if(d > 25 && closestMarine != nullptr){
+                // if distance to closest marine is > 5, move medivac to marine's position
+                Actions()->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
+            }
+        } // end medivac loop
+    } // end if gameloop % 100 == 0
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
@@ -192,5 +225,6 @@ void Bot::OnError(const std::vector<ClientError>& client_errors,
 }
 
 void Bot::OnGameEnd(){
+    std::cout << "game finished!\n";
     delete strategy;
 }
