@@ -16,6 +16,8 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
+    Actions()->SendChat("Tag: v1.0.0-alpha.14");
+    Actions()->SendChat("glhf :)");
 
 }
 
