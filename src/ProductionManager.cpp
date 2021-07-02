@@ -166,6 +166,7 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
     // remove army building or addon from army building if applicable
+    /**
     for(auto itr = armyBuildings.begin(); itr != armyBuildings.end(); ){
         if(unit_->tag == (*itr).buildingTag){
             itr = armyBuildings.erase(itr);
@@ -177,7 +178,21 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
             break;
         }
         else ++ itr;
+    }*/
+    int index = -1;
+    for(int i = 0; i < armyBuildings.size(); i++){
+        if(unit_->tag == armyBuildings[i].buildingTag){
+            index = i;
+            break;
+        }
+        else if(unit_->tag == armyBuildings[i].addonTag){
+            armyBuildings[i].addon = nullptr;
+            armyBuildings[i].addonTag = -1;
+            break;
+        }
     }
+    if(index >= 0)
+        armyBuildings.erase(armyBuildings.begin() + index);
 }
 
 void ProductionManager::fillQueue(){

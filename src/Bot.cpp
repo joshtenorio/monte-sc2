@@ -187,7 +187,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
                 // the pm gets called first, bc we need to remove worker pointer from 
-                // a Construction if it is building it
+                // a Construction in bm if it is building it
                 pm.OnUnitDestroyed(unit_);
                 wm.OnUnitDestroyed(unit_);
                 break;
