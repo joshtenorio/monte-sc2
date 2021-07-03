@@ -121,8 +121,11 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
     }
     
     // TODO: this can be refactored into switch statement
+    if(unit_to_build == nullptr){
+        return false;
+    }
     if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
-        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, &(unit_to_build->pos));
+        sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,

@@ -8,8 +8,8 @@ class BuildingPlacer {
     public:
     BuildingPlacer() {};
 
-    // find a location for building near around with no buildings within freeRadius
-    sc2::Point2D findLocation(sc2::ABILITY_ID building, const sc2::Point3D* around, float freeRadius = 4);
+    // find a location for building near around with open space within freeRadius
+    sc2::Point2D findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius = 4);
 
     // build building on a unit (such as gas geyser for refinery, or barracks for addon) nearest to near
     const sc2::Unit* findUnit(sc2::ABILITY_ID building, const sc2::Point3D* near);

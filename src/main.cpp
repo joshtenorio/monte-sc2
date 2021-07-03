@@ -109,8 +109,8 @@ int main(int argc, char* argv[])
             CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
             CreateComputer(
                 sc2::Race::Protoss,
-                sc2::Difficulty::Easy,
-                sc2::AIBuild::Rush
+                sc2::Difficulty::MediumHard,
+                sc2::AIBuild::Power
                 )
         });
 

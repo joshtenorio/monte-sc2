@@ -33,14 +33,6 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
     Tag key = unit_->tag;
-    std::cout << "erasing worker tag" << unit_->tag << std::endl;
-    /**
-    for(auto itr = workers.begin(); itr != workers.end(); ){
-        if((*itr).scv->tag == key)
-            itr = workers.erase(itr);
-        else ++itr;
-    }
-    */
    int index = 0;
    for(int i = 0; i < workers.size(); i++){
        if(workers[i].scv->tag == key){
@@ -49,7 +41,6 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
        }
    }
    workers.erase(workers.begin() + index);
-    std::cout << "worker removed successfully" << std::endl;
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
@@ -85,6 +76,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
         if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
             Worker* w = getFreeWorker();
+            if(w == nullptr) continue;
             gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, r);
             w->job = JOB_GATHERING_GAS;
         }
@@ -162,7 +154,6 @@ Worker* WorkerManager::getFreeWorker(){
         if(isFree(&w)){
             return &w;
         }
-    std::cout << "getFreeWorker: returning nullptr\n"; 
     return nullptr;
 }
 

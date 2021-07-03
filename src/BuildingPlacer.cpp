@@ -1,6 +1,6 @@
 #include "BuildingPlacer.h"
 
-sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::Point3D* around, float freeRadius){
+sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
     switch(building){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
@@ -24,7 +24,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, const sc2::P
             // currently, get a random location to build building within a 20x20 region where the scv is at the center
             float rx = sc2::GetRandomScalar();
             float ry = sc2::GetRandomScalar();
-            return sc2::Point2D(around->x + rx * 10.0f, around->y + ry * 10.0f);
+            return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
 
 
             break;
@@ -93,7 +93,10 @@ const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
 
 sc2::Point2D BuildingPlacer::findCommandCenterLocation(){
     Expansion* nextExpansion = gInterface->map->getNextExpansion();
-    return nextExpansion->baseLocation;
+    if(nextExpansion != nullptr)
+        return nextExpansion->baseLocation;
+    else
+        return sc2::Point2D(gInterface->observation->GetStartLocation().x, gInterface->observation->GetStartLocation().y);
 }
 
 const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near){
