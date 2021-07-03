@@ -2,6 +2,22 @@
 
 namespace API {
 
+    int countIdleUnits(sc2::UNIT_TYPEID type){
+        sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
+        int c = 0;
+        for(auto& u : units){
+            if(isUnitIdle(u)) c++;
+        }
+        return c;
+    }
+
+    bool isUnitIdle(const sc2::Unit* unit){
+        if(unit != nullptr)
+            return unit->orders.empty();
+        else
+            return false;
+    }
+
 size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
     return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
 }

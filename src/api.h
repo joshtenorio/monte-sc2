@@ -24,6 +24,9 @@ using namespace sc2;
 
 
 namespace API {
+
+    int countIdleUnits(sc2::UNIT_TYPEID type);
+    bool isUnitIdle(const sc2::Unit* unit);
     size_t CountUnitType(UNIT_TYPEID unitType);
 
     // convert a build ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT

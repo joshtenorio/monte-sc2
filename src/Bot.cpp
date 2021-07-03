@@ -16,7 +16,7 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
-    Actions()->SendChat("Tag: v1.0.0-alpha.15");
+    Actions()->SendChat("Tag: v1.0.0-alpha.16");
     Actions()->SendChat("glhf :)");
 
 }
@@ -86,14 +86,19 @@ void Bot::OnStep() {
     } // end d : depots
 
     // handle marines
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_MARINE) > 10){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) > 10){
+    //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 10){
         sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         sc2::Units enemy = Observation()->GetUnits(Unit::Alliance::Enemy);
+        //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(Observation()->GetGameInfo().enemy_start_locations.front(), m->pos))
+            if(25 > sc2::DistanceSquared2D(Observation()->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
+                Actions()->SendChat("Tag: reachedEnemyMain");
+            }
+                
             
-            if(!reachedEnemyMain && m->orders.empty())
+            if(!reachedEnemyMain)
                 Actions()->UnitCommand(
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
@@ -105,7 +110,7 @@ void Bot::OnStep() {
     } // end if marine count > 10
 
     // handle medivacs every so often
-    if(Observation()->GetGameLoop() % 25 == 0){
+    if(Observation()->GetGameLoop() % 12 == 0){
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         for(auto& med : medivacs){
             // move each medivac to the closest marine
@@ -119,7 +124,7 @@ void Bot::OnStep() {
                         d = sc2::DistanceSquared2D(ma->pos, med->pos);
                     }
             } // end marine loop
-            if(d > 25 && closestMarine != nullptr){
+            if(d > 9 && closestMarine != nullptr){
                 // if distance to closest marine is > 5, move medivac to marine's position
                 Actions()->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
             }

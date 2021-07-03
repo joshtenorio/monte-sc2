@@ -120,7 +120,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
-        if(w.scv->orders.empty()) w.job == JOB_UNEMPLOYED;
+        if(w.scv->orders.empty()) w.job = JOB_UNEMPLOYED;
         if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.scv);
     }
 }
