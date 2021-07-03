@@ -93,7 +93,7 @@ void Bot::OnStep() {
             if(25 > sc2::DistanceSquared2D(Observation()->GetGameInfo().enemy_start_locations.front(), m->pos))
                 reachedEnemyMain = true;
             
-            if(!reachedEnemyMain)
+            if(!reachedEnemyMain && m->orders.empty())
                 Actions()->UnitCommand(
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
