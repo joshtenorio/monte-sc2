@@ -41,7 +41,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     for(int i = 0; i < inProgressBuildings.size(); i++){
        // the building died, so release the worker and remove Construction
        if(inProgressBuildings[i].first->tag == unit_->tag){
-           inProgressBuildings[i].second->job == JOB_UNEMPLOYED;
+           inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
            index = i;
            break;
        }
@@ -103,13 +103,14 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
 
-    // if unit is already building structure of this type, do nothing
     const Unit* unit_to_build = nullptr;
     Units units = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+
     // if there is an in progress building, don't immediately build another
     // this one is for if worker dies
     if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
     for(const auto& unit : units){
+        // if unit is already building structure of this type, do nothing
         for (const auto& order : unit->orders){
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
                 return false;
@@ -134,7 +135,6 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
-
         gInterface->actions->UnitCommand(
            unit_to_build,
             ability_type_for_structure,

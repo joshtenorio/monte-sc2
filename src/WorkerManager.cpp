@@ -126,8 +126,9 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
     } // end for cc : ccs
 
-    // 3. handle leftover workers that are unemployed
+    // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
+        if(w.scv->orders.empty()) w.job == JOB_UNEMPLOYED;
         if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.scv);
     }
 }
@@ -191,7 +192,6 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
                 closestWorker = &w;
             }
         }
-        std::cout << "getClosestWorker: returning tag " << closestWorker->tag << "\n";
         return closestWorker;
     }
     else{
@@ -201,7 +201,6 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
                 closestWorker = &w;
             }
         }
-        std::cout << "getClosestWorker: returning tag " << closestWorker->tag << "\n";
         return closestWorker;
     }
 }
