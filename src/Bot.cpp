@@ -3,6 +3,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
+std::string version = "v1.0.0-alpha.16"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -16,7 +17,8 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
-    Actions()->SendChat("Tag: v1.0.0-alpha.16");
+    std::cout << "version: " << version << std::endl;
+    Actions()->SendChat("Tag: " + version);
     Actions()->SendChat("glhf :)");
 
 }
