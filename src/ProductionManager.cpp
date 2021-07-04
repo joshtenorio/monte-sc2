@@ -213,6 +213,15 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
+
+    // if unit destroyed was a town hall, update ownership in mapper
+    if(
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
+    )
+        gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
+        
     // remove army building or addon from army building if applicable
     /**
     for(auto itr = armyBuildings.begin(); itr != armyBuildings.end(); ){
@@ -241,6 +250,7 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     }
     if(index >= 0)
         armyBuildings.erase(armyBuildings.begin() + index);
+
 }
 
 void ProductionManager::fillQueue(){
