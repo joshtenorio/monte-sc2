@@ -178,8 +178,8 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     */
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){
-            itr = productionQueue.erase(itr);
             printf("unitcreated: removing %d from prod queue\n", (*itr).ability);
+            itr = productionQueue.erase(itr);
         }
             
         else ++itr;
