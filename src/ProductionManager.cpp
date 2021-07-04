@@ -48,8 +48,11 @@ void ProductionManager::OnStep(){
         handleUpgrades();
     } // end if prod queue empty
 
-    if(gInterface->observation->GetGameLoop() % 400 == 0)
+    if(gInterface->observation->GetGameLoop() % 400 == 0){
         std::cout << "prod queue size: " << productionQueue.size() << std::endl;
+        
+    }
+        
 
     // act on items in the queue
     parseQueue();
@@ -65,7 +68,7 @@ void ProductionManager::OnStep(){
     for(auto& cc : ccs)
         if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
             gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
-    
+
 }
 
 void ProductionManager::OnGameStart(){
@@ -299,7 +302,6 @@ void ProductionManager::trainUnit(Step s){
 // TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::researchUpgrade(Step s){
     // find research building that corresponds to the research ability
-    printf("researchUpgrade: attempting to research %d\n", s.ability);
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
     for(auto& b : buildings){
@@ -427,7 +429,48 @@ void ProductionManager::handleUpgrades(){
     sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
     // get random vehicle unit
-    // FIXME: implement this
     // get random flying unit
-    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    // FIXME: implement this
+    
+    // get current upgrade levels
+    int infantryWeapons = 0;
+    int infantryArmor = 0;
+    if(!marines.empty()){
+        infantryWeapons = marines.front()->attack_upgrade_level;
+        infantryArmor = marines.front()->armor_upgrade_level;
+        
+        if(gInterface->observation->GetGameLoop() % 400 == 0)
+            printf("infantry weapons %d\tinfantry armor %d\n", infantryWeapons, infantryArmor);
+    }
+
+
+    // based on those upgrade levels, select the next upgrade to get
+    if(infantryWeapons > infantryArmor){
+        switch(infantryArmor){
+            case 0:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, -1, false, false));
+                break;
+            case 1:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, -1, false, false));
+                break;
+            case 2:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, -1, false, false));
+                break;
+        }
+    }
+    else{
+        switch(infantryWeapons){
+            case 0:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, -1, false, false));
+                break;
+            case 1:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, -1, false, false));
+                break;
+            case 2:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, -1, false, false));
+                break;
+        }
+    }
+
+
 }
