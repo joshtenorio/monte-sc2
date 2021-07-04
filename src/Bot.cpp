@@ -234,7 +234,7 @@ void Bot::OnError(const std::vector<ClientError>& client_errors,
 }
 
 void Bot::OnGameEnd(){
-    Control()->SaveReplay("data\\lastReplay.SC2Replay");
+    Control()->SaveReplay("lastReplay.SC2Replay");
     std::cout << "game finished!\n";
     delete strategy;
 }
