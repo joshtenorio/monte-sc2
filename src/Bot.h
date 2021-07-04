@@ -10,6 +10,7 @@
 #include "api.h"
 #include "WorkerManager.h"
 #include "ProductionManager.h"
+#include "CombatCommander.h"
 #include "Mapper.h"
 
 // include more strategies here
@@ -26,6 +27,7 @@ private:
     Mapper map;
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
     ProductionManager pm;
+    CombatCommander cc;
     
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   

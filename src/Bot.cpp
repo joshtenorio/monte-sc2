@@ -7,6 +7,7 @@ std::string version = "v0.1.2"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
+    cc = CombatCommander();
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
@@ -14,10 +15,7 @@ Bot::Bot(){
     gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
 }
 
-// TODO: when making combatcommander class, move/delete this
-// used for marine control
-bool reachedEnemyMain = false;
-std::vector<sc2::UNIT_TYPEID> bio;
+
 
 void Bot::OnGameStart(){
     pm.OnGameStart();
@@ -26,8 +24,9 @@ void Bot::OnGameStart(){
     Actions()->SendChat("Tag: " + version);
     Actions()->SendChat("glhf :)");
 
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+    cc.OnGameStart();
+
+
 
 }
 
@@ -79,6 +78,7 @@ void Bot::OnStep() {
 
     pm.OnStep();
     wm.OnStep();
+    cc.OnStep();
 
     // raise supply depots if enemy is nearby
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT));
@@ -95,59 +95,7 @@ void Bot::OnStep() {
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
 
-    ////////////////
-    // army micro //
-    ////////////////
-
-    // handle marines
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
-    //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 15){
-
-        sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-        sc2::Units enemy = Observation()->GetUnits(Unit::Alliance::Enemy);
-        //std::cout << "sending a wave of marines\n";
-        for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(Observation()->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
-                reachedEnemyMain = true;
-                Actions()->SendChat("Tag: reachedEnemyMain");
-            }
-                
-            
-            if(!reachedEnemyMain)
-                Actions()->UnitCommand(
-                        m,
-                        ABILITY_ID::ATTACK_ATTACK,
-                        Observation()->GetGameInfo().enemy_start_locations.front());
-            else if(!enemy.empty() && m->orders.empty()){
-                // TODO: instead of getting the first enemy in enemy, we should get the closest enemy to m
-                Actions()->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, enemy.front()->pos);
-            }
-                
-                
-        } // end for loop
-    } // end if marine count > 10
-
-    // handle medivacs every so often
-    if(Observation()->GetGameLoop() % 12 == 0){
-        sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
-        for(auto& med : medivacs){
-            // move each medivac to the closest marine
-            sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-            const sc2::Unit* closestMarine = nullptr;
-            float d = 10000;
-            for(auto& ma : marines){
-                if(ma != nullptr)
-                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
-                        closestMarine = ma;
-                        d = sc2::DistanceSquared2D(ma->pos, med->pos);
-                    }
-            } // end marine loop
-            if(d > 9 && closestMarine != nullptr){
-                // if distance to closest marine is > 5, move medivac to marine's position
-                Actions()->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
-            }
-        } // end medivac loop
-    } // end if gameloop % 100 == 0
+    
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
