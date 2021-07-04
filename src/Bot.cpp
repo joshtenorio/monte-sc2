@@ -3,6 +3,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
+std::string version = "v1.0.0-alpha.16"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -16,7 +17,9 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
-
+    std::cout << "version: " << version << std::endl;
+    Actions()->SendChat("Tag: " + version);
+    Actions()->SendChat("glhf :)");
 
 }
 
@@ -62,11 +65,6 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 // used for marine control
 bool reachedEnemyMain = false;
 void Bot::OnStep() {
-
-    if(Observation()->GetGameLoop() == 5){
-        Actions()->SendChat("Tag: v1.0.0-alpha.16");
-        Actions()->SendChat("glhf :)");
-    }
 
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
