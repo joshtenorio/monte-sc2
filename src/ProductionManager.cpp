@@ -10,9 +10,11 @@ void ProductionManager::OnStep(){
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
-        TryBuildBarracks();
+        TryBuildBarracks();         // max : 8
         tryBuildRefinery();
         tryBuildCommandCenter();
+        tryBuildArmory();           // max : 1
+        tryBuildEngineeringBay();   // max : 2
 
         // check on army buildings
         for(auto& a : armyBuildings){
@@ -41,6 +43,9 @@ void ProductionManager::OnStep(){
             }
 
         } // end for loop
+
+        // handle upgrades
+        handleUpgrades();
     } // end if prod queue empty
 
     if(gInterface->observation->GetGameLoop() % 400 == 0)
@@ -269,6 +274,12 @@ void ProductionManager::buildStructure(Step s){
         case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
             tryBuildCommandCenter();
             break;
+        case sc2::ABILITY_ID::BUILD_ARMORY:
+            tryBuildArmory();
+            break;
+        case sc2::ABILITY_ID::BUILD_ENGINEERINGBAY:
+            tryBuildEngineeringBay();
+            break;
         default:
             bm.TryBuildStructure(ability);
             break;
@@ -347,6 +358,17 @@ bool ProductionManager::tryBuildCommandCenter(){
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
 }
 
+// FIXME: when we make a strategy that actually uses armory for stuff, 
+bool ProductionManager::tryBuildArmory(){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ARMORY) >= 1) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY);
+}
+
+bool ProductionManager::tryBuildEngineeringBay(){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) >= 2) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+}
+
 // if armybuilding has an order, manage them
 void ProductionManager::handleArmyBuildings(){
     for(auto& a : armyBuildings){
@@ -397,4 +419,15 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
         }
     }
     return false;
+}
+
+void ProductionManager::handleUpgrades(){
+    // get random infantry unit
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
+    // get random vehicle unit
+    // FIXME: implement this
+    // get random flying unit
+    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
 }
