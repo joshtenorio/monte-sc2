@@ -88,10 +88,16 @@ void Bot::OnStep() {
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
 
+    // army micro //
+    std::vector<sc2::UNIT_TYPEID> bio;
+    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+
     // handle marines
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) > 10){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
     //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 15){
-        sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+
+        sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = Observation()->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
@@ -106,7 +112,7 @@ void Bot::OnStep() {
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
                         Observation()->GetGameInfo().enemy_start_locations.front());
-            else if(!enemy.empty())
+            else if(!enemy.empty() && m->orders.empty())
                 Actions()->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, enemy.front()->pos);
                 
         } // end for loop
@@ -117,7 +123,7 @@ void Bot::OnStep() {
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         for(auto& med : medivacs){
             // move each medivac to the closest marine
-            sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+            sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnits(bio));
             const sc2::Unit* closestMarine = nullptr;
             float d = 10000;
             for(auto& ma : marines){
