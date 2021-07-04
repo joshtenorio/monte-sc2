@@ -14,12 +14,20 @@ Bot::Bot(){
     gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
 }
 
+// TODO: when making combatcommander class, move/delete this
+// used for marine control
+bool reachedEnemyMain = false;
+std::vector<sc2::UNIT_TYPEID> bio;
+
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
     std::cout << "bot version: " << version << std::endl;
     Actions()->SendChat("Tag: " + version);
     Actions()->SendChat("glhf :)");
+
+    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
 
 }
 
@@ -61,9 +69,8 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
     }
 }
 
-// TODO: when making combatcommander class, move/delete this
-// used for marine control
-bool reachedEnemyMain = false;
+
+
 void Bot::OnStep() {
 
     // initialize mapper (find expansions and ramps)
@@ -88,10 +95,9 @@ void Bot::OnStep() {
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
 
+    ////////////////
     // army micro //
-    std::vector<sc2::UNIT_TYPEID> bio;
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+    ////////////////
 
     // handle marines
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
@@ -112,8 +118,11 @@ void Bot::OnStep() {
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
                         Observation()->GetGameInfo().enemy_start_locations.front());
-            else if(!enemy.empty() && m->orders.empty())
+            else if(!enemy.empty() && m->orders.empty()){
+                // TODO: instead of getting the first enemy in enemy, we should get the closest enemy to m
                 Actions()->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, enemy.front()->pos);
+            }
+                
                 
         } // end for loop
     } // end if marine count > 10
