@@ -164,6 +164,7 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
+    /**
     int index = -1;
     for(int i = 0; i < productionQueue.size(); i++){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
@@ -174,11 +175,21 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     }
     if(index >= 0)
         productionQueue.erase(productionQueue.begin() + index);
+    */
+    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
+        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){
+            itr = productionQueue.erase(itr);
+            printf("unitcreated: removing %d from prod queue\n", (*itr).ability);
+        }
+            
+        else ++itr;
+   }
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
+    /**
     int index = -1;
     for(int i = 0; i < productionQueue.size(); i++){
         if(API::upgradeIDToAbilityID(upgrade_) == productionQueue[i].ability){
@@ -189,6 +200,14 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     }
     if(index >= 0)
         productionQueue.erase(productionQueue.begin() + index);
+    */
+    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
+        if(API::upgradeIDToAbilityID(upgrade_) == (*itr).ability){
+            printf("upgradecompleted: removing %d from prod queue\n", (*itr).ability);
+            itr = productionQueue.erase(itr);
+        }
+        else ++itr;
+   }
     
 }
 
@@ -311,7 +330,6 @@ void ProductionManager::researchUpgrade(Step s){
         for(auto& r : researchs.abilities){
             if(r.ability_id == s.ability){
                 canResearch = true;
-                std::cout << "research possible\n";
                 break;
             }
         }

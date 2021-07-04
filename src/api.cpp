@@ -289,6 +289,12 @@ bool isStructure(sc2::UNIT_TYPEID unit){
         case UNIT_TYPEID::TERRAN_SENSORTOWER:
         case UNIT_TYPEID::TERRAN_STARPORT:
         case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
             return true;
         default:
             return false;
