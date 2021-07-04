@@ -57,7 +57,7 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
             return sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2;
         case sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL3:
             return sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3;
-        case sc2::UPGRADE_ID::NEOSTEELFRAME:
+        case sc2::UPGRADE_ID::TERRANBUILDINGARMOR:
             return sc2::ABILITY_ID::RESEARCH_NEOSTEELFRAME; // might be a different ID
         case sc2::UPGRADE_ID::HISECAUTOTRACKING:
             return sc2::ABILITY_ID::RESEARCH_HISECAUTOTRACKING;
@@ -91,9 +91,9 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
             return sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES;
         case sc2::UPGRADE_ID::STIMPACK:
             return sc2::ABILITY_ID::RESEARCH_STIMPACK;
-        // TODO: find what is concussive shells
+        case sc2::UPGRADE_ID::PUNISHERGRENADES:
             return sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS;
-        case sc2::UPGRADE_ID::COMBATSHIELD:
+        case sc2::UPGRADE_ID::SHIELDWALL:
             return sc2::ABILITY_ID::RESEARCH_COMBATSHIELD;
         case sc2::UPGRADE_ID::BANSHEESPEED:
             return sc2::ABILITY_ID::RESEARCH_BANSHEEHYPERFLIGHTROTORS;
@@ -117,7 +117,7 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
 sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
     switch(ability){
         // build structures...
-         sc2::ABILITY_ID::BUILD_ARMORY:
+        case sc2::ABILITY_ID::BUILD_ARMORY:
             return sc2::UNIT_TYPEID::TERRAN_ARMORY;
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             return sc2::UNIT_TYPEID::TERRAN_BARRACKS;
