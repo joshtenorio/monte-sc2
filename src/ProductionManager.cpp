@@ -13,7 +13,6 @@ void ProductionManager::OnStep(){
         TryBuildBarracks();
         tryBuildRefinery();
         tryBuildCommandCenter();
-        // TODO: add more things here such as building more command centers
 
         // check on army buildings
         for(auto& a : armyBuildings){
@@ -32,10 +31,16 @@ void ProductionManager::OnStep(){
             }
 
             // if army building is a barrack, then place a reactor if possible
+            if(a.building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKS && a.addon == nullptr){
+                if(a.building->orders.empty())
+                    gInterface->actions->UnitCommand(a.building, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
+            }
+            
         } // end for loop
     } // end if prod queue empty
 
-    if(gInterface->observation->GetGameLoop() % 400 == 0) std::cout << "prod queue size: " << productionQueue.size() << std::endl;
+    if(gInterface->observation->GetGameLoop() % 400 == 0)
+        std::cout << "prod queue size: " << productionQueue.size() << std::endl;
 
     // act on items in the queue
     parseQueue();
@@ -61,7 +66,7 @@ void ProductionManager::OnGameStart(){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
-    int index = -1;
+    int index = -1; // for removing items from prod queue
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
         case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
@@ -105,6 +110,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
             }*/
             for(int i = 0; i < productionQueue.size(); i++){
                 if(productionQueue[i].ability == API::unitTypeIDToAbilityID(building_->unit_type.ToType())){
+                    printf("buildingcomplete(morph): removing %d from prod queue\n", productionQueue[i].ability);
                     index = i;
                     break;
                 }
@@ -150,6 +156,7 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     for(int i = 0; i < productionQueue.size(); i++){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
             index = i;
+            printf("unitcreated: removing %d from prod queue\n", productionQueue[i].ability);
             break;
         }
     }
@@ -158,9 +165,19 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
-    // TODO: remove relevant thing from production queue
+    // remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
-
+    int index = -1;
+    for(int i = 0; i < productionQueue.size(); i++){
+        if(API::upgradeIDToAbilityID(upgrade_) == productionQueue[i].ability){
+            printf("upgradecompleted: removing %d from prod queue\n", productionQueue[i].ability);
+            index = i;
+            break;
+        }
+    }
+    if(index >= 0)
+        productionQueue.erase(productionQueue.begin() + index);
+    
 }
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -228,6 +245,7 @@ void ProductionManager::parseQueue(){
 }
 
 void ProductionManager::swapAddon(ArmyBuilding* b1, ArmyBuilding* b2){
+    // save positions of each building in local variables
     // lift both buildings
 
 }
@@ -266,10 +284,22 @@ void ProductionManager::trainUnit(Step s){
 // TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::researchUpgrade(Step s){
     // find research building that corresponds to the research ability
+    printf("researchUpgrade: attempting to research %d\n", s.ability);
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
     for(auto& b : buildings){
-        if(b->orders.empty()){
+        if(b->build_progress < 1.0) continue;
+        bool canResearch = false;
+        sc2::AvailableAbilities researchs = gInterface->query->GetAbilitiesForUnit(b, false, false);
+        for(auto& r : researchs.abilities){
+            if(r.ability_id == s.ability){
+                canResearch = true;
+                std::cout << "research possible\n";
+                break;
+            }
+        }
+        if(b->orders.empty() && canResearch){
+            printf("researchUpgrade: researching %d\n", s.ability);
             gInterface->actions->UnitCommand(b, s.ability);
             return;
         }

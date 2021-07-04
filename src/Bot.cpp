@@ -17,7 +17,7 @@ Bot::Bot(){
 void Bot::OnGameStart(){
     pm.OnGameStart();
     std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
-    std::cout << "version: " << version << std::endl;
+    std::cout << "bot version: " << version << std::endl;
     Actions()->SendChat("Tag: " + version);
     Actions()->SendChat("glhf :)");
 
@@ -90,7 +90,7 @@ void Bot::OnStep() {
 
     // handle marines
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) > 10){
-    //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 10){
+    //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 15){
         sc2::Units marines = Observation()->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         sc2::Units enemy = Observation()->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
@@ -136,6 +136,7 @@ void Bot::OnStep() {
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
+    std::cout << sc2::UpgradeIDToName(upgrade_) << " completed" << std::endl;
     pm.OnUpgradeCompleted(upgrade_);
 }
 
@@ -233,7 +234,7 @@ void Bot::OnError(const std::vector<ClientError>& client_errors,
 }
 
 void Bot::OnGameEnd(){
-    Control()->SaveReplay("lastReplay.SC2Replay");
+    Control()->SaveReplay("data\\lastReplay.SC2Replay");
     std::cout << "game finished!\n";
     delete strategy;
 }
