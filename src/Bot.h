@@ -36,7 +36,9 @@ private:
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_) final;
     void OnUnitCreated(const Unit* unit_) final;
     void OnUnitIdle(const Unit* unit_) final;
-    void OnUnitDestroyed(const Unit* unit_) final;
+    void OnUnitDestroyed(const sc2::Unit* unit_) final;
+    void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_) final;
+    void OnUnitEnterVision(const sc2::Unit* unit_) final;
     void OnError(const std::vector<ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors = {}) final;
     void OnGameEnd() final;

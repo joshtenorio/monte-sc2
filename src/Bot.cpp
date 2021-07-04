@@ -185,6 +185,14 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
 
 }
 
+void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
+    
+}
+
+void Bot::OnUnitEnterVision(const sc2::Unit* unit_){
+
+}
+
 void Bot::OnError(const std::vector<ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors){
     for (const auto i : client_errors) {

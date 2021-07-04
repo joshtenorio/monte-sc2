@@ -13,6 +13,10 @@ void CombatCommander::OnGameStart(){
 
 
 void CombatCommander::OnStep(){
+
+    // scout manager
+    sm.OnStep();
+    
     // handle marines
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
     //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 15){
@@ -62,4 +66,21 @@ void CombatCommander::OnStep(){
             }
         } // end medivac loop
     } // end if gameloop % 100 == 0
+}
+
+void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
+    sm.OnUnitDestroyed(unit_);
+}
+
+void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
+    if(API::isStructure(unit_->unit_type.ToType())){
+        // 1. get a list of n closest workers to pull
+        // 2. get a list of idle army
+        // 3. get closest enemy units to unit_
+        // 4. have workers and idle army attack them
+    }
+}
+
+void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
+
 }

@@ -5,14 +5,21 @@
 #include <sc2api/sc2_agent.h>
 #include "api.h"
 #include "Manager.h"
+#include "ScoutManager.h"
 
 class CombatCommander : public Manager {
     public:
-    CombatCommander() {}; // empty constructor
+    // constructors
+    CombatCommander() { sm = ScoutManager(); };
+    // TODO: add a constructor with strategy
 
     void OnGameStart();
     void OnStep();
+    void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
+    void OnUnitEnterVision(const sc2::Unit* unit_);
 
     protected:
+    ScoutManager sm;
     int foo;
 };
