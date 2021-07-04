@@ -6,22 +6,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // if barracks count == 0, build at ramp
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
                 return findBarracksLocation();
-            //else goto useDefault;
-            //break;
-        case sc2::ABILITY_ID::BUILD_STARPORT:
-        case sc2::ABILITY_ID::BUILD_FACTORY:
-            // get a random location within a 20x20 region where scv is at the center
-            float rx = sc2::GetRandomScalar();
-            float ry = sc2::GetRandomScalar();
-            sc2::Point2D loc = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
-            std::vector<sc2::QueryInterface::PlacementQuery> queries;
-            queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, loc);
-            queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(loc.x + 2.5, loc.y - 0.5));
-
-            
-            // check if armybuilding + addon can fit in it
-            // addon is same size as supply depot
-
+            else goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp

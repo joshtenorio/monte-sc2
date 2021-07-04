@@ -31,11 +31,15 @@ void ProductionManager::OnStep(){
             }
 
             // if army building is a barrack, then place a reactor if possible
-            if(a.building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKS && a.addon == nullptr){
+            if(
+                a.building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKS &&
+                a.addon == nullptr &&
+                gInterface->query->Placement(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(a.building->pos.x + 2.5, a.building->pos.y - 0.5))
+                ){
                 if(a.building->orders.empty())
                     gInterface->actions->UnitCommand(a.building, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
             }
-            
+
         } // end for loop
     } // end if prod queue empty
 
