@@ -98,6 +98,7 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
 
     // assume the closest worker to the building is assigned to construct it
     Worker* w = gInterface->wm->getClosestWorker(building_->pos);
+    if(w == nullptr) return;
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || building_->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
         w->job = JOB_BUILDING_GAS;
     else 
@@ -135,7 +136,6 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
 
     if(ability_type_for_structure != sc2::ABILITY_ID::BUILD_REFINERY){
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
-        std::cout << "worker to build: " << unit_to_build->tag << std::endl;
         gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
         gInterface->actions->UnitCommand(
             unit_to_build,
@@ -149,7 +149,6 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
-        std::cout << "worker to build gas: " << unit_to_build->tag << std::endl;
         gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         gInterface->actions->UnitCommand(
            unit_to_build,

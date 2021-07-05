@@ -115,7 +115,6 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
             }
         case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-            std::cout << "i am a addon or cc morph and i made it here\n";
             // search through production queue to remove 
             /**
             for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
@@ -161,7 +160,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // only run this after the 50th loop
     // necessary to avoid crashing when the main cc is created
-    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0)
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
@@ -367,9 +366,9 @@ void ProductionManager::morphStructure(Step s){
 }
 
 bool ProductionManager::TryBuildSupplyDepot(){
-    int numTownhalls = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) +
+    int numTownhalls = (int) (API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) +
-                        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS);
+                        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS));
     int cycle = 1 + numTownhalls;
     // cycle: how much supply cushion we want, this is numTownhalls + numBarracks
 
