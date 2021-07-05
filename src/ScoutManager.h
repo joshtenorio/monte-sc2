@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
@@ -17,9 +18,11 @@ class ScoutManager : public Manager {
     ScoutManager() {};
     void OnStep();
     void OnUnitDestroyed(const Unit* unit_);
+    void OnUnitEnterVision(const sc2::Unit* unit_);
 
     bool createScoutingMission();
     bool sendScout();
+
     protected:
-    int foo;
+    std::vector<Scout> scouts;
 };

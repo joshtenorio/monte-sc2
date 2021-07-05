@@ -152,7 +152,7 @@ void CombatCommander::manageStim(const sc2::Unit* unit){
             
     
     if(
-        unit->health/unit->health_max >= 0.5 &&
+        unit->health/unit->health_max >= 0.6 &&
         !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
 
         switch(unit->unit_type.ToType()){

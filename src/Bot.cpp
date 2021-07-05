@@ -156,6 +156,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
     
     // we only care if one of our units dies (for now, perhaps)
     if(unit_->alliance == Unit::Alliance::Self)
+        cc.OnUnitDestroyed(unit_);
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
                 // the pm gets called first, bc we need to remove worker pointer from 
