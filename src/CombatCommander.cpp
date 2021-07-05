@@ -18,8 +18,8 @@ void CombatCommander::OnStep(){
     sm.OnStep();
     
     // handle marines
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
-    //if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) >= 15){
+    //if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
+    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= 12){
 
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
@@ -31,15 +31,26 @@ void CombatCommander::OnStep(){
             }
                 
             
-            if(!reachedEnemyMain)
+            if(!reachedEnemyMain && m->orders.empty())
                 gInterface->actions->UnitCommand(
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
             else if(!enemy.empty() && m->orders.empty()){
                 // TODO: instead of getting the first enemy in enemy, we should get the closest enemy to m
-                gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, enemy.front()->pos);
-            }
+                sc2::Unit* closest = nullptr;
+                float distance = 9000;
+                for(auto& e : enemy)
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance){
+                        closest = e;
+                        distance = sc2::DistanceSquared2D(e->pos, m->pos);
+                    }
+                    if(closest != nullptr)
+                        gInterface->actions->UnitCommand(
+                            m,
+                            sc2::ABILITY_ID::ATTACK_ATTACK,
+                            closest->pos);
+            } // end else if
                 
                 
         } // end for loop

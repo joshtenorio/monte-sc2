@@ -71,5 +71,4 @@ class ProductionManager : public Manager {
     BuildingManager bm;
     std::vector<Step> productionQueue; // list of structures/upgrades/units currently being built
     std::vector<ArmyBuilding> armyBuildings; // list of structures that produce army units
-
 };
