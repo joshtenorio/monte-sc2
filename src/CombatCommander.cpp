@@ -16,6 +16,11 @@ void CombatCommander::OnStep(){
 
     // scout manager
     sm.OnStep();
+
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
+    for(auto& m : marines){
+        manageStim(m);
+    }
     
     // handle marines
     //if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
@@ -28,6 +33,8 @@ void CombatCommander::OnStep(){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
             }
+            
+            // stim bio if applicable
                 
             if(!reachedEnemyMain && m->orders.empty())
                 gInterface->actions->UnitCommand(
@@ -77,6 +84,28 @@ void CombatCommander::OnStep(){
     } // end if gameloop % 100 == 0
 }
 
+void CombatCommander::OnUnitCreated(const Unit* unit_){ //TODO: in API, add a function that is like API::isStructure but for army units
+    if(
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MEDIVAC)
+        {
+            // have army units rally at natural in the direction of the enemy main
+            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            sc2::Point2D natural;
+            if(gInterface->map->getNthExpansion(1) != nullptr)
+                natural = gInterface->map->getNthExpansion(1)->baseLocation;
+            else return;
+            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            dx /= sqrt(dx*dx + dy*dy);
+            dy /= sqrt(dx*dx + dy*dy);
+            dx *= 6;
+            dy *= 6;
+            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+        }
+}
+
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
 }
@@ -110,4 +139,31 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 
 void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 
+}
+
+void CombatCommander::manageStim(const sc2::Unit* unit){
+    
+    if(unit == nullptr) return;
+    std::vector<sc2::BuffID> buffs = unit->buffs;
+    for(auto& b : buffs)
+        if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
+            return;
+        }
+            
+    
+    if(
+        unit->health/unit->health_max >= 0.5 &&
+        !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
+
+        switch(unit->unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_MARINE:
+                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
+                break;
+            case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+            gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
+                break;
+            default:
+                return;
+        }
+    }
 }

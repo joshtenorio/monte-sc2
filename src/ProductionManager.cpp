@@ -372,8 +372,11 @@ bool ProductionManager::TryBuildSupplyDepot(){
     // cycle: how much supply cushion we want, this is numTownhalls + numBarracks
 
     
-    // if not supply capped, dont build supply depot
-    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - cycle || gInterface->observation->GetMinerals() < 100)
+    // if not supply capped or we are at max supply, dont build supply depot
+    if(
+        gInterface->observation->GetFoodUsed() < gInterface->observation->GetFoodCap() - cycle ||
+        gInterface->observation->GetMinerals() < 100 ||
+        gInterface->observation->GetFoodCap() >= 200)
         return false;
     
     // else, try and build a number of depots equal to the number of town halls we have

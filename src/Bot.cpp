@@ -105,7 +105,7 @@ void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 void Bot::OnUnitCreated(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
         "(" << unit_->tag << ") was created" << std::endl;
-    
+    cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){
         case UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
