@@ -3,7 +3,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0.3.0"; // update this everytime we upload
+std::string version = "v0.3.1"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
