@@ -95,7 +95,6 @@ void Bot::OnStep() {
         else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     } // end d : depots
 
-    
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
@@ -186,11 +185,11 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
 }
 
 void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
-    
+    cc.OnUnitDamaged(unit_, health_, shields_);
 }
 
 void Bot::OnUnitEnterVision(const sc2::Unit* unit_){
-
+    cc.OnUnitEnterVision(unit_);
 }
 
 void Bot::OnError(const std::vector<ClientError>& client_errors,

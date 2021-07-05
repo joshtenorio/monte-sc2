@@ -28,6 +28,9 @@ namespace API {
     int countIdleUnits(sc2::UNIT_TYPEID type);
     bool isUnitIdle(const sc2::Unit* unit);
     size_t CountUnitType(UNIT_TYPEID unitType);
+    
+    // get the closest n units within radius r of loc
+    sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType = sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR);
 
     // convert a build ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT
     sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser

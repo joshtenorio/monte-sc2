@@ -4,3 +4,6 @@ void ScoutManager::OnStep(){
     
 }
 
+void ScoutManager::OnUnitDestroyed(const Unit* unit_){
+
+}

@@ -2,25 +2,46 @@
 
 namespace API {
 
-    int countIdleUnits(sc2::UNIT_TYPEID type){
-        sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
-        int c = 0;
-        for(auto& u : units){
-            if(isUnitIdle(u)) c++;
-        }
-        return c;
+int countIdleUnits(sc2::UNIT_TYPEID type){
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
+    int c = 0;
+    for(auto& u : units){
+        if(isUnitIdle(u)) c++;
     }
+    return c;
+}
 
-    bool isUnitIdle(const sc2::Unit* unit){
-        if(unit != nullptr)
-            return unit->orders.empty();
-        else
-            return false;
-    }
+bool isUnitIdle(const sc2::Unit* unit){
+    if(unit != nullptr)
+        return unit->orders.empty();
+    else
+        return false;
+}
 
 size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
     return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
 }
+
+
+sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType){
+    sc2::Units pool;
+    if(unitType == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR) // default, get any 
+        pool = gInterface->observation->GetUnits(alliance);
+    
+    else
+        pool = gInterface->observation->GetUnits(alliance, IsUnit(unitType));
+
+    sc2::Units output;
+    for(auto& u : pool){
+        if(sc2::DistanceSquared2D(u->pos, loc) < r*r){
+            output.emplace_back(u);
+        }
+        if(output.size() >= n) break;
+    }
+    return output;
+}
+
+
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:

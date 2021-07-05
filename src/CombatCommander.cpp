@@ -75,9 +75,27 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
     if(API::isStructure(unit_->unit_type.ToType())){
         // 1. get a list of n closest workers to pull
+        sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
+        printf("workers nearby: %d\t", workers.size());
         // 2. get a list of idle army
-        // 3. get closest enemy units to unit_
+        sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
+        sc2::Units idleArmy;
+        for(auto& a : armyPool)
+            if(a->orders.empty()) idleArmy.emplace_back(a);
+        printf("idle army: %d\n", idleArmy.size());
+        // 3. get closest enemy units to unit_ and find their center
+        sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
+        float x, y = 0.0;
+        float numEnemies = (float) enemies.size();
+        for(auto& e : enemies){
+            x += e->pos.x;
+            y += e->pos.y;
+        }
+        sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
+
         // 4. have workers and idle army attack them
+        gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
     }
 }
 
