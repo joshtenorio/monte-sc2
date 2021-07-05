@@ -20,7 +20,6 @@ void CombatCommander::OnStep(){
     // handle marines
     //if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= 12){
-
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
@@ -30,7 +29,6 @@ void CombatCommander::OnStep(){
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
             }
                 
-            
             if(!reachedEnemyMain && m->orders.empty())
                 gInterface->actions->UnitCommand(
                         m,
@@ -38,7 +36,7 @@ void CombatCommander::OnStep(){
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
             else if(!enemy.empty() && m->orders.empty()){
                 // TODO: instead of getting the first enemy in enemy, we should get the closest enemy to m
-                sc2::Unit* closest = nullptr;
+                const sc2::Unit* closest = nullptr;
                 float distance = 9000;
                 for(auto& e : enemy)
                     if(sc2::DistanceSquared2D(e->pos, m->pos) < distance){
@@ -54,7 +52,7 @@ void CombatCommander::OnStep(){
                 
                 
         } // end for loop
-    } // end if marine count > 10
+    } // end if idle bio > 12
 
     // handle medivacs every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
@@ -87,16 +85,16 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
     if(API::isStructure(unit_->unit_type.ToType())){
         // 1. get a list of n closest workers to pull
         sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
-        printf("workers nearby: %d\t", workers.size());
+
         // 2. get a list of idle army
         sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
         sc2::Units idleArmy;
         for(auto& a : armyPool)
             if(a->orders.empty()) idleArmy.emplace_back(a);
-        printf("idle army: %d\n", idleArmy.size());
+
         // 3. get closest enemy units to unit_ and find their center
         sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
-        float x, y = 0.0;
+        float x = 0.0, y = 0.0;
         float numEnemies = (float) enemies.size();
         for(auto& e : enemies){
             x += e->pos.x;

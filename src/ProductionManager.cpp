@@ -365,13 +365,19 @@ void ProductionManager::morphStructure(Step s){
 }
 
 bool ProductionManager::TryBuildSupplyDepot(){
+    int numTownhalls = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) +
+                        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) +
+                        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS);
+    int cycle = 1 + numTownhalls;
+    // cycle: how much supply cushion we want, this is numTownhalls + numBarracks
 
+    
     // if not supply capped, dont build supply depot
-    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - 2 || gInterface->observation->GetMinerals() < 100)
+    if(gInterface->observation->GetFoodUsed() <= gInterface->observation->GetFoodCap() - cycle || gInterface->observation->GetMinerals() < 100)
         return false;
     
-    // else, try and build depot using a random scv
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT);
+    // else, try and build a number of depots equal to the number of town halls we have
+    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT, numTownhalls);
 }
 
 bool ProductionManager::TryBuildBarracks() {

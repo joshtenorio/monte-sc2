@@ -22,7 +22,7 @@ class BuildingManager : public Manager {
     void OnBuildingConstructionComplete(const Unit* building_);
     void OnUnitCreated(const Unit* building_);
 
-    bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
+    bool TryBuildStructure(ABILITY_ID ability_type_for_structure, int maxConcurrent = 1, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV);
     bool checkConstructions(sc2::UNIT_TYPEID building);
     
 

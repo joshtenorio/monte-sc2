@@ -105,30 +105,35 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     inProgressBuildings.emplace_back(std::make_pair(building_, w));
 }
 
-bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type){
+bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){
 
-    const Unit* unit_to_build = nullptr;
-    Units units = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    const sc2::Unit* unit_to_build = nullptr;
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
 
     // if there is an in progress building, don't immediately build another
-    // this one is for if worker dies
     if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
+
+    int num = 0;
     for(const auto& unit : units){
-        // if unit is already building structure of this type, do nothing
+        // check how many workers are already building this
+        
         for (const auto& order : unit->orders){
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
-                return false;
+                num++;
         }
+
+        if(num >= maxConcurrent) return false;
+
         // identify SCV to build structure
         if(unit->unit_type == unit_type && gInterface->wm->isFree(gInterface->wm->getWorker(unit)))
             unit_to_build = unit;
     }
     
     // TODO: this can be refactored into switch statement
-    if(unit_to_build == nullptr){
+    if(unit_to_build == nullptr)
         return false;
-    }
-    if(ability_type_for_structure != ABILITY_ID::BUILD_REFINERY){
+
+    if(ability_type_for_structure != sc2::ABILITY_ID::BUILD_REFINERY){
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
         gInterface->actions->UnitCommand(
             unit_to_build,
@@ -136,7 +141,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
             loc);
         return true;
     }
-    else if (ability_type_for_structure == ABILITY_ID::BUILD_REFINERY){
+    else if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_REFINERY){
         // we are building a refinery!
         // make sure there are geysers
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
