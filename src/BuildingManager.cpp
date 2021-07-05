@@ -135,6 +135,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
 
     if(ability_type_for_structure != sc2::ABILITY_ID::BUILD_REFINERY){
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
+        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
@@ -147,6 +148,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
+        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         gInterface->actions->UnitCommand(
            unit_to_build,
             ability_type_for_structure,
