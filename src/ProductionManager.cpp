@@ -242,6 +242,8 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     int index = -1;
     for(int i = 0; i < armyBuildings.size(); i++){
         if(unit_->tag == armyBuildings[i].buildingTag){
+            armyBuildings[i].addon = nullptr;
+            armyBuildings[i].addonTag = -1;
             index = i;
             break;
         }

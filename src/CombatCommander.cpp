@@ -42,11 +42,10 @@ void CombatCommander::OnStep(){
                         ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
             else if(!enemy.empty() && m->orders.empty()){
-                // TODO: instead of getting the first enemy in enemy, we should get the closest enemy to m
                 const sc2::Unit* closest = nullptr;
                 float distance = 9000;
                 for(auto& e : enemy)
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance){
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && !e->is_flying){
                         closest = e;
                         distance = sc2::DistanceSquared2D(e->pos, m->pos);
                     }
@@ -84,7 +83,8 @@ void CombatCommander::OnStep(){
     } // end if gameloop % 100 == 0
 }
 
-void CombatCommander::OnUnitCreated(const Unit* unit_){ //TODO: in API, add a function that is like API::isStructure but for army units
+void CombatCommander::OnUnitCreated(const Unit* unit_){
+    if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
     if(
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER ||
