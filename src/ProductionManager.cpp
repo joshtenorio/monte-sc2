@@ -18,19 +18,6 @@ void ProductionManager::OnStep(){
 
         // check on army buildings
         for(auto& a : armyBuildings){
-            // if army building is unused, give it an order
-            if(a.order == ARMYBUILDING_UNUSED){
-                switch(a.building->unit_type.ToType()){
-                    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: // TODO: if barracks has a tech lab, should it train marauders instead?
-                        a.order = sc2::ABILITY_ID::TRAIN_MARINE;
-                    break;
-                    case sc2::UNIT_TYPEID::TERRAN_FACTORY:
-                    break;
-                    case sc2::UNIT_TYPEID::TERRAN_STARPORT:
-                        a.order = sc2::ABILITY_ID::TRAIN_MEDIVAC;
-                    break;
-                }
-            }
 
             // if army building is a barrack, then place a reactor if possible
             if(
@@ -51,6 +38,22 @@ void ProductionManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         std::cout << "prod queue size: " << productionQueue.size() << std::endl;
         
+    }
+
+    for(auto& a : armyBuildings){
+        // if army building is unused, give it an order
+        if(a.order == ARMYBUILDING_UNUSED){
+            switch(a.building->unit_type.ToType()){
+                case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+                    a.order = sc2::ABILITY_ID::TRAIN_MARINE;
+                break;
+                case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+                break;
+                case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+                    a.order = sc2::ABILITY_ID::TRAIN_MEDIVAC;
+                break;
+            }
+        }
     }
         
 
