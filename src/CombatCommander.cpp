@@ -23,8 +23,8 @@ void CombatCommander::OnStep(){
     }
     
     // handle marines
-    //if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) > 10){
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= 12){
+    int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
+    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave){
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
