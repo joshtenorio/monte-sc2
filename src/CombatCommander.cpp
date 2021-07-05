@@ -1,14 +1,14 @@
 #include "CombatCommander.h"
 
 
-// used for marine control
-bool reachedEnemyMain = false;
-std::vector<sc2::UNIT_TYPEID> bio;
+
 
 
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+
+    reachedEnemyMain = false;
 }
 
 

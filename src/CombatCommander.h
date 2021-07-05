@@ -25,5 +25,9 @@ class CombatCommander : public Manager {
 
     protected:
     ScoutManager sm;
+
+    // used for marine control
+    bool reachedEnemyMain;
+    std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
     int foo;
 };

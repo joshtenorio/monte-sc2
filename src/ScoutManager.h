@@ -16,8 +16,9 @@ typedef struct Scout_s_t {
 class ScoutManager : public Manager {
     public:
     ScoutManager() {};
+    void OnGameStart();
     void OnStep();
-    void OnUnitDestroyed(const Unit* unit_);
+    void OnUnitDestroyed(const sc2::Unit* unit_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
     bool createScoutingMission();
@@ -25,4 +26,5 @@ class ScoutManager : public Manager {
 
     protected:
     std::vector<Scout> scouts;
+    std::vector<sc2::UNIT_TYPEID> scoutTypes;
 };
