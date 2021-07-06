@@ -1,5 +1,4 @@
 #include "Bot.h"
-
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
@@ -14,8 +13,6 @@ Bot::Bot(){
 
     gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
 }
-
-
 
 void Bot::OnGameStart(){
     pm.OnGameStart();
