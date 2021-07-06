@@ -155,7 +155,9 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
          "(" << unit_->tag << ") was destroyed" << std::endl;
     
     // we only care if one of our units dies (for now, perhaps)
-    if(unit_->alliance == Unit::Alliance::Self)
+    if(unit_->alliance == Unit::Alliance::Self){
+
+        // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
         cc.OnUnitDestroyed(unit_);
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
@@ -183,7 +185,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
             default:
                 break;
         }
-
+    }
 }
 
 void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){

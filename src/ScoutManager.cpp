@@ -14,17 +14,61 @@ void ScoutManager::OnStep(){
 
 void ScoutManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if unit is scout then remove from scouts
+    removeScout(unit_->tag);
 }
 
 void ScoutManager::OnUnitEnterVision(const sc2::Unit* unit_){
+    if(unit_ == nullptr) return;
+
     // 1. if it isn't within any of our scouts' vision, we don't care about it
     bool foundByScout = false;
+    sc2::Tag sTag = -1;
     for(auto& s : scouts){
+        switch(s.u->unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_SCV: // sight = 8
+                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 64){
+                    foundByScout = true;
+                    sTag = s.tag;
+                }
 
+            break;
+            case sc2::UNIT_TYPEID::TERRAN_REAPER: // sight = 9
+                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 81){
+                    foundByScout = true;
+                    sTag = s.tag;
+                }
+
+            break;
+            case sc2::UNIT_TYPEID::TERRAN_HELLION: // sight = 10
+                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 100){
+                    foundByScout = true;
+                    sTag = s.tag;
+                }
+            break;
+            default:
+            break;
+        } // end switch
+
+        if(foundByScout) break;
     }
     if(!foundByScout) return;
-    // 2. if the unit has a large radius (>= 1.5 perhaps? need to research), isnt flying,
-    // and its position is close to any neutral expansion location, assign that expansion location to enemy ownership
+    std::cout << "a scout found something\n\n";
+    // 2. if the unit is a townhall, then set expansion ownership
+    // also remove scouting mission
+    // TODO: add a function in api IsTownHall() so we don't have to call observation
+    removeScout(sTag);
+    sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+    std::cout << "num of enemy th: " << enemyTownHalls.size() << std::endl;
+    for(auto& th : enemyTownHalls){
+        if(th->tag == unit_->tag){
+            std::cout << "enemy th identified\n";
+            Expansion* closest = gInterface->map->getClosestExpansion(unit_->pos);
+            if(closest == nullptr) return;
+            else
+                closest->ownership = OWNER_ENEMY;
+            break;
+        }
+    }
 }
 
 bool ScoutManager::createScoutingMission(){
@@ -95,5 +139,16 @@ bool ScoutManager::createScoutingMission(){
 }
 
 bool ScoutManager::removeScout(sc2::Tag tag){
-    return true;
+    for(auto itr = scouts.begin(); itr != scouts.end(); ){
+        if(tag == (*itr).tag){
+            std::cout << "removing scout " << tag << std::endl;
+            if((*itr).u != nullptr)
+                if((*itr).u->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV)
+                    gInterface->wm->getWorker((*itr).u)->job = JOB_UNEMPLOYED;
+            itr = scouts.erase(itr);
+            return true;
+        } // end if tag == itr tag
+        else ++itr;
+    }
+    return false;
 }

@@ -139,7 +139,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 }
 
 void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
-
+    sm.OnUnitEnterVision(unit_);
 }
 
 void CombatCommander::manageStim(const sc2::Unit* unit){
