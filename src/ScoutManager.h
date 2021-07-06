@@ -22,9 +22,9 @@ class ScoutManager : public Manager {
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
     bool createScoutingMission();
-    bool sendScout();
+    bool removeScout(sc2::Tag tag);
 
     protected:
     std::vector<Scout> scouts;
-    std::vector<sc2::UNIT_TYPEID> scoutTypes;
+    std::vector<sc2::UNIT_TYPEID> scoutTypes; // filter for units that can scout
 };

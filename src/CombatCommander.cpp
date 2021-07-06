@@ -9,6 +9,7 @@ void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
 
     reachedEnemyMain = false;
+    sm.OnGameStart();
 }
 
 
