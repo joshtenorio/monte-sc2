@@ -49,6 +49,7 @@ class WorkerManager : public Manager {
     // free worker is defined as a worker who is either unemployed or gathering minerals
     Worker* getFreeWorker();
     Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*
+    Worker* getWorker(sc2::Tag tag_);
     Worker* getNthWorker(size_t n);
     // TODO: add implementation for getting closest worker who has a specific job
     Worker* getClosestWorker(sc2::Point2D pos, int jobType = -1);

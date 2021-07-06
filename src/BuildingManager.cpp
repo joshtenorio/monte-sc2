@@ -23,7 +23,6 @@ void BuildingManager::OnStep(){
                         break;
                     }
             }
-
         }
         if(!workedOn){ // building is not being worked on, so get a worker to work on it
             Worker* w = gInterface->wm->getClosestWorker(c.first->pos);
@@ -33,6 +32,7 @@ void BuildingManager::OnStep(){
                     w->job = JOB_BUILDING_GAS;
                 else
                     w->job = JOB_BUILDING;
+                c.second = w;
             }
         } // end if !workedOn
     } // end for c : inProg
@@ -52,10 +52,13 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
        // dead worker's object will already be taken care of in workermanager
        else if((*itr).second->tag == unit_->tag){
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
+            if(newWorker == nullptr) return;
             size_t n = 0;
             while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
                 newWorker = gInterface->wm->getNthWorker(n);
+                if(newWorker == nullptr) return;
                 n++;
+                if(n >= gInterface->wm->getNumWorkers()) return;
             }
             gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
             if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
