@@ -89,6 +89,20 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
     }
     if(index >= 0)
         inProgressBuildings.erase(inProgressBuildings.begin() + index);
+
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+        if((*itr).first->tag == building_->tag){
+            if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
+                building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+                (*itr).second->job = JOB_GATHERING_GAS;
+            else
+                (*itr).second->job = JOB_UNEMPLOYED;
+            
+            itr = inProgressBuildings.erase(itr);
+        }
+        else ++itr;
+    } // end for
+    
 }
 
 void BuildingManager::OnUnitCreated(const sc2::Unit* building_){

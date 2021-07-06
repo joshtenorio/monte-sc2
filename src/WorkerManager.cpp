@@ -33,14 +33,14 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
     Tag key = unit_->tag;
-   int index = 0;
-   for(int i = 0; i < workers.size(); i++){
-       if(workers[i].scv->tag == key){
-           index = i;
-           break;
-       }
-   }
-   workers.erase(workers.begin() + index);
+    int index = 0;
+    for(int i = 0; i < workers.size(); i++){
+        if(workers[i].scv->tag == key){
+            index = i;
+            break;
+        }
+    }
+    workers.erase(workers.begin() + index);
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
