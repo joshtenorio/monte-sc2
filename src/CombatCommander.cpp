@@ -1,19 +1,20 @@
 #include "CombatCommander.h"
 
 
-// used for marine control
-bool reachedEnemyMain = false;
-std::vector<sc2::UNIT_TYPEID> bio;
+
 
 
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+
+    reachedEnemyMain = false;
+    sm.OnGameStart();
 }
 
 
 void CombatCommander::OnStep(){
-
+        
     // scout manager
     sm.OnStep();
 
@@ -34,13 +35,32 @@ void CombatCommander::OnStep(){
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
             }
             
-            // stim bio if applicable
-                
-            if(!reachedEnemyMain && m->orders.empty())
-                gInterface->actions->UnitCommand(
+            // attack closest enemy expansion
+            if(!reachedEnemyMain && m->orders.empty()){
+                // TODO: in mapper make a "closest <owner> expo" function
+                Expansion* closestEnemyExpo = nullptr;
+                for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+                    // check if it is an enemy expansion and we are not at that base
+                    if(
+                        gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY &&
+                        sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
+                        {
+                        closestEnemyExpo = gInterface->map->getNthExpansion(n);
+                    }
+                } // end for expansions
+                if(closestEnemyExpo != nullptr){
+                    gInterface->actions->UnitCommand(
+                            m,
+                            ABILITY_ID::ATTACK_ATTACK,
+                            closestEnemyExpo->baseLocation);
+                }
+                else{
+                    gInterface->actions->UnitCommand(
                         m,
                         ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
+                }
+            }
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
                 float distance = 9000;
@@ -64,19 +84,28 @@ void CombatCommander::OnStep(){
     if(gInterface->observation->GetGameLoop() % 12 == 0){
         sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         for(auto& med : medivacs){
-            // move each medivac to the closest marine
+            // move each medivac to the closest productive marine
             sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
             const sc2::Unit* closestMarine = nullptr;
             float d = 10000;
             for(auto& ma : marines){
                 if(ma != nullptr)
-                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
+                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos) && !ma->orders.empty()){
                         closestMarine = ma;
                         d = sc2::DistanceSquared2D(ma->pos, med->pos);
                     }
             } // end marine loop
-            if(d > 9 && closestMarine != nullptr){
-                // if distance to closest marine is > 5, move medivac to marine's position
+            if(closestMarine == nullptr) // if no marines are productive, then pick the closest marine in general
+                for(auto& ma : marines){
+                    if(ma != nullptr)
+                        if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
+                            closestMarine = ma;
+                            d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                }
+            } // end marine loop
+
+            if(d > 12 && closestMarine != nullptr){
+                // if distance to closest marine is > sqrt(12), move medivac to marine's position
                 gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
             }
         } // end medivac loop
@@ -138,7 +167,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 }
 
 void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
-
+    sm.OnUnitEnterVision(unit_);
 }
 
 void CombatCommander::manageStim(const sc2::Unit* unit){
@@ -152,7 +181,7 @@ void CombatCommander::manageStim(const sc2::Unit* unit){
             
     
     if(
-        unit->health/unit->health_max >= 0.5 &&
+        unit->health/unit->health_max >= 0.6 &&
         !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
 
         switch(unit->unit_type.ToType()){

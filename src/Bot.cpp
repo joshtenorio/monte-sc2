@@ -3,7 +3,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0.3.1"; // update this everytime we upload
+std::string version = "v0_4_0"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -154,8 +154,13 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
          "(" << unit_->tag << ") was destroyed" << std::endl;
     
+    // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
+    // additionally we also track dead town halls in scout manager
+    cc.OnUnitDestroyed(unit_);
     // we only care if one of our units dies (for now, perhaps)
-    if(unit_->alliance == Unit::Alliance::Self)
+    if(unit_->alliance == Unit::Alliance::Self){
+
+        
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
                 // the pm gets called first, bc we need to remove worker pointer from 
@@ -182,7 +187,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
             default:
                 break;
         }
-
+    }
 }
 
 void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){

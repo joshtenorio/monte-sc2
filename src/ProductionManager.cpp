@@ -116,21 +116,11 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
             // search through production queue to remove 
-            /**
             for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
                 if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).ability)
                     itr = productionQueue.erase(itr);
                 else ++itr;
-            }*/
-            for(int i = 0; i < productionQueue.size(); i++){
-                if(productionQueue[i].ability == API::unitTypeIDToAbilityID(building_->unit_type.ToType())){
-                    printf("buildingcomplete(morph): removing %d from prod queue\n", productionQueue[i].ability);
-                    index = i;
-                    break;
-                }
             }
-            if(index >= 0)
-                productionQueue.erase(productionQueue.begin() + index);
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
@@ -139,22 +129,11 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     
     // loop through production queue to check which Step corresponds to
     // the structure that just finished, doesn't apply to morphs
-    /**
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
             itr = productionQueue.erase(itr);
         else ++itr;
     }
-    */
-    index = -1;
-    for(int i = 0; i < productionQueue.size(); i++){
-        if(building_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
-            index = i;
-            break;
-        }
-    }
-    if(index >= 0)
-        productionQueue.erase(productionQueue.begin() + index);
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
@@ -166,18 +145,6 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    /**
-    int index = -1;
-    for(int i = 0; i < productionQueue.size(); i++){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID(productionQueue[i].ability)){
-            index = i;
-            printf("unitcreated: removing %d from prod queue\n", productionQueue[i].ability);
-            break;
-        }
-    }
-    if(index >= 0)
-        productionQueue.erase(productionQueue.begin() + index);
-    */
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){
             printf("unitcreated: removing %d from prod queue\n", (*itr).ability);
@@ -191,18 +158,6 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
-    /**
-    int index = -1;
-    for(int i = 0; i < productionQueue.size(); i++){
-        if(API::upgradeIDToAbilityID(upgrade_) == productionQueue[i].ability){
-            printf("upgradecompleted: removing %d from prod queue\n", productionQueue[i].ability);
-            index = i;
-            break;
-        }
-    }
-    if(index >= 0)
-        productionQueue.erase(productionQueue.begin() + index);
-    */
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(API::upgradeIDToAbilityID(upgrade_) == (*itr).ability){
             printf("upgradecompleted: removing %d from prod queue\n", (*itr).ability);
@@ -225,7 +180,6 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
         gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
         
     // remove army building or addon from army building if applicable
-    /**
     for(auto itr = armyBuildings.begin(); itr != armyBuildings.end(); ){
         if(unit_->tag == (*itr).buildingTag){
             itr = armyBuildings.erase(itr);
@@ -237,23 +191,7 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
             break;
         }
         else ++ itr;
-    }*/
-    int index = -1;
-    for(int i = 0; i < armyBuildings.size(); i++){
-        if(unit_->tag == armyBuildings[i].buildingTag){
-            armyBuildings[i].addon = nullptr;
-            armyBuildings[i].addonTag = -1;
-            index = i;
-            break;
-        }
-        else if(unit_->tag == armyBuildings[i].addonTag){
-            armyBuildings[i].addon = nullptr;
-            armyBuildings[i].addonTag = -1;
-            break;
-        }
     }
-    if(index >= 0)
-        armyBuildings.erase(armyBuildings.begin() + index);
 
 }
 

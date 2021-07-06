@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
@@ -15,11 +16,16 @@ typedef struct Scout_s_t {
 class ScoutManager : public Manager {
     public:
     ScoutManager() {};
+    void OnGameStart();
     void OnStep();
-    void OnUnitDestroyed(const Unit* unit_);
+    void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitEnterVision(const sc2::Unit* unit_);
 
     bool createScoutingMission();
-    bool sendScout();
+    bool removeScout(sc2::Tag tag);
+    void updateExpoOwnership();
+
     protected:
-    int foo;
+    std::vector<Scout> scouts;
+    std::vector<sc2::UNIT_TYPEID> scoutTypes; // filter for units that can scout
 };

@@ -21,6 +21,7 @@
 #define JOB_BUILDING_GAS        4
 #define JOB_FIGHTING            5
 #define JOB_REPAIRING           6
+#define JOB_SCOUTING            7
 
 using namespace sc2;
 typedef struct Worker_s_t {

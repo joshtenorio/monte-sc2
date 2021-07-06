@@ -296,26 +296,43 @@ sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit){
 
 bool isStructure(sc2::UNIT_TYPEID unit){
     switch(unit){
-        case UNIT_TYPEID::TERRAN_ARMORY:
-        case UNIT_TYPEID::TERRAN_BARRACKS:
-        case UNIT_TYPEID::TERRAN_BUNKER:
-        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-        case UNIT_TYPEID::TERRAN_FACTORY:
-        case UNIT_TYPEID::TERRAN_FUSIONCORE:
-        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-        case UNIT_TYPEID::TERRAN_MISSILETURRET:
-        case UNIT_TYPEID::TERRAN_REFINERY:
-        case UNIT_TYPEID::TERRAN_REFINERYRICH:
-        case UNIT_TYPEID::TERRAN_SENSORTOWER:
-        case UNIT_TYPEID::TERRAN_STARPORT:
-        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+        case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+        case sc2::UNIT_TYPEID::TERRAN_BUNKER:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+        case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
         case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool isTownHall(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case sc2::UNIT_TYPEID::PROTOSS_NEXUS:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING:
+        case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+        case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING:
+        case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+        case sc2::UNIT_TYPEID::ZERG_HATCHERY:
+        case sc2::UNIT_TYPEID::ZERG_HIVE:
+        case sc2::UNIT_TYPEID::ZERG_LAIR:
             return true;
         default:
             return false;
