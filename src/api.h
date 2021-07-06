@@ -39,6 +39,7 @@ namespace API {
     sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit);
 
     bool isStructure(sc2::UNIT_TYPEID unit);
+    bool isTownHall(sc2::UNIT_TYPEID unit);
 
     char parseStep(Step s);
 
