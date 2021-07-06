@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     // coordinator.SetFullScreen(true);
 
     // NOTE: Uncomment to play at normal speed.
-    //coordinator.SetRealtime(true);
+    // coordinator.SetRealtime(true);
 
     Bot bot;
     coordinator.SetParticipants(

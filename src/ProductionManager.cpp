@@ -8,6 +8,9 @@ void ProductionManager::OnStep(){
     // build a supply depot if needed
     TryBuildSupplyDepot();
 
+    // handle mules
+    callMules();
+
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
         TryBuildBarracks();         // max : 8
@@ -409,7 +412,7 @@ void ProductionManager::handleUpgrades(){
     marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
     // get random vehicle unit
     // get random flying unit
-    // FIXME: implement this
+    // FIXME: implement getting random vehicle/flying units upgrade levels
     
     // get current upgrade levels
     int infantryWeapons = 0;
@@ -422,8 +425,8 @@ void ProductionManager::handleUpgrades(){
             printf("infantry weapons %d\tinfantry armor %d\n", infantryWeapons, infantryArmor);
     }
 
-
-    // based on those upgrade levels, select the next upgrade to get
+    // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
+    // based on those upgrade levels, select the next upgrade to prioritise
     if(infantryWeapons > infantryArmor){
         switch(infantryArmor){
             case 0:
@@ -434,6 +437,17 @@ void ProductionManager::handleUpgrades(){
                 break;
             case 2:
                 researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, -1, false, false));
+                break;
+        }
+        switch(infantryWeapons){
+            case 0:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, -1, false, false));
+                break;
+            case 1:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, -1, false, false));
+                break;
+            case 2:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, -1, false, false));
                 break;
         }
     }
@@ -449,7 +463,49 @@ void ProductionManager::handleUpgrades(){
                 researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, -1, false, false));
                 break;
         }
+        switch(infantryArmor){
+            case 0:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, -1, false, false));
+                break;
+            case 1:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, -1, false, false));
+                break;
+            case 2:
+                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, -1, false, false));
+                break;
+        }
     }
+}
 
+void ProductionManager::callMules(){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) <= 0) return;
 
+    sc2::Units orbitals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+
+    for(auto& orbital : orbitals){
+        if(orbital->energy >= 50){
+            // find current expansion
+            Expansion* current = gInterface->map->getCurrentExpansion();
+            if(current == nullptr) return;
+            std::cout << "expo not null" << std::endl;
+
+            // get a visible mineral unit closest to the current expansion
+            
+            sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
+            const sc2::Unit* mineralTarget = minerals.front();
+            for(auto& m : minerals)
+                if(sc2::DistanceSquared2D(current->baseLocation, m->pos) < sc2::DistanceSquared2D(current->baseLocation, mineralTarget->pos)){
+                    mineralTarget = m;
+                }
+
+            
+            if(mineralTarget != nullptr){
+                gInterface->debug->DebugTextOut("mule target", mineralTarget->pos);
+                gInterface->debug->SendDebug();
+                gInterface->actions->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineralTarget);
+            }
+                
+        } // end if orbital energy >= 50
+            
+    }
 }

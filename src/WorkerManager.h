@@ -40,7 +40,7 @@ class WorkerManager : public Manager {
     void OnUnitIdle(const Unit* unit_);
 
     void DistributeWorkers(int gasWorkers = 3);
-    const Unit* FindNearestMineralPatch(const Point2D& start);
+    const sc2::Unit* FindNearestMineralPatch(const Point2D& start);
 
     // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list

@@ -66,6 +66,9 @@ class ProductionManager : public Manager {
     // handle upgrades
     void handleUpgrades();
 
+    // use orbital cc
+    void callMules();
+
     protected:
     Strategy* strategy;
     BuildingManager bm;

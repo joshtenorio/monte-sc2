@@ -23,8 +23,6 @@ void Bot::OnGameStart(){
 
     cc.OnGameStart();
 
-
-
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
