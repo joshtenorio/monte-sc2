@@ -506,8 +506,6 @@ void ProductionManager::callMules(){
 
             
             if(mineralTarget != nullptr){
-                gInterface->debug->DebugTextOut("mule target", mineralTarget->pos);
-                gInterface->debug->SendDebug();
                 gInterface->actions->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineralTarget);
             }
                 

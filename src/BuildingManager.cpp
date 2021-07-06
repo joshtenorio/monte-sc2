@@ -41,53 +41,37 @@ void BuildingManager::OnStep(){
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if its an in-prog building that died, release the worker and remove Construction from list
-    int index = -1;
-    for(int i = 0; i < inProgressBuildings.size(); i++){
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
        // the building died, so release the worker and remove Construction
-       if(inProgressBuildings[i].first->tag == unit_->tag){
-           inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
-           index = i;
-           break;
+       if((*itr).first->tag == unit_->tag){
+            (*itr).second->job = JOB_UNEMPLOYED;
+            itr = inProgressBuildings.erase(itr);
+            break;
        }
        // the worker died so need to assign a new, differnent worker
        // dead worker's object will already be taken care of in workermanager
-       else if(inProgressBuildings[i].second->tag == unit_->tag){
+       else if((*itr).second->tag == unit_->tag){
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             size_t n = 0;
             while(newWorker->tag == unit_->tag){ // make sure new worker isn't the same one that just died
                 newWorker = gInterface->wm->getNthWorker(n);
                 n++;
             }
-            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, inProgressBuildings[i].first); // target the building
-            if(inProgressBuildings[i].first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || inProgressBuildings[i].first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
+            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
             else
                 newWorker->job = JOB_BUILDING;
-            inProgressBuildings[i].second = newWorker;
+            (*itr).second = newWorker;
             break;
        }
+       else ++itr;
     }
-    if(index >=0)
-        inProgressBuildings.erase(inProgressBuildings.begin() + index);
+
 }
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed, unless building was a refinery (in which case the new job is gathering gas)
-    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
-        if((*itr).first->tag == building_->tag){
-            if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
-                building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
-                (*itr).second->job = JOB_GATHERING_GAS;
-            }
-            else{
-                (*itr).second->job = JOB_UNEMPLOYED;
-            }
-            itr = inProgressBuildings.erase(itr);
-        }
-        else ++itr;
-    }
-
-
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
         if((*itr).first->tag == building_->tag){
             if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
