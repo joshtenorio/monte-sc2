@@ -73,22 +73,20 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed, unless building was a refinery (in which case the new job is gathering gas)
-    int index = -1;
-    for(int i = 0; i < inProgressBuildings.size(); i++){
-        if(inProgressBuildings[i].first->tag == building_->tag){
-            index = i;
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+        if((*itr).first->tag == building_->tag){
             if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
                 building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH){
-                inProgressBuildings[i].second->job = JOB_GATHERING_GAS;
+                (*itr).second->job = JOB_GATHERING_GAS;
             }
             else{
-                inProgressBuildings[i].second->job = JOB_UNEMPLOYED;
+                (*itr).second->job = JOB_UNEMPLOYED;
             }
-            break;
+            itr = inProgressBuildings.erase(itr);
         }
+        else ++itr;
     }
-    if(index >= 0)
-        inProgressBuildings.erase(inProgressBuildings.begin() + index);
+
 
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
         if((*itr).first->tag == building_->tag){
