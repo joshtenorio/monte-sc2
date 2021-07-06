@@ -2,6 +2,9 @@
 
 void ProductionManager::OnStep(){
 
+    // clear the busyBuildings vector of tags
+    busyBuildings.clear();
+
     // fill queue with steps
     fillQueue();
 
@@ -38,10 +41,7 @@ void ProductionManager::OnStep(){
         handleUpgrades();
     } // end if prod queue empty
 
-    if(gInterface->observation->GetGameLoop() % 400 == 0){
-        std::cout << "prod queue size: " << productionQueue.size() << std::endl;
-        
-    }
+
 
     for(auto& a : armyBuildings){
         // if army building is unused, give it an order
@@ -74,6 +74,11 @@ void ProductionManager::OnStep(){
     for(auto& cc : ccs)
         if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
             gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
+
+    if(gInterface->observation->GetGameLoop() % 400 == 0){
+        std::cout << "prod queue size: " << productionQueue.size() << "\t";
+        std::cout << "busy buildings size: " << busyBuildings.size() << std::endl;
+    }
 
 }
 
@@ -288,9 +293,10 @@ void ProductionManager::researchUpgrade(Step s){
                 break;
             }
         }
-        if(b->orders.empty() && canResearch){
+        if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag)){
             printf("researchUpgrade: researching %d\n", s.ability);
             gInterface->actions->UnitCommand(b, s.ability);
+            busyBuildings.emplace_back(b->tag);
             return;
         }
     }
@@ -490,7 +496,7 @@ void ProductionManager::callMules(){
             std::cout << "expo not null" << std::endl;
 
             // get a visible mineral unit closest to the current expansion
-            
+            // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically
             sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
             const sc2::Unit* mineralTarget = minerals.front();
             for(auto& m : minerals)
@@ -508,4 +514,10 @@ void ProductionManager::callMules(){
         } // end if orbital energy >= 50
             
     }
+}
+
+bool ProductionManager::isBuildingBusy(sc2::Tag bTag){
+    for(auto& b : busyBuildings)
+        if(b == bTag) return true;
+    return false;
 }

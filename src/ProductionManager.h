@@ -69,9 +69,13 @@ class ProductionManager : public Manager {
     // use orbital cc
     void callMules();
 
+    // returns true if the building has been given an order in the current loop
+    bool isBuildingBusy(sc2::Tag bTag);
+
     protected:
     Strategy* strategy;
     BuildingManager bm;
     std::vector<Step> productionQueue; // list of structures/upgrades/units currently being built
     std::vector<ArmyBuilding> armyBuildings; // list of structures that produce army units
+    std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
 };
