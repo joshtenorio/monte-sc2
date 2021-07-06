@@ -14,12 +14,6 @@ void CombatCommander::OnGameStart(){
 
 
 void CombatCommander::OnStep(){
-
-    // print debug o3o
-    sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
-    sc2::Units enemyUnits = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
-    if(gInterface->observation->GetGameLoop() % 400 == 0)
-        std::cout << "num of enemy ths: " << enemyTownHalls.size() << "\tnum of enemy units: " << enemyUnits.size() << std::endl;
         
     // scout manager
     sm.OnStep();

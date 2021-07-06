@@ -23,6 +23,7 @@ class ScoutManager : public Manager {
 
     bool createScoutingMission();
     bool removeScout(sc2::Tag tag);
+    void updateExpoOwnership();
 
     protected:
     std::vector<Scout> scouts;

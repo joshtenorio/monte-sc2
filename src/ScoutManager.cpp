@@ -7,8 +7,13 @@ void ScoutManager::OnGameStart(){
 }
 
 void ScoutManager::OnStep(){
-    if(gInterface->observation->GetGameLoop() % 2000 == 0 && gInterface->observation->GetGameLoop() >= 3000)
+
+    if(gInterface->observation->GetGameLoop() % 1500 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
+
+    // update 
+    if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
+        updateExpoOwnership();
 
 }
 
@@ -18,57 +23,7 @@ void ScoutManager::OnUnitDestroyed(const sc2::Unit* unit_){
 }
 
 void ScoutManager::OnUnitEnterVision(const sc2::Unit* unit_){
-    if(unit_ == nullptr) return;
 
-    // 1. if it isn't within any of our scouts' vision, we don't care about it
-    bool foundByScout = false;
-    sc2::Tag sTag = -1;
-    for(auto& s : scouts){
-        switch(s.u->unit_type.ToType()){
-            case sc2::UNIT_TYPEID::TERRAN_SCV: // sight = 8
-                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 64){
-                    foundByScout = true;
-                    sTag = s.tag;
-                }
-
-            break;
-            case sc2::UNIT_TYPEID::TERRAN_REAPER: // sight = 9
-                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 81){
-                    foundByScout = true;
-                    sTag = s.tag;
-                }
-
-            break;
-            case sc2::UNIT_TYPEID::TERRAN_HELLION: // sight = 10
-                if(sc2::DistanceSquared2D(unit_->pos, s.u->pos) <= 100){
-                    foundByScout = true;
-                    sTag = s.tag;
-                }
-            break;
-            default:
-            break;
-        } // end switch
-
-        if(foundByScout) break;
-    }
-    if(!foundByScout) return;
-    std::cout << "a scout found something\n\n";
-    // 2. if the unit is a townhall, then set expansion ownership
-    // also remove scouting mission
-    // TODO: add a function in api IsTownHall() so we don't have to call observation
-    removeScout(sTag);
-    sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
-    std::cout << "num of enemy th: " << enemyTownHalls.size() << std::endl;
-    for(auto& th : enemyTownHalls){
-        if(th->tag == unit_->tag){
-            std::cout << "enemy th identified\n";
-            Expansion* closest = gInterface->map->getClosestExpansion(unit_->pos);
-            if(closest == nullptr) return;
-            else
-                closest->ownership = OWNER_ENEMY;
-            break;
-        }
-    }
 }
 
 bool ScoutManager::createScoutingMission(){
@@ -80,7 +35,6 @@ bool ScoutManager::createScoutingMission(){
     const sc2::Unit* scout = nullptr;
     sc2::Units scoutPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(scoutTypes));
     if(scoutPool.empty()) return false;
-    std::cout << "spool not empty\n";
     for(auto& s : scoutPool){
         bool scoutFound = false;
         switch(s->unit_type.ToType()){
@@ -105,7 +59,6 @@ bool ScoutManager::createScoutingMission(){
     // the "iterate through scouts" probably isnt necessary since we only create a scouting mission if scouts.empty()
     sc2::Point2D target;
     for(int n = gInterface->map->numOfExpansions() - 1; n > 0; n--){
-        std::cout << "checking expansion " << n << std::endl;
         bool alreadyScouting = false;
         Expansion* e = gInterface->map->getNthExpansion(n);
         if(e == nullptr) continue;
@@ -151,4 +104,14 @@ bool ScoutManager::removeScout(sc2::Tag tag){
         else ++itr;
     }
     return false;
+}
+
+void ScoutManager::updateExpoOwnership(){
+    sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+    for(auto& th : enemyTownHalls){
+        Expansion* closest = gInterface->map->getClosestExpansion(th->pos);
+        if(closest == nullptr) return;
+        else
+            closest->ownership = OWNER_ENEMY;
+    }
 }
