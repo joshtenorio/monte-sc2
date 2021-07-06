@@ -8,7 +8,7 @@ void ScoutManager::OnGameStart(){
 
 void ScoutManager::OnStep(){
 
-    if(gInterface->observation->GetGameLoop() % 1500 == 0 && gInterface->observation->GetGameLoop() >= 3000)
+    if(gInterface->observation->GetGameLoop() % 1250 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
 
     // update 
@@ -19,7 +19,16 @@ void ScoutManager::OnStep(){
 
 void ScoutManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if unit is scout then remove from scouts
-    removeScout(unit_->tag);
+    if(unit_->alliance == sc2::Unit::Alliance::Self){
+        removeScout(unit_->tag);
+    }
+    else if(unit_->alliance == sc2::Unit::Alliance::Enemy && API::isTownHall(unit_->unit_type.ToType())){
+        Expansion* e = gInterface->map->getClosestExpansion(unit_->pos);
+        if(e == nullptr) return;
+
+        e->ownership = OWNER_NEUTRAL;
+    }
+    
 }
 
 void ScoutManager::OnUnitEnterVision(const sc2::Unit* unit_){

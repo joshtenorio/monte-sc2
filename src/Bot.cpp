@@ -154,11 +154,13 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
     std::cout << UnitTypeToName(unit_->unit_type) <<
          "(" << unit_->tag << ") was destroyed" << std::endl;
     
+    // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
+    // additionally we also track dead town halls in scout manager
+    cc.OnUnitDestroyed(unit_);
     // we only care if one of our units dies (for now, perhaps)
     if(unit_->alliance == Unit::Alliance::Self){
 
-        // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
-        cc.OnUnitDestroyed(unit_);
+        
         switch(unit_->unit_type.ToType()){
             case UNIT_TYPEID::TERRAN_SCV:
                 // the pm gets called first, bc we need to remove worker pointer from 
