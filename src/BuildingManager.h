@@ -12,7 +12,7 @@ typedef std::pair<const sc2::Unit*, Worker*> Construction;
 
 class BuildingManager : public Manager {
     public:
-    BuildingManager() {};
+    BuildingManager() { logger = Logger("BuildingManager"); };
     void OnStep();
 
     // used for if a worker assigned to a job or building under construction is killed

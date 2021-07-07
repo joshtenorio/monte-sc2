@@ -10,6 +10,7 @@
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2api/sc2_map_info.h>
 #include "Ramp.h"
+#include "Logger.h"
 
 // max distance for a neighboring mineral patch
 #define PATCH_NEIGHBOR_DISTANCE 25.0f  // 5^2 = 25
@@ -57,7 +58,7 @@ typedef struct Expansion_s_t {
 
 class Mapper {
     public:
-    Mapper() {};
+    Mapper() { logger = Logger("Mapper"); };
     void initialize();
     Expansion* getClosestExpansion(sc2::Point3D point);
 
@@ -92,4 +93,5 @@ class Mapper {
     static std::vector<Ramp> ramps;
 
     Expansion startingExpansion; // TODO: could this be a pointer instead? i.e. yes it can
+    Logger logger;
 };

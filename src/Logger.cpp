@@ -1,5 +1,8 @@
 #include "Logger.h"
 
+// including this here to avoid circular dependency
+#include "api.h"
+
 Logger& Logger::infoInit(){
     output = "#" + std::to_string(gInterface->observation->GetGameLoop()) + " [INFO] " + topic + ": ";
     return *this;
@@ -37,6 +40,12 @@ Logger& Logger::printPoint(sc2::Point2D point){
 
 Logger& Logger::printPoint(sc2::Point3D point){
     output += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ", " + std::to_string(point.z) + ") ";
+    return *this;
+}
+
+Logger& Logger::printUnit(const sc2::Unit* unit){
+    output += sc2::UnitTypeToName(unit->unit_type);
+    output += "(" + std::to_string(unit->tag) + ") ";
     return *this;
 }
 

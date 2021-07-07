@@ -7,8 +7,12 @@
 
 #pragma once
 
+#include "Logger.h"
+
 class Manager {
     public:
-    Manager() {};
+    Manager() { logger = Logger(); };
     virtual void OnStep() = 0;
+    protected:
+    Logger logger;
 };

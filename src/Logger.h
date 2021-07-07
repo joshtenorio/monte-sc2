@@ -2,7 +2,8 @@
 
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_data.h>
-#include "api.h"
+#include <sc2api/sc2_unit.h>
+
 
 // TODO: implement a way to send output to a file in data/
 class Logger {
@@ -21,6 +22,7 @@ class Logger {
     Logger& printFloat(float float_);
     Logger& printPoint(sc2::Point2D point);
     Logger& printPoint(sc2::Point3D point);
+    Logger& printUnit(const sc2::Unit* unit);
 
     // send output to std::cout
     void send();
