@@ -18,37 +18,37 @@ Logger& Logger::errorInit(){
     return *this;
 }
 
-Logger& Logger::printStr(std::string str_){
+Logger& Logger::withStr(std::string str_){
     output += str_ + " ";
     return *this;
 }
 
-Logger& Logger::printInt(int int_){
+Logger& Logger::withInt(int int_){
     output += std::to_string(int_) + " ";
     return *this;
 }
 
-Logger& Logger::printFloat(float float_){
+Logger& Logger::withFloat(float float_){
     output += std::to_string(float_) + " ";
     return *this;
 }
 
-Logger& Logger::printPoint(sc2::Point2D point){
+Logger& Logger::withPoint(sc2::Point2D point){
     output += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ") ";
     return *this;
 }
 
-Logger& Logger::printPoint(sc2::Point3D point){
+Logger& Logger::withPoint(sc2::Point3D point){
     output += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ", " + std::to_string(point.z) + ") ";
     return *this;
 }
 
-Logger& Logger::printUnit(const sc2::Unit* unit){
+Logger& Logger::withUnit(const sc2::Unit* unit){
     output += sc2::UnitTypeToName(unit->unit_type);
     output += "(" + std::to_string(unit->tag) + ") ";
     return *this;
 }
 
-void Logger::send(){
+void Logger::write(){
     std::cout << output << std::endl;
 }

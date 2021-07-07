@@ -5,7 +5,7 @@
 #include <sc2api/sc2_unit.h>
 
 
-// TODO: implement a way to send output to a file in data/
+// TODO: implement a way to send output to a file in data/, probably overload write() (i.e. write(std::string file) or something like that)
 class Logger {
     public:
     Logger() { topic = "Null"; };
@@ -17,15 +17,15 @@ class Logger {
     Logger& errorInit();
 
     // append data
-    Logger& printStr(std::string str_);
-    Logger& printInt(int int_);
-    Logger& printFloat(float float_);
-    Logger& printPoint(sc2::Point2D point);
-    Logger& printPoint(sc2::Point3D point);
-    Logger& printUnit(const sc2::Unit* unit);
+    Logger& withStr(std::string str_);
+    Logger& withInt(int int_);
+    Logger& withFloat(float float_);
+    Logger& withPoint(sc2::Point2D point);
+    Logger& withPoint(sc2::Point3D point);
+    Logger& withUnit(const sc2::Unit* unit);
 
-    // send output to std::cout
-    void send();
+    // write output to std::cout
+    void write();
 
 
 
