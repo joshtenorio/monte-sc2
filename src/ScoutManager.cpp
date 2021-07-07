@@ -36,7 +36,7 @@ void ScoutManager::OnUnitEnterVision(const sc2::Unit* unit_){
 }
 
 bool ScoutManager::createScoutingMission(){
-    std::cout << "creating scouting mission\n";
+    logger.infoInit().withStr("Creating scouting mission").write();
     // 1. get a unit that should scout (scv, reaper, and maybe hellion?)
     // scv is eligible to scout if it is free
     // other scout units are eligible if they are idle
@@ -88,7 +88,7 @@ bool ScoutManager::createScoutingMission(){
 
     // 3. send scout
     // TODO: should we use move or attack move?
-    std::cout << "tag: " << scout->tag << "\ttarget: (" << target.x << ", " << target.y << ")\tscout type: " << scout->unit_type.to_string() << std::endl;
+    logger.infoInit().withStr("Scout:").withUnit(scout).withStr("\tTarget:").withPoint(target).write();
     Scout s;
     s.u = scout;
     s.tag = scout->tag;
@@ -103,10 +103,15 @@ bool ScoutManager::createScoutingMission(){
 bool ScoutManager::removeScout(sc2::Tag tag){
     for(auto itr = scouts.begin(); itr != scouts.end(); ){
         if(tag == (*itr).tag){
-            std::cout << "removing scout " << tag << std::endl;
-            if((*itr).u != nullptr)
+            if((*itr).u != nullptr){
+                logger.infoInit().withStr("Removing scout").withUnit((*itr).u).write();
                 if((*itr).u->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV)
                     gInterface->wm->getWorker((*itr).u)->job = JOB_UNEMPLOYED;
+            }
+            else
+                logger.errorInit().withStr("Tried to remove scout but unit* was nullptr").write();
+            
+
             itr = scouts.erase(itr);
             return true;
         } // end if tag == itr tag

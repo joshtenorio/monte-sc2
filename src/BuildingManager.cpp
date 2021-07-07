@@ -4,7 +4,7 @@ void BuildingManager::OnStep(){
 
     // debug
     if(gInterface->observation->GetGameLoop() % 400 == 0)
-        printf("buildingManager: %d in progress buildings\n", inProgressBuildings.size());
+        logger.infoInit().withInt(inProgressBuildings.size()).withStr("in progress buildings").write();
 
     // make sure all in-progress buildings are being worked on
     // kinda inefficient method

@@ -119,7 +119,7 @@ void Mapper::calculateExpansions(){
 
     // calculate base locations for each expansion
     if(expansions.empty()){
-        std::cout << "no expansions found" << std::endl;
+        logger.errorInit().withStr("No expansions found").write();
         return;
     }
 
@@ -183,7 +183,7 @@ void Mapper::calculateExpansions(){
             }
         }
     } // end for e : expansions
-    std::cout << "total number of expansions: " << expansions.size() << "\n";
+    logger.infoInit().withStr("Total number of expansions:").withInt(expansions.size()).write();
     // assign gas geysers to an expansion
     for(auto& g : gasGeysers){
         int c = 0;

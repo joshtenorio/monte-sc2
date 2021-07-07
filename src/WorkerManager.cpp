@@ -53,7 +53,7 @@ void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
         getWorker(unit_)->job = JOB_GATHERING_MINERALS;
     }
     else{
-        std::cout << "e is null ptr !!!" << std::endl;
+        logger.errorInit().withStr("e is nullptr").write();
     }
 }
 
@@ -145,7 +145,7 @@ Worker* WorkerManager::getUnemployedWorker(){
         }
     
     // no unemployed workers found
-    std::cout << "getUnemployedWorker: returning nullptr" << std::endl;
+    logger.errorInit().withStr("getUnemployedWorker is nullptr").write();
     return nullptr;
 }
 
@@ -165,7 +165,7 @@ Worker* WorkerManager::getWorker(const Unit* unit_){
         }
             
     }
-    std::cout << "getWorker: returning nullptr" << std::endl; 
+    logger.errorInit().withStr("getWorker is nullptr").write();
     return nullptr;
 }
 
@@ -174,7 +174,7 @@ Worker* WorkerManager::getWorker(sc2::Tag tag_){
         if(tag_ == w.tag)
             return &w;
     }
-    std:: cout << "getWorker: returning nullptr" << std::endl;
+    logger.errorInit().withStr("getWorker is nullptr").write();
     return nullptr;
 }
 
