@@ -498,6 +498,7 @@ void ProductionManager::callMules(){
             // get a visible mineral unit closest to the current expansion
             // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically
             sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
+	    if(minerals.empty()) return;
             const sc2::Unit* mineralTarget = minerals.front();
             for(auto& m : minerals)
                 if(sc2::DistanceSquared2D(current->baseLocation, m->pos) < sc2::DistanceSquared2D(current->baseLocation, mineralTarget->pos)){
