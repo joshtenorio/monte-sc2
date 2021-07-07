@@ -12,6 +12,7 @@
 #include "ProductionManager.h"
 #include "CombatCommander.h"
 #include "Mapper.h"
+#include "Logger.h"
 
 // include more strategies here
 #include "strategies/MarinePush.h"
@@ -28,6 +29,8 @@ private:
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
     ProductionManager pm;
     CombatCommander cc;
+
+    Logger logger;
     
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   

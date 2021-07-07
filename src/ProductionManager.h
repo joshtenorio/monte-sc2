@@ -25,10 +25,11 @@ typedef struct ArmyBuilding_s_t {
 class ProductionManager : public Manager {
     public:
     // constructors
-    ProductionManager() { bm = BuildingManager(); };
+    ProductionManager() { bm = BuildingManager(); logger = Logger("ProductionManager"); };
     ProductionManager(Strategy* strategy_){
         strategy = strategy_;
         bm = BuildingManager();
+        logger = Logger("ProductionManager");
     };
 
     void OnStep();

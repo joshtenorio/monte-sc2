@@ -1,10 +1,11 @@
 #pragma once
 
+#include <fstream>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_data.h>
-#include "api.h"
+#include <sc2api/sc2_unit.h>
 
-// TODO: implement a way to send output to a file in data/
+
 class Logger {
     public:
     Logger() { topic = "Null"; };
@@ -16,14 +17,19 @@ class Logger {
     Logger& errorInit();
 
     // append data
-    Logger& printStr(std::string str_);
-    Logger& printInt(int int_);
-    Logger& printFloat(float float_);
-    Logger& printPoint(sc2::Point2D point);
-    Logger& printPoint(sc2::Point3D point);
+    Logger& withStr(std::string str_);
+    Logger& withInt(int int_);
+    Logger& withFloat(float float_);
+    Logger& withPoint(sc2::Point2D point);
+    Logger& withPoint(sc2::Point3D point);
+    Logger& withUnit(const sc2::Unit* unit);
 
-    // send output to std::cout
-    void send();
+    // write output to std::cout
+    void write();
+    void write(std::string fileName);
+    
+    // generate a prefix for data output files for the match
+    int createOutputPrefix();
 
 
 

@@ -76,8 +76,8 @@ void ProductionManager::OnStep(){
             gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
-        std::cout << "prod queue size: " << productionQueue.size() << "\t";
-        std::cout << "busy buildings size: " << busyBuildings.size() << std::endl;
+        logger.infoInit().withStr("ProdQueue Size:").withInt(productionQueue.size()).write();
+        logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
 }
@@ -154,8 +154,7 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){
-            printf("unitcreated: removing %d from prod queue\n", (*itr).ability);
+        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){   
             itr = productionQueue.erase(itr);
         }
             
@@ -168,7 +167,6 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // requires upgrade to ability function in api.cpp
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
         if(API::upgradeIDToAbilityID(upgrade_) == (*itr).ability){
-            printf("upgradecompleted: removing %d from prod queue\n", (*itr).ability);
             itr = productionQueue.erase(itr);
         }
         else ++itr;
@@ -294,7 +292,7 @@ void ProductionManager::researchUpgrade(Step s){
             }
         }
         if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag)){
-            printf("researchUpgrade: researching %d\n", s.ability);
+            logger.infoInit().withStr("researching").withInt((int) s.ability).write();
             gInterface->actions->UnitCommand(b, s.ability);
             busyBuildings.emplace_back(b->tag);
             return;
@@ -427,8 +425,10 @@ void ProductionManager::handleUpgrades(){
         infantryWeapons = marines.front()->attack_upgrade_level;
         infantryArmor = marines.front()->armor_upgrade_level;
         
-        if(gInterface->observation->GetGameLoop() % 400 == 0)
-            printf("infantry weapons %d\tinfantry armor %d\n", infantryWeapons, infantryArmor);
+        if(gInterface->observation->GetGameLoop() % 400 == 0){
+            logger.infoInit().withStr("Infantry Weapons:").withInt(infantryWeapons);
+            logger.withStr("\tInfantry Armor:").withInt(infantryArmor).write();
+        }
     }
 
     // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
@@ -493,7 +493,6 @@ void ProductionManager::callMules(){
             // find current expansion
             Expansion* current = gInterface->map->getCurrentExpansion();
             if(current == nullptr) return;
-            std::cout << "expo not null" << std::endl;
 
             // get a visible mineral unit closest to the current expansion
             // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically

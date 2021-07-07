@@ -2,7 +2,7 @@
  * @file api.h
  * @author Joshua Tenorio
  * 
- * Contains the Observation and Action interfaces for use by managers,
+ * Contains various interfaces for use by managers,
  * and mundane helper functions
  */
 
@@ -51,13 +51,15 @@ class Interface {
         QueryInterface* query_,
         DebugInterface* debug_,
         WorkerManager* wm_,
-        Mapper* map_){
+        Mapper* map_,
+        int matchID_){
             observation = observation_;
             actions = actions_;
             query = query_;
             debug = debug_;
             wm = wm_;
             map = map_;
+            matchID = matchID_;
         };
     
     const ObservationInterface* observation;
@@ -66,6 +68,7 @@ class Interface {
     DebugInterface* debug;
     WorkerManager* wm;
     Mapper* map;
+    int matchID;
 };
 
 extern std::unique_ptr<Interface> gInterface;

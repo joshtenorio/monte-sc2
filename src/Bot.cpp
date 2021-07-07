@@ -2,7 +2,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_4_3"; // update this everytime we upload
+std::string version = "v0_5_0"; // update this everytime we upload
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -10,24 +10,29 @@ Bot::Bot(){
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
+    logger = Logger("Bot");
 
-    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
+    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map, 1));
 }
 
 void Bot::OnGameStart(){
     pm.OnGameStart();
-    std::cout << "map name: " << Observation()->GetGameInfo().map_name << "\n";
-    std::cout << "bot version: " << version << std::endl;
+    cc.OnGameStart();
+    gInterface->matchID = logger.createOutputPrefix();
+    logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
+    logger.infoInit().withStr("bot version: " + version).write();
+    logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
     Actions()->SendChat("Tag: " + version);
+    Actions()->SendChat("Tag: match_" + std::to_string(gInterface->matchID));
     Actions()->SendChat("glhf :)");
 
-    cc.OnGameStart();
+    
 
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
-    std::cout << UnitTypeToName(building_->unit_type) <<
-        "(" << building_->tag << ") constructed" << std::endl;
+    logger.infoInit().withUnit(building_).withStr("constructed").write();
+    logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
@@ -93,13 +98,12 @@ void Bot::OnStep() {
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
-    std::cout << sc2::UpgradeIDToName(upgrade_) << " completed" << std::endl;
+    logger.infoInit().withStr(sc2::UpgradeIDToName(upgrade_)).withStr("completed").write();
     pm.OnUpgradeCompleted(upgrade_);
 }
 
 void Bot::OnUnitCreated(const Unit* unit_){
-    std::cout << UnitTypeToName(unit_->unit_type) <<
-        "(" << unit_->tag << ") was created" << std::endl;
+    logger.infoInit().withUnit(unit_).withStr("was created").write();
     
     cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){
@@ -146,8 +150,7 @@ void Bot::OnUnitIdle(const Unit* unit) {
 }
 
 void Bot::OnUnitDestroyed(const Unit* unit_){
-    std::cout << UnitTypeToName(unit_->unit_type) <<
-         "(" << unit_->tag << ") was destroyed" << std::endl;
+    logger.infoInit().withUnit(unit_).withStr("was destroyed").write();
     
     // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
     // additionally we also track dead town halls in scout manager
@@ -206,6 +209,7 @@ void Bot::OnError(const std::vector<ClientError>& client_errors,
 
 void Bot::OnGameEnd(){
     Control()->SaveReplay("lastReplay.SC2Replay");
-    std::cout << "game finished!\n";
+    logger.infoInit().withStr("game finished!").write();
+
     delete strategy;
 }

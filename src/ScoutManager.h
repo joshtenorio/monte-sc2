@@ -15,7 +15,7 @@ typedef struct Scout_s_t {
 
 class ScoutManager : public Manager {
     public:
-    ScoutManager() {};
+    ScoutManager() { logger = Logger("ScoutManager"); };
     void OnGameStart();
     void OnStep();
     void OnUnitDestroyed(const sc2::Unit* unit_);
