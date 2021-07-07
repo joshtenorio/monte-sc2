@@ -28,6 +28,7 @@ void Bot::OnGameStart(){
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
     logger.infoInit().withUnit(building_).withStr("constructed").write();
+    logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)

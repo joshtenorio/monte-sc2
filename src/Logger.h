@@ -1,11 +1,11 @@
 #pragma once
 
+#include <fstream>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_data.h>
 #include <sc2api/sc2_unit.h>
 
 
-// TODO: implement a way to send output to a file in data/, probably overload write() (i.e. write(std::string file) or something like that)
 class Logger {
     public:
     Logger() { topic = "Null"; };
@@ -26,6 +26,7 @@ class Logger {
 
     // write output to std::cout
     void write();
+    void write(std::string fileName);
 
 
 

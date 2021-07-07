@@ -52,3 +52,14 @@ Logger& Logger::withUnit(const sc2::Unit* unit){
 void Logger::write(){
     std::cout << output << std::endl;
 }
+
+void Logger::write(std::string fileName){
+    std::ofstream file;
+    file.open("data/" + fileName, std::ios_base::app);
+    std::cout << "printing to " << ("data/" + fileName) << std::endl;
+    if(file.is_open()){
+        file << output << std::endl;
+        std::cout << "printing to " << fileName << std::endl;
+    }
+    file.close();
+}
