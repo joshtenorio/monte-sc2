@@ -140,7 +140,7 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
 }
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
-    if(API::isStructure(unit_->unit_type.ToType())){
+    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
         // 1. get a list of n closest workers to pull
         sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
 
