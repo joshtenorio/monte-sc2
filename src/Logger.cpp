@@ -55,11 +55,42 @@ void Logger::write(){
 
 void Logger::write(std::string fileName){
     std::ofstream file;
-    file.open("data/" + fileName, std::ios_base::app);
-    std::cout << "printing to " << ("data/" + fileName) << std::endl;
+    std::string fileWithPath = "data/" + std::to_string(gInterface->matchID) + fileName;
+    file.open(fileWithPath, std::ios_base::app);
     if(file.is_open()){
         file << output << std::endl;
-        std::cout << "printing to " << fileName << std::endl;
+    }
+    else{
+        errorInit().withStr("failed to open " + fileWithPath).write();
     }
     file.close();
+}
+
+int Logger::createOutputPrefix(){
+    // read match count
+    std::ifstream fileReader;
+    fileReader.open("data/MatchCount.txt");
+    int currentMatchID, prevMatchID = -1;
+    if(fileReader.is_open()){
+        fileReader >> prevMatchID;
+        currentMatchID = ++prevMatchID;
+    }
+    else{
+        errorInit().withStr("couldn't read data/MatchCount.txt").write();
+        currentMatchID = 1; // if we couldn't open MatchCount, just overwrite whatever uses prefix 1
+    }
+    fileReader.close();
+
+    // update match count
+    std::ofstream fileWriter;
+    fileWriter.open("data/MatchCount.txt");
+    if(fileWriter.is_open()){
+        fileWriter << currentMatchID << std::endl;
+    }
+    else{
+        errorInit().withStr("failed to update data/MatchCount.txt").write();
+    }
+    fileWriter.close();
+
+    return currentMatchID;
 }

@@ -27,6 +27,9 @@ class Logger {
     // write output to std::cout
     void write();
     void write(std::string fileName);
+    
+    // generate a prefix for data output files for the match
+    int createOutputPrefix();
 
 
 

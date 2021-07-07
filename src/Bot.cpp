@@ -12,17 +12,21 @@ Bot::Bot(){
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
     logger = Logger("Bot");
 
-    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map));
+    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map, 1));
 }
 
 void Bot::OnGameStart(){
     pm.OnGameStart();
+    cc.OnGameStart();
+    gInterface->matchID = logger.createOutputPrefix();
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
     logger.infoInit().withStr("bot version: " + version).write();
+    logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
     Actions()->SendChat("Tag: " + version);
+    Actions()->SendChat("Tag: match_" + std::to_string(gInterface->matchID));
     Actions()->SendChat("glhf :)");
 
-    cc.OnGameStart();
+    
 
 }
 
