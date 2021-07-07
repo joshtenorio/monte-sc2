@@ -27,8 +27,6 @@ void Bot::OnGameStart(){
 }
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
-    std::cout << UnitTypeToName(building_->unit_type) <<
-        "(" << building_->tag << ") constructed" << std::endl;
     logger.infoInit().withUnit(building_).withStr("constructed").write();
 
     // if it is a supply depot, lower it
