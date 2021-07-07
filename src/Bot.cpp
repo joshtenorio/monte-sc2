@@ -23,10 +23,8 @@ void Bot::OnGameStart(){
     logger.infoInit().withStr("bot version: " + version).write();
     logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
     Actions()->SendChat("Tag: " + version);
-    Actions()->SendChat("Tag: match_" + std::to_string(gInterface->matchID));
+    Actions()->SendChat("Tag: matchid" + std::to_string(gInterface->matchID));
     Actions()->SendChat("glhf :)");
-
-    
 
 }
 

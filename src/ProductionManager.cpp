@@ -89,7 +89,6 @@ void ProductionManager::OnGameStart(){
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     bm.OnBuildingConstructionComplete(building_);
 
-    int index = -1; // for removing items from prod queue
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
         case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
