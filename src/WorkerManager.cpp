@@ -73,7 +73,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     );
 
     for(auto& r : refineries){
-        else if(r->ideal_harvesters <= 0 || r->vespene_contents <= 0) continue;
+        if(r->ideal_harvesters <= 0 || r->vespene_contents <= 0) continue;
 
         if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
