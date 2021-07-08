@@ -3,21 +3,29 @@
 #include <list>
 #include <sc2api/sc2_unit.h>
 
+#define TYPE_NULL           -1
+#define TYPE_BUILD          0
+#define TYPE_ADDON          1
+#define TYPE_TRAIN          2
+#define TYPE_BUILDINGCAST   3
+
 #define STEP_BLOCKING       true
 #define STEP_NONBLOCKING    false
 #define STEP_LOWEST_PRIO    0
 #define STEP_HIGHEST_PRIO   10
 
-
-
 #define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
+
+typedef struct MetaType_s_t {
+
+} MetaType;
 
 typedef struct Step_s_t {
     Step_s_t(sc2::ABILITY_ID ability_, bool blocking_, int priority_, int reqSupply_) :
                 ability(ability_), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
     // ability that corresponds to the one that does the thing
-    sc2::ABILITY_ID ability;
+    MetaType container;
 
     // if true, don't go to next Step in strategy until this step is complete
     bool blocking;
@@ -61,6 +69,9 @@ class Strategy{
 
     // look at the next step but don't remove it yet
     Step peekNextBuildOrderStep();
+
+    // gets the metaType for an ability
+    char getType(sc2::ABILITY_ID ability);
 
     protected:
     std::list<Step> buildOrder;

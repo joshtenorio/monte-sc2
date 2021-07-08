@@ -15,12 +15,6 @@
 #include "Mapper.h"
 #include "Strategy.h"
 
-#define ABIL_BUILD      0
-#define ABIL_TRAIN      1
-#define ABIL_RESEARCH   2
-#define ABIL_ADDON      3
-#define ABIL_NULL       -1
-
 using namespace sc2;
 
 
@@ -42,7 +36,6 @@ namespace API {
     bool isStructure(sc2::UNIT_TYPEID unit);
     bool isTownHall(sc2::UNIT_TYPEID unit);
 
-    char parseStep(Step s);
 
 } // end namespace API
 class Interface {
