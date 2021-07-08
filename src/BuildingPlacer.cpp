@@ -17,6 +17,21 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
         case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
             return findCommandCenterLocation();
             break;
+        case sc2::ABILITY_ID::BUILD_BUNKER:
+            if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) < 1){
+                sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                sc2::Point2D natural;
+                if(gInterface->map->getNthExpansion(1) != nullptr)
+                    natural = gInterface->map->getNthExpansion(1)->baseLocation;
+                else goto useDefault;
+                float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+                dx /= sqrt(dx*dx + dy*dy);
+                dy /= sqrt(dx*dx + dy*dy);
+                dx *= 6;
+                dy *= 6;
+                return sc2::Point2D(natural.x + dx, natural.y + dy);
+            }
+            else goto useDefault;
         default:
         useDefault:
             // TODO: make this behavior better (ie actually utilise freeRadius)

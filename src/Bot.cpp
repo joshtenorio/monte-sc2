@@ -2,7 +2,10 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_5_0"; // update this everytime we upload
+std::string version = "v0_6_0"; // update this everytime we upload
+
+std::vector<sc2::UNIT_TYPEID> depotTypes; // used for filtering for depots
+
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -11,8 +14,9 @@ Bot::Bot(){
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
     logger = Logger("Bot");
+    debug = Monte::Debug(Debug());
 
-    gInterface.reset(new Interface(Observation(), Actions(), Query(), Debug(), &wm, &map, 1));
+    gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
 }
 
 void Bot::OnGameStart(){
@@ -23,10 +27,11 @@ void Bot::OnGameStart(){
     logger.infoInit().withStr("bot version: " + version).write();
     logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
     Actions()->SendChat("Tag: " + version);
-    Actions()->SendChat("Tag: match_" + std::to_string(gInterface->matchID));
+    Actions()->SendChat("Tag: matchid_" + std::to_string(gInterface->matchID));
     Actions()->SendChat("glhf :)");
 
-    
+    depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
+    depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
 }
 
@@ -69,7 +74,6 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 }
 
 
-
 void Bot::OnStep() {
 
     // initialize mapper (find expansions and ramps)
@@ -81,12 +85,12 @@ void Bot::OnStep() {
     cc.OnStep();
 
     // raise supply depots if enemy is nearby
-    sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT));
+    sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
     for (auto& d : depots){
         bool enemyNearby = false;
         for (auto& e : enemies){
-            if(sc2::DistanceSquared3D(d->pos, e->pos) < 15){ // TODO: tune this value
+            if(sc2::DistanceSquared3D(d->pos, e->pos) < 49){ // TODO: tune this value
                 enemyNearby = true;
                 break;
             }

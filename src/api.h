@@ -13,6 +13,7 @@
 #include <memory>
 #include "WorkerManager.h"
 #include "Mapper.h"
+#include "Debug.h"
 #include "Strategy.h"
 
 #define ABIL_BUILD      0
@@ -49,7 +50,7 @@ class Interface {
     Interface(const ObservationInterface* observation_,
         ActionInterface* actions_,
         QueryInterface* query_,
-        DebugInterface* debug_,
+        Monte::Debug* debug_,
         WorkerManager* wm_,
         Mapper* map_,
         int matchID_){
@@ -65,7 +66,7 @@ class Interface {
     const ObservationInterface* observation;
     ActionInterface* actions;
     QueryInterface* query;
-    DebugInterface* debug;
+    Monte::Debug* debug;
     WorkerManager* wm;
     Mapper* map;
     int matchID;

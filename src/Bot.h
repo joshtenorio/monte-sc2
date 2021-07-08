@@ -13,6 +13,7 @@
 #include "CombatCommander.h"
 #include "Mapper.h"
 #include "Logger.h"
+#include "Debug.h"
 
 // include more strategies here
 #include "strategies/MarinePush.h"
@@ -30,6 +31,7 @@ private:
     ProductionManager pm;
     CombatCommander cc;
 
+    Monte::Debug debug;
     Logger logger;
     
     //TODO: maybe have a vector of managers?
