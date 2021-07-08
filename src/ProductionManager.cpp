@@ -259,6 +259,9 @@ void ProductionManager::buildStructure(Step s){
         case sc2::ABILITY_ID::BUILD_ENGINEERINGBAY:
             tryBuildEngineeringBay();
             break;
+        case sc2::ABILITY_ID::BUILD_BUNKER:
+            tryBuildBunker();
+            break;
         default:
             bm.TryBuildStructure(ability);
             break;
@@ -354,6 +357,11 @@ bool ProductionManager::tryBuildArmory(){
 bool ProductionManager::tryBuildEngineeringBay(){
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) >= 2) return false;
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+}
+
+bool ProductionManager::tryBuildBunker(){
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) >= 1) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
 // if armybuilding has an order, manage them

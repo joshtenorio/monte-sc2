@@ -25,7 +25,22 @@ void CombatCommander::OnStep(){
     if(gInterface->observation->GetGameLoop() % 12 == 0){
        medivacOnStep();
     } // end if gameloop % 12 == 0
-}
+
+    // if we have a bunker, put marines in it
+    sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    if(!bunkers.empty())
+        for(auto& b : bunkers){
+            // we have space in bunker so pick a marine to go in it
+            if(b->cargo_space_taken < b->cargo_space_max && b->build_progress >= 1.0)
+                for(auto& m : marines){
+                    if(m->orders.empty()){
+                        gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::SMART, b);
+                        logger.infoInit().withStr("loading").withUnit(m).withStr("in bunker").write();
+                        break;
+                    }
+                }
+        } // end for bunkers
+} // end OnStep
 
 void CombatCommander::OnUnitCreated(const Unit* unit_){
     if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
@@ -43,8 +58,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
             dx /= sqrt(dx*dx + dy*dy);
             dy /= sqrt(dx*dx + dy*dy);
-            dx *= 6;
-            dy *= 6;
+            dx *= 3;
+            dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         }

@@ -58,6 +58,7 @@ class ProductionManager : public Manager {
     bool tryBuildCommandCenter();
     bool tryBuildArmory();
     bool tryBuildEngineeringBay();
+    bool tryBuildBunker();
 
     // ArmyBuilding related stuff
     void handleArmyBuildings();
