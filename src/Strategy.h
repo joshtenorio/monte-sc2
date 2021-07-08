@@ -31,7 +31,8 @@ typedef struct Step_s_t {
         if(
             ability == s.ability &&
             reqSupply == s.reqSupply &&
-            blocking == s.blocking
+            blocking == s.blocking &&
+            priority == s.priority
         ) return true;
         else return false;
     }
@@ -62,6 +63,14 @@ class Strategy{
 
     protected:
     std::list<Step> buildOrder;
+
+    // config variables
     int maxWorkers = -1; // most useful for 1 base all ins. if this is negative it should be ignored
+    int maxBarracks = 8;
+    int maxRefineries = 6;
+    int maxEngineeringBays = 2;
+    int maxArmories = 1;
+
     bool harass = false;
+    bool pullWorkers = true;
 };
