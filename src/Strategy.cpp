@@ -1,30 +1,17 @@
 #include "Strategy.h"
 
 
-
-void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
-    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
-}
-
-void Strategy::pushPriorityStep(sc2::ABILITY_ID ability, bool blocking, int supply){
-    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, false));
-}
-
-void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, bool produceSingle, int supply){
-    optionalBuildOrder.emplace_back(Step(ability, supply, blocking, produceSingle));
-}
-
-void Strategy::pushOptionalStep(sc2::ABILITY_ID ability, bool blocking, int supply){
-    priorityBuildOrder.emplace_back(Step(ability, supply, blocking, false));
-}
-
 void Strategy::initialize(){}
 
-Step Strategy::popNextPriorityStep(){
+void Strategy::pushBuildOrderStep(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, int priority_){
+    buildOrder.emplace_back(Step(ability_, reqSupply_, blocking_, priority_));
+}
+
+Step Strategy::popNextBuildOrderStep(){
     // make sure there is a step in the priority order before returning
-    if(!priorityBuildOrder.empty()){
-        Step step = priorityBuildOrder.front();
-        priorityBuildOrder.pop_front();
+    if(!buildOrder.empty()){
+        Step step = buildOrder.front();
+        buildOrder.pop_front();
         return step;
     }
     else{
@@ -32,34 +19,11 @@ Step Strategy::popNextPriorityStep(){
     }
 }
 
-Step Strategy::popNextOptionalStep(){
-    // make sure there is a step in the optional order before returning
-    if(!optionalBuildOrder.empty()){
-        Step step = optionalBuildOrder.front();
-        optionalBuildOrder.pop_front();
-        return step;
-    }
-    else{
-        return STEP_NULL;
-    }
-}
-
-Step Strategy::peekNextPriorityStep(){
+Step Strategy::peekNextBuildOrderStep(){
     // make sure there is a step in the priority order before returning
-    if(!priorityBuildOrder.empty()){
+    if(!buildOrder.empty()){
         //Step step = priorityBuildOrder.front();
-        return priorityBuildOrder.front();;
-    }
-    else{
-        return STEP_NULL;
-    }
-}
-
-Step Strategy::peekNextOptionalStep(){
-    // make sure there is a step in the optional order before returning
-    if(!optionalBuildOrder.empty()){
-        Step step = optionalBuildOrder.front();
-        return step;
+        return buildOrder.front();;
     }
     else{
         return STEP_NULL;
