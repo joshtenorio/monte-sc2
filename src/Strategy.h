@@ -83,6 +83,7 @@ class Strategy{
     int maxEngineeringBays = 2;
     int maxArmories = 1;
 
-    bool harass = false;
+    bool libHarass = false;
+    bool buildBunker = true;
     bool pullWorkers = true;
 };
