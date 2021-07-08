@@ -27,8 +27,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
                 dx /= sqrt(dx*dx + dy*dy);
                 dy /= sqrt(dx*dx + dy*dy);
-                dx *= 6;
-                dy *= 6;
+                dx *= 5;
+                dy *= 5;
                 return sc2::Point2D(natural.x + dx, natural.y + dy);
             }
             else goto useDefault;

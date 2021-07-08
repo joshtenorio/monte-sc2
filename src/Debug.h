@@ -22,6 +22,7 @@ class Debug {
     void debugLineOut(const sc2::Point3D& p0, const sc2::Point3D& p1, sc2::Color color = sc2::Colors::White);
     void debugBoxOut(const sc2::Point3D& p_min, const sc2::Point3D& p_max, sc2::Color color = sc2::Colors::White);
     void debugSphereOut(const sc2::Point3D& p, float r, sc2::Color color = sc2::Colors::White);
+    void debugDrawTile(const sc2::Point3D& point, const sc2::Color& color);
 
     protected:
     sc2::DebugInterface* debug;

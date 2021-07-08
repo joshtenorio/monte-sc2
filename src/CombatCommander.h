@@ -22,6 +22,7 @@ class CombatCommander : public Manager {
 
     void marineOnStep();
     void medivacOnStep();
+    void liberatorOnStep();
     void manageStim(const sc2::Unit* unit);
     
 

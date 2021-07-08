@@ -26,6 +26,9 @@ void CombatCommander::OnStep(){
        medivacOnStep();
     } // end if gameloop % 12 == 0
 
+    // handle liberators
+    liberatorOnStep();
+
     // if we have a bunker, put marines in it
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     if(!bunkers.empty())
@@ -44,11 +47,11 @@ void CombatCommander::OnStep(){
 
 void CombatCommander::OnUnitCreated(const Unit* unit_){
     if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
-    if(
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE ||
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER ||
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MEDIVAC)
-        {
+
+    switch(unit_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+        case sc2::UNIT_TYPEID::TERRAN_MARINE:
+        case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:{
             // have army units rally at natural in the direction of the enemy main
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
             sc2::Point2D natural;
@@ -62,7 +65,35 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+        break;}
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{ // FIXME: make sure flight points are valid
+            // first, generate target flight point
+            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            sc2::Point3D enemyMineralMidpoint;
+            Expansion* e = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
+            if(e == nullptr) return;
+            enemyMineralMidpoint = e->mineralMidpoint;
+            float dx = enemyMineralMidpoint.x - enemyMain.x, dy = enemyMineralMidpoint.y - enemyMain.y;
+            dx /= sqrt(dx*dx + dy*dy);
+            dy /= sqrt(dx*dx + dy*dy);
+            dx *= 7;
+            dy *= 7;
+            sc2::Point2D targetFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, enemyMineralMidpoint.y + dy);
+            
+            // then get the intermediate flight point
+            sc2::Point2D intermediateFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, unit_->pos.y);
+
+            // validate the flight points (ie make sure they are within map bounds)
+            // if they are not valid, adjust them so they fit within map bounds
+
+            // give liberator commands
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MOVE_MOVE, intermediateFlightPoint);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MOVE_MOVE, targetFlightPoint, true);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_LIBERATORAGMODE, enemyMineralMidpoint, true);
+        break;
         }
+    }
+    
 }
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -189,6 +220,10 @@ void CombatCommander::medivacOnStep(){
             gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
         }
     } // end medivac loop
+}
+
+void CombatCommander::liberatorOnStep(){
+
 }
 
 
