@@ -3,8 +3,8 @@
 
 void Strategy::initialize(){}
 
-void Strategy::pushBuildOrderStep(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, int priority_){
-    buildOrder.emplace_back(Step(ability_, reqSupply_, blocking_, priority_));
+void Strategy::pushBuildOrderStep(sc2::ABILITY_ID ability_, bool blocking_, int priority_, int reqSupply_){
+    buildOrder.emplace_back(Step(ability_, blocking_, priority_, reqSupply_));
 }
 
 Step Strategy::popNextBuildOrderStep(){

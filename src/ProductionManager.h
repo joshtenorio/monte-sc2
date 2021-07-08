@@ -10,18 +10,6 @@
 
 using namespace sc2;
 
-#define ARMYBUILDING_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
-
-typedef struct ArmyBuilding_s_t {
-    const sc2::Unit* building;
-    sc2::ABILITY_ID order; // used for continuous production of units
-    const sc2::Unit* addon;
-
-    // tags
-    sc2::Tag buildingTag;
-    sc2::Tag addonTag;
-} ArmyBuilding;
-
 class ProductionManager : public Manager {
     public:
     // constructors
@@ -42,15 +30,12 @@ class ProductionManager : public Manager {
     // fill queue with stuff to do
     void fillQueue();
 
-    // swap addons
-    void swapAddon(ArmyBuilding* b1, ArmyBuilding* b2);
-
     // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure
     void parseQueue();
     void buildStructure(Step s);
+    void buildAddon(Step s);
     void trainUnit(Step s);
-    void researchUpgrade(Step s);
-    void morphStructure(Step s); // TODO: could we use researchUpgrade for morphs?
+    void castBuildingAbility(Step s);
 
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();
@@ -59,10 +44,7 @@ class ProductionManager : public Manager {
     bool tryBuildArmory();
     bool tryBuildEngineeringBay();
 
-    // ArmyBuilding related stuff
-    void handleArmyBuildings();
-    void setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order);
-    bool tryTrainUnit(sc2::ABILITY_ID unitToTrain);
+    bool tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n);
 
     // handle upgrades
     void handleUpgrades();
@@ -77,6 +59,9 @@ class ProductionManager : public Manager {
     Strategy* strategy;
     BuildingManager bm;
     std::vector<Step> productionQueue; // list of structures/upgrades/units currently being built
-    std::vector<ArmyBuilding> armyBuildings; // list of structures that produce army units
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
+
+    private:
+    void upgradeInfantryWeapons(int currLevel);
+    void upgradeInfantryArmor(int currLevel);
 };

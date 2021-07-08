@@ -3,29 +3,30 @@
 #include <list>
 #include <sc2api/sc2_unit.h>
 
-#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, -1, false, -1)
-
 #define STEP_BLOCKING       true
 #define STEP_NONBLOCKING    false
 #define STEP_LOWEST_PRIO    0
 #define STEP_HIGHEST_PRIO   10
 
+
+
+#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
+
 typedef struct Step_s_t {
-    Step_s_t(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, int priority_) :
-                ability(ability_), reqSupply(reqSupply_), blocking(blocking_), priority(priority_) {}
+    Step_s_t(sc2::ABILITY_ID ability_, bool blocking_, int priority_, int reqSupply_) :
+                ability(ability_), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
     // ability that corresponds to the one that does the thing
     sc2::ABILITY_ID ability;
+
+    // if true, don't go to next Step in strategy until this step is complete
+    bool blocking;
 
     // priority level; higher level -> higher priority
     int priority;
 
     // build at a specific supply, if negative ignore it
     int reqSupply;
-
-    // if true, don't go to next Step in strategy until this step is complete
-    bool blocking;
-
 
     bool operator == (const Step_s_t& s) const {
         if(
@@ -41,7 +42,7 @@ typedef struct Step_s_t {
         ability = s.ability;
         reqSupply = s.reqSupply;
         blocking = s.blocking;
-        produceSingle = s.produceSingle;
+        priority = s.priority;
     }
 } Step;
 
@@ -53,7 +54,7 @@ class Strategy{
     virtual void initialize(); // TODO: does this need {} here? 
 
     // for pushing units into build order
-    void pushBuildOrderStep(sc2::ABILITY_ID ability_, int reqSupply_, bool blocking_, int priority_ = 0);
+    void pushBuildOrderStep(sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply = -1);
 
     // get the next step in order and pop it
     Step popNextBuildOrderStep();

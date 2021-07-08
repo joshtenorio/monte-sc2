@@ -18,8 +18,9 @@
 #define ABIL_BUILD      0
 #define ABIL_TRAIN      1
 #define ABIL_RESEARCH   2
-#define ABIL_MORPH      3 // includes building addons
+#define ABIL_ADDON      3
 #define ABIL_NULL       -1
+
 using namespace sc2;
 
 
