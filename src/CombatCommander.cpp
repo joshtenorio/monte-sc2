@@ -24,7 +24,7 @@ void CombatCommander::OnStep(){
     // handle medivacs every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
        medivacOnStep();
-    } // end if gameloop % 100 == 0
+    } // end if gameloop % 12 == 0
 }
 
 void CombatCommander::OnUnitCreated(const Unit* unit_){
@@ -56,7 +56,7 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
     if(unit_->alliance != sc2::Unit::Alliance::Self) return;
-    
+
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
         // 1. get a list of n closest workers to pull
         sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
@@ -169,8 +169,8 @@ void CombatCommander::medivacOnStep(){
             }
         } // end marine loop
 
-        if(d > 12 && closestMarine != nullptr){
-            // if distance to closest marine is > sqrt(12), move medivac to marine's position
+        if(d > 13 && closestMarine != nullptr){
+            // if distance to closest marine is > sqrt(13), move medivac to marine's position
             gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
         }
     } // end medivac loop
@@ -185,8 +185,8 @@ void CombatCommander::manageStim(const sc2::Unit* unit){
         if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
             return;
         }
-            
     
+    // if we have a decent amount of health left and there are enemies nearby
     if(
         unit->health/unit->health_max >= 0.6 &&
         !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
@@ -196,7 +196,7 @@ void CombatCommander::manageStim(const sc2::Unit* unit){
                 gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
                 break;
             case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-            gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
+                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
                 break;
             default:
                 return;
