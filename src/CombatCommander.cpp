@@ -1,9 +1,5 @@
 #include "CombatCommander.h"
 
-
-
-
-
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
@@ -11,7 +7,6 @@ void CombatCommander::OnGameStart(){
     reachedEnemyMain = false;
     sm.OnGameStart();
 }
-
 
 void CombatCommander::OnStep(){
         
@@ -24,7 +19,77 @@ void CombatCommander::OnStep(){
     }
     
     // handle marines
+    marineOnStep();
+
+    // handle medivacs every so often
+    if(gInterface->observation->GetGameLoop() % 12 == 0){
+       medivacOnStep();
+    } // end if gameloop % 100 == 0
+}
+
+void CombatCommander::OnUnitCreated(const Unit* unit_){
+    if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
+    if(
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MEDIVAC)
+        {
+            // have army units rally at natural in the direction of the enemy main
+            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            sc2::Point2D natural;
+            if(gInterface->map->getNthExpansion(1) != nullptr)
+                natural = gInterface->map->getNthExpansion(1)->baseLocation;
+            else return;
+            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            dx /= sqrt(dx*dx + dy*dy);
+            dy /= sqrt(dx*dx + dy*dy);
+            dx *= 6;
+            dy *= 6;
+            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+        }
+}
+
+void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
+    sm.OnUnitDestroyed(unit_);
+}
+
+void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
+    if(unit_->alliance != sc2::Unit::Alliance::Self) return;
+    
+    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
+        // 1. get a list of n closest workers to pull
+        sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
+
+        // 2. get a list of idle army
+        sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
+        sc2::Units idleArmy;
+        for(auto& a : armyPool)
+            if(a->orders.empty()) idleArmy.emplace_back(a);
+
+        // 3. get closest enemy units to unit_ and find their center
+        sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
+        float x = 0.0, y = 0.0;
+        float numEnemies = (float) enemies.size();
+        for(auto& e : enemies){
+            x += e->pos.x;
+            y += e->pos.y;
+        }
+        sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
+
+        // 4. have workers and idle army attack them
+        gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+    }
+}
+
+void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
+    sm.OnUnitEnterVision(unit_);
+}
+
+void CombatCommander::marineOnStep(){
     int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
+
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave){
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
@@ -79,96 +144,38 @@ void CombatCommander::OnStep(){
                 
         } // end for loop
     } // end if idle bio > 12
+}
 
-    // handle medivacs every so often
-    if(gInterface->observation->GetGameLoop() % 12 == 0){
-        sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
-        for(auto& med : medivacs){
-            // move each medivac to the closest productive marine
-            sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-            const sc2::Unit* closestMarine = nullptr;
-            float d = 10000;
+void CombatCommander::medivacOnStep(){
+    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    for(auto& med : medivacs){
+        // move each medivac to the closest productive marine
+        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        const sc2::Unit* closestMarine = nullptr;
+        float d = 10000;
+        for(auto& ma : marines){
+            if(ma != nullptr)
+                if(d > sc2::DistanceSquared2D(ma->pos, med->pos) && !ma->orders.empty()){
+                    closestMarine = ma;
+                    d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                }
+        } // end marine loop
+        if(closestMarine == nullptr) // if no marines are productive, then pick the closest marine in general
             for(auto& ma : marines){
                 if(ma != nullptr)
-                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos) && !ma->orders.empty()){
+                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
                         closestMarine = ma;
                         d = sc2::DistanceSquared2D(ma->pos, med->pos);
-                    }
-            } // end marine loop
-            if(closestMarine == nullptr) // if no marines are productive, then pick the closest marine in general
-                for(auto& ma : marines){
-                    if(ma != nullptr)
-                        if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
-                            closestMarine = ma;
-                            d = sc2::DistanceSquared2D(ma->pos, med->pos);
-                }
-            } // end marine loop
-
-            if(d > 12 && closestMarine != nullptr){
-                // if distance to closest marine is > sqrt(12), move medivac to marine's position
-                gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
             }
-        } // end medivac loop
-    } // end if gameloop % 100 == 0
-}
+        } // end marine loop
 
-void CombatCommander::OnUnitCreated(const Unit* unit_){
-    if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
-    if(
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE ||
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER ||
-        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MEDIVAC)
-        {
-            // have army units rally at natural in the direction of the enemy main
-            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
-            sc2::Point2D natural;
-            if(gInterface->map->getNthExpansion(1) != nullptr)
-                natural = gInterface->map->getNthExpansion(1)->baseLocation;
-            else return;
-            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 6;
-            dy *= 6;
-            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+        if(d > 12 && closestMarine != nullptr){
+            // if distance to closest marine is > sqrt(12), move medivac to marine's position
+            gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
         }
+    } // end medivac loop
 }
 
-void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
-    sm.OnUnitDestroyed(unit_);
-}
-
-void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
-    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
-        // 1. get a list of n closest workers to pull
-        sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
-
-        // 2. get a list of idle army
-        sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
-        sc2::Units idleArmy;
-        for(auto& a : armyPool)
-            if(a->orders.empty()) idleArmy.emplace_back(a);
-
-        // 3. get closest enemy units to unit_ and find their center
-        sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
-        float x = 0.0, y = 0.0;
-        float numEnemies = (float) enemies.size();
-        for(auto& e : enemies){
-            x += e->pos.x;
-            y += e->pos.y;
-        }
-        sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
-
-        // 4. have workers and idle army attack them
-        gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
-        gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
-    }
-}
-
-void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
-    sm.OnUnitEnterVision(unit_);
-}
 
 void CombatCommander::manageStim(const sc2::Unit* unit){
     
