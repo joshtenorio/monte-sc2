@@ -91,7 +91,7 @@ class Strategy{
     Step peekNextBuildOrderStep();
 
     // gets the metaType for an ability
-    char getType(sc2::ABILITY_ID ability);
+    int getType(sc2::ABILITY_ID ability);
 
     protected:
     std::list<Step> buildOrder;
@@ -99,6 +99,8 @@ class Strategy{
     // config variables
     int maxWorkers = -1; // most useful for 1 base all ins. if this is negative it should be ignored
     int maxBarracks = 8;
+    int maxFactories = 1;
+    int maxStarports = 2;
     int maxRefineries = 6;
     int maxEngineeringBays = 2;
     int maxArmories = 1;
@@ -106,4 +108,6 @@ class Strategy{
     bool libHarass = false;
     bool buildBunker = true;
     bool pullWorkers = true;
+
+    // TODO: add variables that define how much of a unit we should produce
 };

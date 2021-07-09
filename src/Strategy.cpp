@@ -30,7 +30,7 @@ Step Strategy::peekNextBuildOrderStep(){
     }
 }
 
-char Strategy::getType(sc2::ABILITY_ID ability){
+int Strategy::getType(sc2::ABILITY_ID ability){
     switch(ability){
         case sc2::ABILITY_ID::BUILD_ARMORY:
         case sc2::ABILITY_ID::BUILD_BARRACKS:

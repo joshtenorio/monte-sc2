@@ -137,7 +137,16 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
 }
 
 void ProductionManager::fillQueue(){
+    // if build order is empty, then based on production buildings we have and config in Strategy, add stuff to build order
+    if(strategy->peekNextBuildOrderStep() == STEP_NULL){
+        // first-first priority: if an army building doesn't have an addon, build an addon
+        // first priority: build units
+        // second priority: upgrades
+        // third priority: build buildings
+    }
 
+    // from build order, add them into prod queue
+    // TODO: do we need a prod queue? we could just iterate through build order and pop steps as we finish
 }
 
 void ProductionManager::parseQueue(){

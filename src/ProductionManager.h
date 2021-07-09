@@ -30,6 +30,9 @@ class ProductionManager : public Manager {
     // fill queue with stuff to do
     void fillQueue();
 
+    // remove from queue
+    bool removeStep(sc2::ABILITY_ID abil);
+
     // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure
     void parseQueue();
     void buildStructure(Step s);
