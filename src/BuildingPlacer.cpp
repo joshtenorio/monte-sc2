@@ -20,6 +20,12 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
         case sc2::ABILITY_ID::BUILD_BUNKER:
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) < 1){
                 sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                if(
+                    gInterface->observation->GetGameInfo().map_name == "Blackburn AIE" &&
+                    gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1) != nullptr
+                    )
+                    enemyMain = gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1)->baseLocation;
+                    
                 sc2::Point2D natural;
                 if(gInterface->map->getNthExpansion(1) != nullptr)
                     natural = gInterface->map->getNthExpansion(1)->baseLocation;
