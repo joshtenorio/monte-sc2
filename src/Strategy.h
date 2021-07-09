@@ -14,17 +14,29 @@
 #define STEP_LOWEST_PRIO    0
 #define STEP_HIGHEST_PRIO   10
 
-#define STEP_NULL Step(sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
+#define STEP_NULL Step(TYPE_NULL, sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
 
 typedef struct MetaType_s_t {
+    MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}
+    int type;
+    sc2::ABILITY_ID ability;
+    
+    bool operator == (const MetaType_s_t& s) const {
+        if(type == s.type && ability == s.ability) return true;
+        else return false;
+    }
 
+    bool operator = (const MetaType_s_t& s) {
+        type = s.type;
+        ability = s.ability;
+    }
 } MetaType;
 
 typedef struct Step_s_t {
-    Step_s_t(sc2::ABILITY_ID ability_, bool blocking_, int priority_, int reqSupply_) :
-                ability(ability_), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
+    Step_s_t(int mtType, sc2::ABILITY_ID mtAbility, bool blocking_, int priority_, int reqSupply_) :
+                container(mtType, mtAbility), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
-    // ability that corresponds to the one that does the thing
+    // container for type of step
     MetaType container;
 
     // if true, don't go to next Step in strategy until this step is complete
@@ -38,7 +50,7 @@ typedef struct Step_s_t {
 
     bool operator == (const Step_s_t& s) const {
         if(
-            ability == s.ability &&
+            container == s.container &&
             reqSupply == s.reqSupply &&
             blocking == s.blocking &&
             priority == s.priority
@@ -47,7 +59,7 @@ typedef struct Step_s_t {
     }
 
     void operator = (const Step_s_t& s) {
-        ability = s.ability;
+        container = s.container;
         reqSupply = s.reqSupply;
         blocking = s.blocking;
         priority = s.priority;
@@ -62,7 +74,7 @@ class Strategy{
     virtual void initialize(); // TODO: does this need {} here? 
 
     // for pushing units into build order
-    void pushBuildOrderStep(sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply = -1);
+    void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply = -1);
 
     // get the next step in order and pop it
     Step popNextBuildOrderStep();

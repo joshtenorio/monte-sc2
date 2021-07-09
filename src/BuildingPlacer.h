@@ -4,7 +4,7 @@
 #include "api.h"
 #include "Logger.h"
 
-#define POINT_VALID sc2::Point2D(-1, -1)
+#define POINT_NULL sc2::Point2D(-1, -1)
 
 // purpose is solely to find a suitable location for building something
 class BuildingPlacer {

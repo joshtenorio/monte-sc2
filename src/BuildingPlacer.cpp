@@ -1,6 +1,8 @@
 #include "BuildingPlacer.h"
 
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
+    std::vector<sc2::QueryInterface::PlacementQuery> queries;
+    std::vector<bool> results;
     switch(building){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
@@ -8,7 +10,18 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 return findBarracksLocation();
         case sc2::ABILITY_ID::BUILD_FACTORY:
         case sc2::ABILITY_ID::BUILD_STARPORT:
-            // brrr
+            // FIXME: this is temporary, when tilemap is implemented we should switch to reserving tiles
+            float rx = sc2::GetRandomScalar();
+            float ry = sc2::GetRandomScalar();
+            sc2::Point2D location = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
+            
+            queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, location);
+            queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(location.x + 2.5, location.y - 0.5));
+            results = gInterface->query->Placement(queries);
+            for(auto& r: results){
+                if(!r) return POINT_NULL;
+            }
+            return location;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
