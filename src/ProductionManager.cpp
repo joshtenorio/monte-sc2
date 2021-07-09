@@ -73,7 +73,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
             // search through production queue to remove 
             for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-                if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).ability)
+                if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).getAbility())
                     itr = productionQueue.erase(itr);
                 else ++itr;
             }
@@ -86,7 +86,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
     // loop through production queue to check which Step corresponds to
     // the structure that just finished, doesn't apply to morphs
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
+        if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).getAbility()))
             itr = productionQueue.erase(itr);
         else ++itr;
     }
@@ -102,7 +102,7 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){   
+        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).getAbility())){   
             itr = productionQueue.erase(itr);
         }
             
@@ -114,7 +114,7 @@ void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // remove relevant thing from production queue
     // requires upgrade to ability function in api.cpp
     for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(API::upgradeIDToAbilityID(upgrade_) == (*itr).ability){
+        if(API::upgradeIDToAbilityID(upgrade_) == (*itr).getAbility()){
             itr = productionQueue.erase(itr);
         }
         else ++itr;
@@ -146,15 +146,28 @@ void ProductionManager::parseQueue(){
         int currSupply = gInterface->observation->GetFoodUsed();
         if(currSupply < s.reqSupply) continue;
 
-        if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
-        else if(API::parseStep(s) == ABIL_TRAIN) trainUnit(s);
-        else if(API::parseStep(s) == ABIL_RESEARCH) castBuildingAbility(s);
-        else if(API::parseStep(s) == ABIL_ADDON) buildAddon(s);
-    }
+        int type = s.getType();
+        switch(type){
+            case TYPE_BUILD:
+                buildStructure(s);
+            break;
+            case TYPE_TRAIN:
+                trainUnit(s);
+            break;
+            case TYPE_BUILDINGCAST:
+                castBuildingAbility(s);
+            break;
+            case TYPE_ADDON:
+                buildAddon(s);
+            break;
+            default:
+            // do nothing
+        }
+    } // end for s in prod queue
 }
 
 void ProductionManager::buildStructure(Step s){
-    sc2::ABILITY_ID ability = s.ability;
+    sc2::ABILITY_ID ability = s.getAbility();
     switch(ability){
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             TryBuildSupplyDepot();
@@ -181,7 +194,9 @@ void ProductionManager::buildStructure(Step s){
 }
 
 void ProductionManager::buildAddon(Step s){
-
+    // TODO: determine if we can/should swap addons
+    // for now just pass it to castBuildingAbility
+    castBuildingAbility(s);
 }
 
 void ProductionManager::trainUnit(Step s){
@@ -191,21 +206,21 @@ void ProductionManager::trainUnit(Step s){
 // TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
-    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
+    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
     for(auto& b : buildings){
         if(b->build_progress < 1.0) continue;
         bool canResearch = false;
         sc2::AvailableAbilities researchs = gInterface->query->GetAbilitiesForUnit(b, false, false);
         for(auto& r : researchs.abilities){
-            if(r.ability_id == s.ability){
+            if(r.ability_id == s.getAbility()){
                 canResearch = true;
                 break;
             }
         }
         if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag)){
-            logger.infoInit().withStr("researching").withInt((int) s.ability).write();
-            gInterface->actions->UnitCommand(b, s.ability);
+            logger.infoInit().withStr("casting building ability").withInt((int) s.getAbility()).write();
+            gInterface->actions->UnitCommand(b, s.getAbility());
             busyBuildings.emplace_back(b->tag);
             return;
         }
@@ -216,10 +231,11 @@ bool ProductionManager::TryBuildSupplyDepot(){
     int numTownhalls = (int) (API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS));
+    int numBarracks = (int) API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
     int cycle = 1 + numTownhalls;
-    // cycle: how much supply cushion we want, this is numTownhalls + numBarracks
+    if(numTownhalls > 1) cycle += numBarracks;
+    // cycle: how much supply cushion we want, this is numTownhalls (+ numBarracks if we have two expansions)
 
-    
     // if not supply capped or we are at max supply, dont build supply depot
     if(
         gInterface->observation->GetFoodUsed() < gInterface->observation->GetFoodCap() - cycle ||
@@ -340,13 +356,13 @@ bool ProductionManager::isBuildingBusy(sc2::Tag bTag){
 void ProductionManager::upgradeInfantryWeapons(int currLevel){
     switch(currLevel){
         case 0:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, false, false, false));
             break;
         case 1:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, false, false, false));
             break;
         case 2:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, false, false, false));
             break;
     }
 }
@@ -354,13 +370,13 @@ void ProductionManager::upgradeInfantryWeapons(int currLevel){
 void ProductionManager::upgradeInfantryArmor(int currLevel){
     switch(currLevel){
         case 0:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, false, false, false));
             break;
         case 1:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, false, false, false));
             break;
         case 2:
-            castBuildingAbility(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, false, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, false, false, false));
             break;
     }
 }

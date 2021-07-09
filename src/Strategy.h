@@ -64,6 +64,14 @@ typedef struct Step_s_t {
         blocking = s.blocking;
         priority = s.priority;
     }
+
+    sc2::ABILITY_ID getAbility(){
+        return container.ability;
+    }
+
+    int getType(){
+        return container.type;
+    }
 } Step;
 
 class Strategy{
@@ -73,7 +81,7 @@ class Strategy{
     // add initial steps to build orders
     virtual void initialize(); // TODO: does this need {} here? 
 
-    // for pushing units into build order
+    // for pushing things into build order
     void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply = -1);
 
     // get the next step in order and pop it
