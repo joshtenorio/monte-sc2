@@ -35,5 +35,9 @@ void Debug::debugSphereOut(const sc2::Point3D& p, float r, sc2::Color color){
     debug->DebugSphereOut(p, r, color);
 }
 
+void Debug::debugDrawTile(const sc2::Point3D& point, const sc2::Color& color){
+
+}
+
 
 } // end namespace Monte

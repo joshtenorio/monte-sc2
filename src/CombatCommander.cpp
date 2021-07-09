@@ -85,6 +85,35 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
 
             // validate the flight points (ie make sure they are within map bounds)
             // if they are not valid, adjust them so they fit within map bounds
+            sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;
+            sc2::Point2D minPoint = gInterface->observation->GetGameInfo().playable_min;
+            int minAdjust = 1;
+            // TODO: is there a cleaner way to write this?
+            if(targetFlightPoint.x >= maxPoint.x){
+                targetFlightPoint.x -= (targetFlightPoint.x - maxPoint.x + 1);
+            }
+            else if(targetFlightPoint.x <= minPoint.x){
+                targetFlightPoint.x += (minPoint.x - targetFlightPoint.x + 1);
+            }
+            if(targetFlightPoint.y >= maxPoint.y){
+                targetFlightPoint.y -= (targetFlightPoint.y - maxPoint.y + 1);
+            }
+            else if(targetFlightPoint.y <= minPoint.y){
+                targetFlightPoint.y += (minPoint.y - targetFlightPoint.y + 1);
+            }
+
+            if(intermediateFlightPoint.x >= maxPoint.x){
+                intermediateFlightPoint.x -= (intermediateFlightPoint.x - maxPoint.x + 1);
+            }
+            else if(intermediateFlightPoint.x <= minPoint.x){
+                intermediateFlightPoint.x += (minPoint.x - intermediateFlightPoint.x + 1);
+            }
+            if(intermediateFlightPoint.y >= maxPoint.y){
+                intermediateFlightPoint.y -= (intermediateFlightPoint.y - maxPoint.y + 1);
+            }
+            else if(intermediateFlightPoint.y <= minPoint.y){
+                intermediateFlightPoint.y += (minPoint.y - intermediateFlightPoint.y + 1);
+            }
 
             // give liberator commands
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MOVE_MOVE, intermediateFlightPoint);
