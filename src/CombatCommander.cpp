@@ -88,31 +88,31 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;
             sc2::Point2D minPoint = gInterface->observation->GetGameInfo().playable_min;
             int minAdjust = 1;
-            // TODO: is there a cleaner way to write this?
+            // TODO: is there a cleaner way to write this? keep the braces in case we need to print stuff here
             if(targetFlightPoint.x >= maxPoint.x){
-                targetFlightPoint.x -= (targetFlightPoint.x - maxPoint.x + 1);
+                targetFlightPoint.x -= (targetFlightPoint.x - maxPoint.x - minAdjust);
             }
             else if(targetFlightPoint.x <= minPoint.x){
-                targetFlightPoint.x += (minPoint.x - targetFlightPoint.x + 1);
+                targetFlightPoint.x += (minPoint.x - targetFlightPoint.x + minAdjust);
             }
             if(targetFlightPoint.y >= maxPoint.y){
-                targetFlightPoint.y -= (targetFlightPoint.y - maxPoint.y + 1);
+                targetFlightPoint.y -= (targetFlightPoint.y - maxPoint.y - minAdjust);
             }
             else if(targetFlightPoint.y <= minPoint.y){
-                targetFlightPoint.y += (minPoint.y - targetFlightPoint.y + 1);
+                targetFlightPoint.y += (minPoint.y - targetFlightPoint.y + minAdjust);
             }
 
             if(intermediateFlightPoint.x >= maxPoint.x){
-                intermediateFlightPoint.x -= (intermediateFlightPoint.x - maxPoint.x + 1);
+                intermediateFlightPoint.x -= (intermediateFlightPoint.x - maxPoint.x - minAdjust);
             }
             else if(intermediateFlightPoint.x <= minPoint.x){
-                intermediateFlightPoint.x += (minPoint.x - intermediateFlightPoint.x + 1);
+                intermediateFlightPoint.x += (minPoint.x - intermediateFlightPoint.x + minAdjust);
             }
             if(intermediateFlightPoint.y >= maxPoint.y){
-                intermediateFlightPoint.y -= (intermediateFlightPoint.y - maxPoint.y + 1);
+                intermediateFlightPoint.y -= (intermediateFlightPoint.y - maxPoint.y - minAdjust);
             }
             else if(intermediateFlightPoint.y <= minPoint.y){
-                intermediateFlightPoint.y += (minPoint.y - intermediateFlightPoint.y + 1);
+                intermediateFlightPoint.y += (minPoint.y - intermediateFlightPoint.y + minAdjust);
             }
 
             // give liberator commands
