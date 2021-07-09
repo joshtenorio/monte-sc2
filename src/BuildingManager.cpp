@@ -135,6 +135,8 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
 
     if(ability_type_for_structure != sc2::ABILITY_ID::BUILD_REFINERY){
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
+        if(loc.x == POINT2D_NULL.x || loc.y == POINT2D_NULL.y) return false;
+        
         gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
         gInterface->actions->UnitCommand(
             unit_to_build,
