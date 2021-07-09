@@ -6,7 +6,9 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // if barracks count == 0, build at ramp
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
                 return findBarracksLocation();
-            else goto useDefault;
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+            // brrr
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
