@@ -2,7 +2,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_6_0"; // update this everytime we upload
+std::string version = "v0_6_1"; // update this everytime we upload
 
 std::vector<sc2::UNIT_TYPEID> depotTypes; // used for filtering for depots
 
