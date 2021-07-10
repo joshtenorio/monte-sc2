@@ -16,6 +16,9 @@ void ProductionManager::OnStep(){
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
+        // TODO: temporary
+        
+        
         TryBuildBarracks();         // max : 8
         tryBuildRefinery();
         tryBuildCommandCenter();

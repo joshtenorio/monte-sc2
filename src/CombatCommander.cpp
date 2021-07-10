@@ -136,11 +136,13 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         // 1. get a list of n closest workers to pull
         sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
 
-        // 2. get a list of idle army
-        sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
+        // 2. get a list of nearby idle army
+        //sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
+        // TODO: for getClosestNUnits, add an overload where we can get multiple unit types
+        sc2::Units armyPool = API::getClosestNUnits(unit_->pos, 50, 36, sc2::Unit::Alliance::Self);
         sc2::Units idleArmy;
         for(auto& a : armyPool)
-            if(a->orders.empty()) idleArmy.emplace_back(a);
+            if(a->orders.empty() && !API::isStructure(a->unit_type.ToType())) idleArmy.emplace_back(a);
 
         // 3. get closest enemy units to unit_ and find their center
         sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
