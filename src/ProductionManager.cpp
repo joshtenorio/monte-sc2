@@ -16,7 +16,7 @@ void ProductionManager::OnStep(){
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
-        // TODO: temporary
+        
         
         
         TryBuildBarracks();         // max : 8
@@ -309,7 +309,7 @@ void ProductionManager::morphStructure(Step s){
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
     for(auto& b : buildings){
-        if(b->orders.empty()){
+        if(b->orders.empty() && b->build_progress >= 1.0){
             gInterface->actions->UnitCommand(b, s.ability);
         }
     }
@@ -429,15 +429,24 @@ void ProductionManager::handleUpgrades(){
     // FIXME: implement getting random vehicle/flying units upgrade levels
     
     // get current upgrade levels
+    // FIXME: the combat shields stuff here is temporary
+    bool getCombatShields = false;
     int infantryWeapons = 0;
     int infantryArmor = 0;
     if(!marines.empty()){
         infantryWeapons = marines.front()->attack_upgrade_level;
         infantryArmor = marines.front()->armor_upgrade_level;
-        
+        if(marines.front()->health_max < 50) getCombatShields = true;
         if(gInterface->observation->GetGameLoop() % 400 == 0){
             logger.infoInit().withStr("Infantry Weapons:").withInt(infantryWeapons);
             logger.withStr("\tInfantry Armor:").withInt(infantryArmor).write();
+        }
+    }
+
+    if(getCombatShields){
+        sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        if(!techLabs.empty()){
+            researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_COMBATSHIELD, -1, false, false));
         }
     }
 

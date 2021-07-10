@@ -22,6 +22,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                     return POINT2D_NULL;
                 }
             
+            gInterface->debug->debugSphereOut(sc2::Point3D(loc.x + 2.5, loc.y - 0.5, around.z), 1);
+            gInterface->debug->sendDebug();
             return loc;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
