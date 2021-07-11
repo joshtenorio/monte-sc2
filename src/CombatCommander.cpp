@@ -154,9 +154,20 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         }
         sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
 
-        // 4. have workers and idle army attack them
-        gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        // 4. have idle army attack, and have some workers repair and some workers attack
         gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        if(API::isStructure(unit_->unit_type.ToType()))
+            for(int n = 0; n < workers.size(); n++){
+                if(n % 3 == 0){
+                    logger.infoInit().withStr("repair go brrrr").write();
+                    gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::EFFECT_REPAIR, unit_);
+                }
+                    
+                else
+                    gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+            }
+        else
+            gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
     }
 }
 
