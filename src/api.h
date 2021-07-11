@@ -10,6 +10,7 @@
 #include <sc2api/sc2_control_interfaces.h>
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_unit_filters.h>
+#include <vector>
 #include <memory>
 #include "WorkerManager.h"
 #include "Mapper.h"
@@ -19,6 +20,8 @@ using namespace sc2;
 
 
 namespace API {
+
+    void OnGameStart();
 
     int countIdleUnits(sc2::UNIT_TYPEID type);
     bool isUnitIdle(const sc2::Unit* unit);
@@ -36,8 +39,10 @@ namespace API {
     bool isStructure(sc2::UNIT_TYPEID unit);
     bool isTownHall(sc2::UNIT_TYPEID unit);
 
+    std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
 
 } // end namespace API
+
 class Interface {
     public:
     Interface(const ObservationInterface* observation_,

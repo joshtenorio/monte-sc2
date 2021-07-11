@@ -2,6 +2,10 @@
 
 namespace API {
 
+void OnGameStart(){
+
+}
+
 int countIdleUnits(sc2::UNIT_TYPEID type){
     sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
     int c = 0;
@@ -62,6 +66,150 @@ sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
             return sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS;
     }
     return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
+}
+
+std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability){
+    std::vector<sc2::UNIT_TYPEID> requirements;
+    switch(ability){
+        case sc2::ABILITY_ID::BUILD_BARRACKS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
+            break;
+
+        case sc2::ABILITY_ID::TRAIN_HELLBAT:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ARMORY);
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+        case sc2::ABILITY_ID::BUILD_ARMORY:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING);
+        case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
+        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
+        case sc2::ABILITY_ID::TRAIN_HELLION:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORY);
+            break;
+
+        case sc2::ABILITY_ID::TRAIN_THOR:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ARMORY);
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORY);
+            break;
+
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+        case sc2::ABILITY_ID::BUILD_BUNKER:
+        case sc2::ABILITY_ID::BUILD_GHOSTACADEMY:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING);
+        case sc2::ABILITY_ID::TRAIN_MARINE:
+        case sc2::ABILITY_ID::TRAIN_REAPER:
+        case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+            break;
+
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY);
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+        case sc2::ABILITY_ID::RESEARCH_COMBATSHIELD:
+        case sc2::ABILITY_ID::RESEARCH_STIMPACK:
+        case sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+            break;
+
+        case sc2::ABILITY_ID::BUILD_ENGINEERINGBAY:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS);
+            break;
+        
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE);
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB);
+        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
+        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
+        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
+        case sc2::ABILITY_ID::BUILD_FUSIONCORE:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING);
+        case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
+        case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_STARPORT);
+            break;
+        
+        case sc2::ABILITY_ID::BUILD_MISSILETURRET:
+        case sc2::ABILITY_ID::BUILD_SENSORTOWER:
+        case sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS:
+        case sc2::ABILITY_ID::RESEARCH_HISECAUTOTRACKING:
+        case sc2::ABILITY_ID::RESEARCH_NEOSTEELFRAME: // might be a different ID
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY);
+            break;
+
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATING:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONS:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_ARMORY);
+            break;
+
+        case sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS:
+        case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
+        case sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE);
+            break;
+
+        case sc2::ABILITY_ID::RESEARCH_SMARTSERVOS:
+        case sc2::ABILITY_ID::RESEARCH_INFERNALPREIGNITER:
+        case sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE:
+        case sc2::ABILITY_ID::RESEARCH_DRILLINGCLAWS:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB);
+            break;
+        
+        case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
+        case sc2::ABILITY_ID::BUILD_NUKE:
+        case sc2::ABILITY_ID::RESEARCH_PERSONALCLOAKING:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY);
+            break;
+
+        case sc2::ABILITY_ID::RESEARCH_RAVENCORVIDREACTOR:
+        case sc2::ABILITY_ID::RESEARCH_BANSHEEHYPERFLIGHTROTORS:
+        case sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB);
+            break;
+        
+        case sc2::ABILITY_ID::MORPH_ORBITALCOMMAND:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING);
+            break;
+
+        case sc2::ABILITY_ID::BUILD_REACTOR:
+        case sc2::ABILITY_ID::BUILD_TECHLAB:
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORY);
+            requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_STARPORT);
+            break;
+    }
+    return requirements;
 }
 
 sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){

@@ -16,6 +16,7 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
+    API::OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
     gInterface->matchID = logger.createOutputPrefix();
