@@ -17,6 +17,7 @@
 #define STEP_NULL Step(TYPE_NULL, sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
 
 typedef struct MetaType_s_t {
+    MetaType_s_t() {};
     MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}
     int type;
     sc2::ABILITY_ID ability;
@@ -33,6 +34,7 @@ typedef struct MetaType_s_t {
 } MetaType;
 
 typedef struct Step_s_t {
+    Step_s_t() { container.type = TYPE_NULL; priority = -1; };
     Step_s_t(int mtType, sc2::ABILITY_ID mtAbility, bool blocking_, int priority_, int reqSupply_) :
                 container(mtType, mtAbility), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
@@ -92,7 +94,12 @@ class Strategy{
 
     // get/remove the nth step in order
     Step getNthBuildOrderStep(int n);
+    Step getHighestPriorityStep();
+
     void removeNthBuildOrderStep(int n);
+    void removeCurrentHighestPriorityStep();
+    void removeStep(Step s);
+    void removeStep(sc2::ABILITY_ID ability);
 
     // gets the metaType for an ability
     int getType(sc2::ABILITY_ID ability);

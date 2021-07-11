@@ -31,12 +31,54 @@ Step Strategy::peekNextBuildOrderStep(){
 }
 
 Step Strategy::getNthBuildOrderStep(int n){
-    
+    if(n >= 0 && n < buildOrder.size())
+        return buildOrder[n];
+    else return STEP_NULL;
+}
+
+Step Strategy::getHighestPriorityStep(){
+    Step output = buildOrder.front();
+    for(auto& s : buildOrder){
+        if(s.priority > output.priority) output = s;
+
+        if(s.blocking) break;
+    }
+    return output;
 }
 
 void Strategy::removeNthBuildOrderStep(int n){
-
+    if(n >= 0 && n < buildOrder.size())
+        buildOrder.erase(buildOrder.begin() + n);
 }
+
+void Strategy::removeCurrentHighestPriorityStep(){
+    Step output = getHighestPriorityStep();
+    removeStep(output);
+}
+
+void Strategy::removeStep(Step s){
+    for(auto itr = buildOrder.begin(); itr != buildOrder.end(); ){
+        if(s == (*itr)){
+            itr = buildOrder.erase(itr);
+            break;
+        }
+        else ++itr;
+    }
+}
+
+void Strategy::removeStep(sc2::ABILITY_ID ability){
+    // find the highest valid priority item with this ability
+    // then use removeStep(Step s) to remove it
+    Step step;
+    for(auto& s : buildOrder){
+        if(s.priority >= step.priority && s.getAbility() == ability)
+            step = s;
+        
+        if(s.blocking) break;
+    }
+    if(step.getType() != TYPE_NULL) removeStep(step);
+}
+
 
 int Strategy::getType(sc2::ABILITY_ID ability){
     switch(ability){

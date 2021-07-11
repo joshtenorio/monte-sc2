@@ -131,43 +131,18 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 }
 
-void ProductionManager::fillQueue(){
-    // if build order is empty, then based on production buildings we have and config in Strategy, add stuff to build order
-    if(strategy->peekNextBuildOrderStep() == STEP_NULL){
-        // first-first priority: if an army building doesn't have an addon, build an addon
-        // first priority: build units
-        // second priority: upgrades
-        // third priority: build buildings
-    }
-
-    // from build order, add them into prod queue
-    // TODO: do we need a prod queue? we could just iterate through build order and pop steps as we finish
+void ProductionManager::handleBuildOrder(){
+    // in a loop
+    // get the highest priority item and save its priority level
+    // then, in the loop only consider steps with the same priority level
+    // or we reach a blocking step (we consider the blocking step)
 }
 
-void ProductionManager::parseQueue(){
-    for(auto& s : productionQueue){
-        // skip step if we don't have enough supply for step
-        int currSupply = gInterface->observation->GetFoodUsed();
-        if(currSupply < s.reqSupply) continue;
-
-        int type = s.getType();
-        switch(type){
-            case TYPE_BUILD:
-                buildStructure(s);
-            break;
-            case TYPE_TRAIN:
-                trainUnit(s);
-            break;
-            case TYPE_BUILDINGCAST:
-                castBuildingAbility(s);
-            break;
-            case TYPE_ADDON:
-                buildAddon(s);
-            break;
-            default:
-            // do nothing
-        }
-    } // end for s in prod queue
+void ProductionManager::fixBuildOrderDeadlock(){
+    // TODO: need to build out a requirements table for each ability
+    // if requirements for any of the highest priority level items are not met,
+    // we should add requirements in a step with the same priority level to the build order
+    // TODO: for the above line, we should add a separate list to track those? like emergency build order
 }
 
 void ProductionManager::buildStructure(Step s){

@@ -27,14 +27,11 @@ class ProductionManager : public Manager {
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
     void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
-    // fill queue with stuff to do
-    void fillQueue();
-
-    // remove from queue
-    bool removeStep(sc2::ABILITY_ID abil);
-
-    // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure
-    void parseQueue();
+    protected:
+    void handleBuildOrder();
+    void fixBuildOrderDeadlock();
+    // identify what building to cast ability/train unit/start upgrade, or if need to get scv to build a structure
+    
     void buildStructure(Step s);
     void buildAddon(Step s);
     void trainUnit(Step s);
@@ -58,12 +55,12 @@ class ProductionManager : public Manager {
     // returns true if the building has been given an order in the current loop
     bool isBuildingBusy(sc2::Tag bTag);
 
-    protected:
+
+    private:
     Strategy* strategy;
     BuildingManager bm;
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
 
-    private:
     void upgradeInfantryWeapons(int currLevel);
     void upgradeInfantryArmor(int currLevel);
 };
