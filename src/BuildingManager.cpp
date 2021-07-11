@@ -11,24 +11,26 @@ void BuildingManager::OnStep(){
     bool workedOn = false;
     if(!inProgressBuildings.empty() && gInterface->observation->GetGameLoop() % 20 == 0) // make sure its not empty, and only do this every 20 loops
     for(auto& c : inProgressBuildings){
-        sc2::Tag tag = c.first->tag;
         // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
         //       here, pos would be location of the in progress building
         sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         for(auto& w : workers){
             if(w != nullptr){ // TODO: not sure if this check is necessary
                 if(!w->orders.empty())
-                    if(w->orders.front().target_unit_tag == tag){
+                    if(w->orders.front().target_unit_tag == c.first){
                         workedOn = true;
                         break;
                     }
             }
         }
         if(!workedOn){ // building is not being worked on, so get a worker to work on it
-            Worker* w = gInterface->wm->getClosestWorker(c.first->pos);
+            const sc2::Unit* building = gInterface->observation->GetUnit(c.first);
+            if(building == nullptr) return;
+
+            Worker* w = gInterface->wm->getClosestWorker(building->pos);
             if(w != nullptr){
-                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, c.first); // target the building
-                if(c.first->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || c.first->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, building); // target the building
+                if(building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                     w->job = JOB_BUILDING_GAS;
                 else
                     w->job = JOB_BUILDING;
@@ -43,7 +45,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     // if its an in-prog building that died, release the worker and remove Construction from list
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
        // the building died, so release the worker and remove Construction
-       if((*itr).first->tag == unit_->tag){
+       if((*itr).first == unit_->tag){
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
             break;
@@ -60,8 +62,12 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
                 n++;
                 if(n >= gInterface->wm->getNumWorkers()) return;
             }
-            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, (*itr).first); // target the building
-            if((*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || (*itr).first->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+
+            const sc2::Unit* building = gInterface->observation->GetUnit((*itr).first);
+            if(building == nullptr) return;
+            
+            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, building); // target the building
+            if(building->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
             else
                 newWorker->job = JOB_BUILDING;
@@ -76,7 +82,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed, unless building was a refinery (in which case the new job is gathering gas)
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
-        if((*itr).first->tag == building_->tag){
+        if((*itr).first == building_->tag){
             if(building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
                 building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 (*itr).second->job = JOB_GATHERING_GAS;
@@ -93,7 +99,7 @@ void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_)
 void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     // if building_'s tag is identical to a building in inProgress, don't do anything
     for(auto& c : inProgressBuildings)
-        if(c.first->tag == building_->tag) return;
+        if(c.first == building_->tag) return;
 
     // assume the closest worker to the building is assigned to construct it
     Worker* w = gInterface->wm->getClosestWorker(building_->pos);
@@ -102,7 +108,7 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
         w->job = JOB_BUILDING_GAS;
     else 
         w->job = JOB_BUILDING;
-    inProgressBuildings.emplace_back(std::make_pair(building_, w));
+    inProgressBuildings.emplace_back(std::make_pair(building_->tag, w));
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){
@@ -150,6 +156,8 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
+        if(gas == nullptr) return false;
+
         gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         gInterface->actions->UnitCommand(
            unit_to_build,
@@ -161,8 +169,12 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
 }
 
 bool BuildingManager::checkConstructions(sc2::UNIT_TYPEID building){
-    for(auto c : inProgressBuildings)
-        if(c.first->unit_type.ToType() == building) return true;
+    for(auto c : inProgressBuildings){
+        const sc2::Unit* construction = gInterface->observation->GetUnit(c.first);
+        if(construction == nullptr) return false;
+        if(construction->unit_type.ToType() == building) return true;
+    }
+        
 
     return false;
 }

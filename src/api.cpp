@@ -61,6 +61,7 @@ sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
             return sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS;
     }
+    std::cout << "API: unitTypeIDToAbilityID returning protoss assimilator" << std::endl;
     return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
 
@@ -132,6 +133,7 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
             return sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE;
 
     }
+    std::cout << "API: upgradeIDtoAbilityID returning protoss assimilator" << std::endl;
     return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
 
@@ -261,6 +263,7 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::BUILD_REACTOR: // not sure what to do with these, probably just return default
         case sc2::ABILITY_ID::BUILD_TECHLAB:
         default:
+            std::cout << "API: abilitytounittypeid returning protoss assimilator" << std::endl;
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
 }
@@ -290,6 +293,7 @@ sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit){
             // don't know what to do for this one since it is townhall
             break;
         default:
+            std::cout << "API: buildingForUnit returning protoss assimilator" << std::endl;
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
 }
@@ -428,6 +432,7 @@ char parseStep(Step s){
         case sc2::ABILITY_ID::BUILD_TECHLAB:
             return ABIL_MORPH;
         default:
+            std::cout << "API: parseStep returning ABIL_NULL" << std::endl;
             return ABIL_NULL;
             break;
     }
