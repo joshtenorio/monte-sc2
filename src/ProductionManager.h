@@ -61,7 +61,6 @@ class ProductionManager : public Manager {
     protected:
     Strategy* strategy;
     BuildingManager bm;
-    std::vector<Step> productionQueue; // list of structures/upgrades/units currently being built
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
 
     private:

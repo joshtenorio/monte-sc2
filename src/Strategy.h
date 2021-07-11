@@ -1,6 +1,6 @@
 #pragma once
 
-#include <list>
+#include <vector>
 #include <sc2api/sc2_unit.h>
 
 #define TYPE_NULL           -1
@@ -90,11 +90,17 @@ class Strategy{
     // look at the next step but don't remove it yet
     Step peekNextBuildOrderStep();
 
+    // get/remove the nth step in order
+    Step getNthBuildOrderStep(int n);
+    void removeNthBuildOrderStep(int n);
+
     // gets the metaType for an ability
     int getType(sc2::ABILITY_ID ability);
 
-    protected:
-    std::list<Step> buildOrder;
+    bool isEmpty();
+
+    //protected: // TODO: make this protected again and add getter functions
+    std::vector<Step> buildOrder;
 
     // config variables
     int maxWorkers = -1; // most useful for 1 base all ins. if this is negative it should be ignored

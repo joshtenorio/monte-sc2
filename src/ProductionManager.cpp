@@ -5,9 +5,7 @@ void ProductionManager::OnStep(){
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
-    // fill queue with steps
-    fillQueue();
-
+    
     // build a supply depot if needed
     TryBuildSupplyDepot();
 
@@ -26,19 +24,16 @@ void ProductionManager::OnStep(){
         handleUpgrades();
     } // end if prod queue empty
 
-    // act on items in the queue
-    parseQueue();
 
     // building manager
     bm.OnStep();
 
     // TODO: make this into function?
     Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
-    for(auto& cc : ccs)
-        if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
-            gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
-
-
+    if(strategy->maxWorkers < API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV))
+        for(auto& cc : ccs)
+            if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
+                gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         logger.infoInit().withStr("ProdQueue Size:").withInt(productionQueue.size()).write();

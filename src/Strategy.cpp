@@ -11,7 +11,7 @@ Step Strategy::popNextBuildOrderStep(){
     // make sure there is a step in the priority order before returning
     if(!buildOrder.empty()){
         Step step = buildOrder.front();
-        buildOrder.pop_front();
+        buildOrder.erase(buildOrder.begin());
         return step;
     }
     else{
@@ -23,11 +23,19 @@ Step Strategy::peekNextBuildOrderStep(){
     // make sure there is a step in the priority order before returning
     if(!buildOrder.empty()){
         //Step step = priorityBuildOrder.front();
-        return buildOrder.front();;
+        return buildOrder.front();
     }
     else{
         return STEP_NULL;
     }
+}
+
+Step Strategy::getNthBuildOrderStep(int n){
+    
+}
+
+void Strategy::removeNthBuildOrderStep(int n){
+
 }
 
 int Strategy::getType(sc2::ABILITY_ID ability){
