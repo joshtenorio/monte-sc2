@@ -26,8 +26,8 @@
 using namespace sc2;
 typedef struct Worker_s_t {
     int job;
-    const sc2::Unit* scv;
     sc2::Tag tag;
+    const sc2::Unit* getUnit();
 } Worker;
 
 class WorkerManager : public Manager {

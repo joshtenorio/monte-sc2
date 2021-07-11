@@ -7,25 +7,25 @@
 #include "WorkerManager.h"
 
 #include "api.h" // this breaks our "code style," but it is necessary for now to avoid circular definition
-// TODO: is there a way to avoid this workaround ?
+// TODO: find a way to avoid workaround
 
 using namespace sc2;
 
+const sc2::Unit* Worker::getUnit(){
+    return gInterface->observation->GetUnit(tag);
+}
 void WorkerManager::OnStep(){
 
     // run distributeWorkers every 15 loops and after everything initializes
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
     }
-        
-    
 }
 
 void WorkerManager::OnUnitCreated(const Unit* unit_){
     Worker w;
     if(gInterface->observation->GetGameLoop() < 20) w.job = JOB_GATHERING_MINERALS;
     else w.job = JOB_UNEMPLOYED;
-    w.scv = unit_;
     w.tag = (*unit_).tag;
     workers.emplace_back(w);
     if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
@@ -34,13 +34,13 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
     Tag key = unit_->tag;
     int index = 0;
-    for(int i = 0; i < workers.size(); i++){
-        if(workers[i].scv->tag == key){
-            index = i;
+    for(auto itr = workers.begin(); itr != workers.end(); ){
+        if((*itr).tag == key){
+            itr = workers.erase(itr);
             break;
         }
+        else ++itr;
     }
-    workers.erase(workers.begin() + index);
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
@@ -78,15 +78,15 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
         if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
             Worker* w = getFreeWorker();
-            if(w == nullptr) continue;
-            gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, r);
+            if(w == nullptr || w->getUnit() == nullptr) continue;
+            gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, r);
             w->job = JOB_GATHERING_GAS;
         }
         else if (r->assigned_harvesters > gasWorkers){
             // too much gas workers
             Worker* w = getClosestWorker(r->pos, JOB_GATHERING_GAS);
-            const sc2::Unit* mineral = FindNearestMineralPatch(w->scv->pos);
-            gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
+            const sc2::Unit* mineral = FindNearestMineralPatch(w->getUnit()->pos);
+            gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, mineral);
             w->job = JOB_GATHERING_MINERALS;
 
         }
@@ -114,7 +114,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             
             if(e != nullptr){
                 const sc2::Unit* mineral = FindNearestMineralPatch(e->baseLocation);
-                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, mineral);
+                gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, mineral);
                 w->job = JOB_GATHERING_MINERALS;
             }
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
@@ -122,8 +122,11 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
-        if(w.scv->orders.empty()) w.job = JOB_UNEMPLOYED;
-        if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.scv);
+        if(w.getUnit() != nullptr){
+            if(w.getUnit()->orders.empty()) w.job = JOB_UNEMPLOYED;
+            if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.getUnit());
+        }
+
     }
 }
 
@@ -162,7 +165,7 @@ Worker* WorkerManager::getFreeWorker(){
 Worker* WorkerManager::getWorker(const Unit* unit_){
     Tag key = unit_->tag;
     for(auto& w : workers){
-        if(w.scv->tag == key){
+        if(w.tag == key){
             return &w; 
         }
             
@@ -189,8 +192,9 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     float distance = std::numeric_limits<float>::max();
     if(jobType == -1){ // default: get any worker
         for(auto& w : workers){
-            if(distance > sc2::DistanceSquared2D(pos, w.scv->pos)){
-                distance = sc2::DistanceSquared2D(pos, w.scv->pos);
+            if(w.getUnit() == nullptr) continue;
+            if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos)){
+                distance = sc2::DistanceSquared2D(pos, w.getUnit()->pos);
                 closestWorker = &w;
             }
         }
@@ -198,8 +202,9 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     }
     else{
         for(auto& w : workers){
-            if(distance > sc2::DistanceSquared2D(pos, w.scv->pos) && w.job == jobType){
-                distance = sc2::DistanceSquared2D(pos, w.scv->pos);
+            if(w.getUnit() == nullptr) continue;
+            if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos) && w.job == jobType){
+                distance = sc2::DistanceSquared2D(pos, w.getUnit()->pos);
                 closestWorker = &w;
             }
         }

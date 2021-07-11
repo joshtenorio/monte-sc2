@@ -1,12 +1,30 @@
 #include "BuildingPlacer.h"
 
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
+
+    std::vector<sc2::QueryInterface::PlacementQuery> queries;
+    std::vector<bool> results;
+    float rx = sc2::GetRandomScalar(), ry = sc2::GetRandomScalar();
+    sc2::Point2D loc = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
     switch(building){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
                 return findBarracksLocation();
-            else goto useDefault;
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+            queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, loc);
+            queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(loc.x + 2.5, loc.y - 0.5));
+            results = gInterface->query->Placement(queries);
+            for(auto r : results)
+                if(!r){
+                    //logger.errorInit().withPoint(loc).withStr("not valid location for army building").write("buildingplacer.txt", true);
+                    return POINT2D_NULL;
+                }
+            
+            //gInterface->debug->debugSphereOut(sc2::Point3D(loc.x + 2.5, loc.y - 0.5, around.z), 1);
+            //gInterface->debug->sendDebug();
+            return loc;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
@@ -43,8 +61,6 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // TODO: make this behavior better (ie actually utilise freeRadius)
 
             // currently, get a random location to build building within a 20x20 region where the scv is at the center
-            float rx = sc2::GetRandomScalar();
-            float ry = sc2::GetRandomScalar();
             return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
 
 

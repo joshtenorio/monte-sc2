@@ -8,7 +8,7 @@
 
 // first: building
 // second: Worker object
-typedef std::pair<const sc2::Unit*, Worker*> Construction;
+typedef std::pair<sc2::Tag, Worker*> Construction;
 
 class BuildingManager : public Manager {
     public:
