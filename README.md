@@ -1,8 +1,16 @@
 # monte-bot
 
 ## About
-Monte is a StarCraft II Terran bot.
+Monte is a StarCraft II Terran rule-based bot.
 Its architecture is based off of parts of CommandCenter I liked.
+
+Monte currently supports the following features:
+- Supports building for the [SC2 AI Arena ladder](https://aiarena.net/)
+- Building addons
+- worker distribution, including long-distance mining
+- calling MULES
+- Rudimentary scouting to find enemy bases
+- Getting infantry weapon/armor upgrades
 
 ## Building
 ### Windows
@@ -45,3 +53,5 @@ $ ./bin/Monte "/Users/josht/.../EverDream506.SC2Map"
 ## Thanks
 - ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot).
 - the procedure for finding expansions is from [MulleMech](https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp)
+
+Both of the above projects are licensed under the MIT License.
