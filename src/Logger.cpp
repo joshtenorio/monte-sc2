@@ -53,9 +53,13 @@ void Logger::write(){
     std::cout << output << std::endl;
 }
 
-void Logger::write(std::string fileName){
+void Logger::write(std::string fileName, bool error){
     std::ofstream file;
-    std::string fileWithPath = "data/" + std::to_string(gInterface->matchID) + fileName;
+    std::string fileWithPath;
+    if(!error)
+        fileWithPath = "data/" + std::to_string(gInterface->matchID) + fileName;
+    else
+        fileWithPath = "data/error/" + std::to_string(gInterface->matchID) + fileName;
     file.open(fileWithPath, std::ios_base::app);
     if(file.is_open()){
         file << output << std::endl;

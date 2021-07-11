@@ -122,8 +122,11 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
-        if(w.getUnit()->orders.empty()) w.job = JOB_UNEMPLOYED;
-        if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.getUnit());
+        if(w.getUnit() != nullptr){
+            if(w.getUnit()->orders.empty()) w.job = JOB_UNEMPLOYED;
+            if(w.job == JOB_UNEMPLOYED) OnUnitIdle(w.getUnit());
+        }
+
     }
 }
 
@@ -189,6 +192,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     float distance = std::numeric_limits<float>::max();
     if(jobType == -1){ // default: get any worker
         for(auto& w : workers){
+            if(w.getUnit() == nullptr) continue;
             if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos)){
                 distance = sc2::DistanceSquared2D(pos, w.getUnit()->pos);
                 closestWorker = &w;
@@ -198,6 +202,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     }
     else{
         for(auto& w : workers){
+            if(w.getUnit() == nullptr) continue;
             if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos) && w.job == jobType){
                 distance = sc2::DistanceSquared2D(pos, w.getUnit()->pos);
                 closestWorker = &w;

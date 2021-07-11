@@ -103,13 +103,17 @@ int main(int argc, char* argv[])
     // NOTE: Uncomment to play at normal speed.
     // coordinator.SetRealtime(true);
 
+    // Disables ability to control your bot during game.
+    // Recommended for competitions.
+    // coordinator.SetRawAffectsSelection(true);
+
     Bot bot;
     coordinator.SetParticipants(
         {
             CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
             CreateComputer(
                 sc2::Race::Protoss,
-                sc2::Difficulty::HardVeryHard,
+                sc2::Difficulty::VeryHard,
                 sc2::AIBuild::Macro
                 )
         });

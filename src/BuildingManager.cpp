@@ -25,7 +25,7 @@ void BuildingManager::OnStep(){
         }
         if(!workedOn){ // building is not being worked on, so get a worker to work on it
             const sc2::Unit* building = gInterface->observation->GetUnit(c.first);
-            if(building == nullptr) return;
+            if(building == nullptr) continue;
 
             Worker* w = gInterface->wm->getClosestWorker(building->pos);
             if(w != nullptr){

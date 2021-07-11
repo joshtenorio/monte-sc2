@@ -16,9 +16,9 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, loc);
             queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(loc.x + 2.5, loc.y - 0.5));
             results = gInterface->query->Placement(queries);
-            for(auto& r : results)
+            for(auto r : results)
                 if(!r){
-                    logger.errorInit().withPoint(loc).withStr("not valid location for army building").write();
+                    //logger.errorInit().withPoint(loc).withStr("not valid location for army building").write("buildingplacer.txt", true);
                     return POINT2D_NULL;
                 }
             

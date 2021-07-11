@@ -86,6 +86,9 @@ bool ScoutManager::createScoutingMission(){
         }
     }
 
+    // if we couldn't find an expansion to scout, return
+    if(target.x == 0 && target.y == 0) return false;
+
     // 3. send scout
     // TODO: should we use move or attack move?
     logger.infoInit().withStr("Scout:").withUnit(scout).withStr("\tTarget:").withPoint(target).write();
