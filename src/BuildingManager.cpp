@@ -29,7 +29,7 @@ void BuildingManager::OnStep(){
 
             Worker* w = gInterface->wm->getClosestWorker(building->pos);
             if(w != nullptr){
-                gInterface->actions->UnitCommand(w->scv, sc2::ABILITY_ID::SMART, building); // target the building
+                gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, building); // target the building
                 if(building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                     w->job = JOB_BUILDING_GAS;
                 else
@@ -66,7 +66,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
             const sc2::Unit* building = gInterface->observation->GetUnit((*itr).first);
             if(building == nullptr) return;
             
-            gInterface->actions->UnitCommand(newWorker->scv, sc2::ABILITY_ID::SMART, building); // target the building
+            gInterface->actions->UnitCommand(newWorker->getUnit(), sc2::ABILITY_ID::SMART, building); // target the building
             if(building->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
                 newWorker->job = JOB_BUILDING_GAS;
             else
