@@ -136,13 +136,40 @@ void ProductionManager::handleBuildOrder(){
     // get the highest priority item and save its priority level
     // then, in the loop only consider steps with the same priority level
     // or we reach a blocking step (we consider the blocking step)
+    if(strategy->isEmpty()) return;
+
+    int priorityLevel = strategy->getHighestPriorityStep().priority;
+    for(int n = 0; n < strategy->getBuildOrderSize(); n++){
+        Step s = strategy->getNthBuildOrderStep(n);
+        if(s.priority == priorityLevel){
+            parseStep(s);
+        }
+
+        if(s.blocking) break;
+    } // end loop
 }
 
-void ProductionManager::fixBuildOrderDeadlock(){
-    // TODO: need to build out a requirements table for each ability
+void ProductionManager::handleBuildOrderDeadlock(){
     // if requirements for any of the highest priority level items are not met,
     // we should add requirements in a step with the same priority level to the build order
     // TODO: for the above line, we should add a separate list to track those? like emergency build order
+}
+
+void ProductionManager::parseStep(Step s){
+    switch(s.getType()){
+        case TYPE_ADDON:
+            buildAddon(s);
+            break;
+        case TYPE_BUILD:
+            buildStructure(s);
+            break;
+        case TYPE_BUILDINGCAST:
+            castBuildingAbility(s);
+            break;
+        case TYPE_TRAIN:
+            trainUnit(s);
+            break;
+    }
 }
 
 void ProductionManager::buildStructure(Step s){
@@ -179,7 +206,8 @@ void ProductionManager::buildAddon(Step s){
 }
 
 void ProductionManager::trainUnit(Step s){
-
+    // for now just pass it to tryTrainUnit
+    tryTrainUnit(s.getAbility(), 1);
 }
 
 // TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever

@@ -79,7 +79,15 @@ void Strategy::removeStep(sc2::ABILITY_ID ability){
     if(step.getType() != TYPE_NULL) removeStep(step);
 }
 
+bool Strategy::isEmpty(){
+    return buildOrder.empty();
+}
 
+int Strategy::getBuildOrderSize(){
+    return buildOrder.size();
+}
+
+// TODO: is this necessary since we specify step type in metatype?
 int Strategy::getType(sc2::ABILITY_ID ability){
     switch(ability){
         case sc2::ABILITY_ID::BUILD_ARMORY:

@@ -104,7 +104,9 @@ class Strategy{
     // gets the metaType for an ability
     int getType(sc2::ABILITY_ID ability);
 
+    // misc stuff
     bool isEmpty();
+    int getBuildOrderSize();
 
     //protected: // TODO: make this protected again and add getter functions
     std::vector<Step> buildOrder;

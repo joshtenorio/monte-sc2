@@ -32,7 +32,7 @@ namespace API {
 
     // convert a build ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT
     sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser
-    sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit);
+    sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit); // TODO: add more cases
     sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade);
     sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit);
 

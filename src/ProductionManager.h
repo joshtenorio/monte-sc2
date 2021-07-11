@@ -29,9 +29,10 @@ class ProductionManager : public Manager {
 
     protected:
     void handleBuildOrder();
-    void fixBuildOrderDeadlock();
+    void handleBuildOrderDeadlock();
+
     // identify what building to cast ability/train unit/start upgrade, or if need to get scv to build a structure
-    
+    void parseStep(Step s);
     void buildStructure(Step s);
     void buildAddon(Step s);
     void trainUnit(Step s);
@@ -54,7 +55,6 @@ class ProductionManager : public Manager {
 
     // returns true if the building has been given an order in the current loop
     bool isBuildingBusy(sc2::Tag bTag);
-
 
     private:
     Strategy* strategy;

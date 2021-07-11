@@ -3,7 +3,7 @@
 namespace API {
 
 void OnGameStart(){
-
+    // hehe
 }
 
 int countIdleUnits(sc2::UNIT_TYPEID type){
