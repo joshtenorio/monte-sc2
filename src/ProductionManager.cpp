@@ -152,7 +152,32 @@ void ProductionManager::handleBuildOrder(){
 void ProductionManager::handleBuildOrderDeadlock(){
     // if requirements for any of the highest priority level items are not met,
     // we should add requirements in a step with the same priority level but + 1 to the build order
+    if(strategy->isEmpty()) return;
 
+    int priorityLevel = strategy->getHighestPriorityStep().priority;
+    for(int n = 0; n < strategy->getBuildOrderSize(); n++){
+        Step s = strategy->getNthBuildOrderStep(n);
+        if(s.priority == priorityLevel){
+            std::vector<sc2::UNIT_TYPEID> requirements = API::getTechRequirements(s.getAbility());
+            if(requirements.empty()) continue;
+
+            std::vector<bool> requirementsAvailable;
+            requirementsAvailable.reserve(requirements.size());
+            for(int n = 0; n < requirements.size(); n++){
+                sc2::Units requirement = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(requirements[n]));
+                if(requirement.empty()) requirementsAvailable[n] = false;
+                else requirementsAvailable[n] = true;
+            }
+            for(auto& b : requirementsAvailable){
+                if(!b){
+                    // add tech requirements to build order
+                    // TODO: for this, add a function to add steps at the front (likely with emplace_front perhaps?)
+                }
+            }
+        }
+
+        if(s.blocking) break;
+    } // end build order loop
 }
 
 void ProductionManager::parseStep(Step s){
