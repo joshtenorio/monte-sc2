@@ -3,6 +3,21 @@
 
 void Strategy::initialize(){}
 
+void Strategy::debugPrintValidSteps(){
+    if(isEmpty()) return;
+
+    int priorityLevel = getHighestPriorityStep().priority;
+    for(int n = 0; n < getBuildOrderSize(); n++){
+        Step s = getNthBuildOrderStep(n);
+        if(s.priority == priorityLevel){
+            gInterface->debug->DebugTextOut(std::to_string((int) s.getAbility()) + "\n");
+        }
+
+        if(s.blocking) break;
+    } // end loop
+    gInterface->debug->SendDebug();
+}
+
 void Strategy::pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority_, int reqSupply_){
     buildOrder.emplace_back(Step(type, ability_, blocking_, priority_, reqSupply_));
 }

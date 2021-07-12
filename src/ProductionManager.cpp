@@ -5,12 +5,19 @@ void ProductionManager::OnStep(){
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
+    // handle deadlock if it exists
+    //handleBuildOrderDeadlock();
+
+    strategy->debugPrintValidSteps();
     
     // build a supply depot if needed
     TryBuildSupplyDepot();
 
     // handle mules
     callMules();
+
+    // build stuff in the build order
+    handleBuildOrder();
 
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
@@ -30,13 +37,13 @@ void ProductionManager::OnStep(){
 
     // TODO: make this into function?
     Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
-    if(strategy->maxWorkers < API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV))
-        for(auto& cc : ccs)
-            if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
-                gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
+    //if(strategy->maxWorkers < API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV))
+    for(auto& cc : ccs)
+        if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
+            gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
-        logger.infoInit().withStr("ProdQueue Size:").withInt(strategy->getBuildOrderSize()).write();
+        logger.infoInit().withStr("BuildOrder Size:").withInt(strategy->getBuildOrderSize()).write();
         logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
@@ -116,10 +123,11 @@ void ProductionManager::handleBuildOrder(){
     // or we reach a blocking step (we consider the blocking step)
     if(strategy->isEmpty()) return;
 
+    int currentSupply = gInterface->observation->GetFoodUsed();
     int priorityLevel = strategy->getHighestPriorityStep().priority;
     for(int n = 0; n < strategy->getBuildOrderSize(); n++){
         Step s = strategy->getNthBuildOrderStep(n);
-        if(s.priority == priorityLevel){
+        if(s.priority == priorityLevel && s.reqSupply <= currentSupply){
             parseStep(s);
         }
 

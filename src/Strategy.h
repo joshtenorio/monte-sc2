@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <sc2api/sc2_unit.h>
+#include "api.h"
 
 #define TYPE_NULL           -1
 #define TYPE_BUILD          0
@@ -27,7 +28,7 @@ typedef struct MetaType_s_t {
         else return false;
     }
 
-    bool operator = (const MetaType_s_t& s) {
+    void operator = (const MetaType_s_t& s) {
         type = s.type;
         ability = s.ability;
     }
@@ -79,6 +80,8 @@ typedef struct Step_s_t {
 class Strategy{
     public:
     Strategy() {};
+
+    void debugPrintValidSteps();
     
     // add initial steps to build orders
     virtual void initialize(); // TODO: does this need {} here? 

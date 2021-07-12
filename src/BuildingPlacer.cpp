@@ -11,11 +11,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
         case sc2::ABILITY_ID::BUILD_FACTORY:
         case sc2::ABILITY_ID::BUILD_STARPORT:
             // FIXME: this is temporary, when tilemap is implemented we should switch to reserving tiles
-            float rx = sc2::GetRandomScalar();
-            float ry = sc2::GetRandomScalar();
-            sc2::Point2D location = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
-            
-            return location;
+            goto useDefault;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
