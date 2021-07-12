@@ -4,7 +4,7 @@
 void Strategy::initialize(){}
 
 void Strategy::debugPrintValidSteps(){
-    if(isEmpty()) return;
+    if(isEmpty()){ gInterface->debug->DebugTextOut(""); gInterface->debug->SendDebug(); return; }
 
     int priorityLevel = getHighestPriorityStep().priority;
     for(int n = 0; n < getBuildOrderSize(); n++){

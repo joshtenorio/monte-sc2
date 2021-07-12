@@ -19,6 +19,8 @@ void ProductionManager::OnStep(){
     // build stuff in the build order
     handleBuildOrder();
 
+    // TODO: temporarily removed while testing handleBuildOrder();
+    /**
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
         TryBuildBarracks();         // max : 8
@@ -30,6 +32,7 @@ void ProductionManager::OnStep(){
         // handle upgrades
         handleUpgrades();
     } // end if prod queue empty
+    */
 
 
     // building manager
@@ -78,7 +81,6 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
-            break;
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -302,8 +304,16 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(buildingID));
     if(buildings.empty()) return false;
 
+    // TODO: add support for training n units and reactors
+    // TODO: check available abilities for this building (like what we do with castBuildingAbility)
     for(auto& b : buildings){
-        
+        if(b->build_progress < 1.0) continue;
+
+        if(b->orders.empty() && !isBuildingBusy(b->tag)){
+            logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
+            gInterface->actions->UnitCommand(b, unitToTrain);
+            busyBuildings.emplace_back(b->tag);
+        }
     }
 }
 
