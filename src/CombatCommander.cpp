@@ -52,17 +52,20 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:{
-            // have army units rally at natural in the direction of the enemy main
-            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            // have army units rally at natural in the direction of the third expo
+            sc2::Point2D third;
             sc2::Point2D natural;
             if(gInterface->map->getNthExpansion(1) != nullptr)
                 natural = gInterface->map->getNthExpansion(1)->baseLocation;
             else return;
-            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            if(gInterface->map->getNthExpansion(2) != nullptr)
+                third = gInterface->map->getNthExpansion(2)->baseLocation;
+            else return;
+            float dx = third.x - natural.x, dy = third.y - natural.y;
             dx /= sqrt(dx*dx + dy*dy);
             dy /= sqrt(dx*dx + dy*dy);
-            dx *= 3;
-            dy *= 3;
+            dx *= 2;
+            dy *= 2;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         break;
@@ -132,8 +135,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
             dx /= sqrt(dx*dx + dy*dy);
             dy /= sqrt(dx*dx + dy*dy);
-            dx *= 2;
-            dy *= 2;
+            dx *= 3;
+            dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
