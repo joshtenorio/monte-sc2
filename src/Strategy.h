@@ -84,7 +84,10 @@ class Strategy{
     virtual void initialize(); // TODO: does this need {} here? 
 
     // for pushing things into build order
-    void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply = -1);
+    void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply_ = -1);
+
+    // emergency build order steps are added at the front with priority + 1
+    void addEmergencyBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int reqSupply_ = -1);
 
     // get the next step in order and pop it
     Step popNextBuildOrderStep();

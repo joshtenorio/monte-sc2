@@ -7,6 +7,10 @@ void Strategy::pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool block
     buildOrder.emplace_back(Step(type, ability_, blocking_, priority_, reqSupply_));
 }
 
+void Strategy::addEmergencyBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int reqSupply_){
+    buildOrder.emplace(buildOrder.begin(), Step(type, ability_, blocking_, STEP_HIGHEST_PRIO + 1, reqSupply_));
+}
+
 Step Strategy::popNextBuildOrderStep(){
     // make sure there is a step in the priority order before returning
     if(!buildOrder.empty()){

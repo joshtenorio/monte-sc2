@@ -66,25 +66,15 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
         case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-            // search through production queue to remove 
-            for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-                if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).getAbility())
-                    itr = productionQueue.erase(itr);
-                else ++itr;
-            }
+            // remove step from build order
+            strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
             break;
     }
     
-    // loop through production queue to check which Step corresponds to
-    // the structure that just finished, doesn't apply to morphs
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).getAbility()))
-            itr = productionQueue.erase(itr);
-        else ++itr;
-    }
+    strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
@@ -96,25 +86,13 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).getAbility())){   
-            itr = productionQueue.erase(itr);
-        }
-            
-        else ++itr;
-   }
+    strategy->removeStep(API::unitTypeIDToAbilityID(unit_->unit_type.ToType()));
+    
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // remove relevant thing from production queue
-    // requires upgrade to ability function in api.cpp
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(API::upgradeIDToAbilityID(upgrade_) == (*itr).getAbility()){
-            itr = productionQueue.erase(itr);
-        }
-        else ++itr;
-   }
-    
+    strategy->removeStep(API::upgradeIDToAbilityID(upgrade_));
 }
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
@@ -151,7 +129,7 @@ void ProductionManager::handleBuildOrder(){
 
 void ProductionManager::handleBuildOrderDeadlock(){
     // if requirements for any of the highest priority level items are not met,
-    // we should add requirements in a step with the same priority level but + 1 to the build order
+    // we should add requirements in a step with the highest priority level + 1 to the build order
     if(strategy->isEmpty()) return;
 
     int priorityLevel = strategy->getHighestPriorityStep().priority;
@@ -160,7 +138,8 @@ void ProductionManager::handleBuildOrderDeadlock(){
         if(s.priority == priorityLevel){
             std::vector<sc2::UNIT_TYPEID> requirements = API::getTechRequirements(s.getAbility());
             if(requirements.empty()) continue;
-
+            
+            // check if we have requirements
             std::vector<bool> requirementsAvailable;
             requirementsAvailable.reserve(requirements.size());
             for(int n = 0; n < requirements.size(); n++){
@@ -168,13 +147,14 @@ void ProductionManager::handleBuildOrderDeadlock(){
                 if(requirement.empty()) requirementsAvailable[n] = false;
                 else requirementsAvailable[n] = true;
             }
-            for(auto& b : requirementsAvailable){
-                if(!b){
+
+            for(int n = 0; n < requirementsAvailable.size(); n++){
+                if(!requirementsAvailable[n]){
                     // add tech requirements to build order
-                    // TODO: for this, add a function to add steps at the front (likely with emplace_front perhaps?)
+                    strategy->addEmergencyBuildOrderStep(TYPE_BUILD, API::unitTypeIDToAbilityID(requirements[n]), false);
                 }
             }
-        }
+        } // end if s.priority level == prioritylevel
 
         if(s.blocking) break;
     } // end build order loop

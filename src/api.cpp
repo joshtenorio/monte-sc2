@@ -64,6 +64,67 @@ sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
             return sc2::ABILITY_ID::MORPH_ORBITALCOMMAND;
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
             return sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS;
+
+        case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+            return sc2::ABILITY_ID::BUILD_ARMORY;
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+            return sc2::ABILITY_ID::BUILD_BARRACKS;
+        case sc2::UNIT_TYPEID::TERRAN_BUNKER:
+            return sc2::ABILITY_ID::BUILD_BUNKER;
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            return sc2::ABILITY_ID::BUILD_COMMANDCENTER;  
+        case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+            return sc2::ABILITY_ID::BUILD_ENGINEERINGBAY; 
+        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+            return sc2::ABILITY_ID::BUILD_FACTORY;
+        case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
+            return sc2::ABILITY_ID::BUILD_FUSIONCORE;
+        case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+            return sc2::ABILITY_ID::BUILD_GHOSTACADEMY;
+        case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
+            return sc2::ABILITY_ID::BUILD_MISSILETURRET;
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+            return sc2::ABILITY_ID::BUILD_REFINERY;
+        case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
+            return sc2::ABILITY_ID::BUILD_SENSORTOWER;
+        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+            return sc2::ABILITY_ID::BUILD_STARPORT;
+        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+            return sc2::ABILITY_ID::BUILD_SUPPLYDEPOT;
+        
+        
+        case sc2::UNIT_TYPEID::TERRAN_BANSHEE:
+            return sc2::ABILITY_ID::TRAIN_BANSHEE;
+        case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:
+            return sc2::ABILITY_ID::TRAIN_MEDIVAC;
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+            return sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+            return sc2::ABILITY_ID::TRAIN_LIBERATOR;
+        case sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER:
+            return sc2::ABILITY_ID::TRAIN_BATTLECRUISER;
+        case sc2::UNIT_TYPEID::TERRAN_RAVEN:
+            return sc2::ABILITY_ID::TRAIN_RAVEN;
+        case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+            return sc2::ABILITY_ID::TRAIN_MARAUDER;
+        case sc2::UNIT_TYPEID::TERRAN_MARINE:
+            return sc2::ABILITY_ID::TRAIN_MARINE;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+            return sc2::ABILITY_ID::TRAIN_REAPER;
+        case sc2::UNIT_TYPEID::TERRAN_GHOST:
+            return sc2::ABILITY_ID::TRAIN_GHOST;
+        case sc2::UNIT_TYPEID::TERRAN_WIDOWMINE:
+            return sc2::ABILITY_ID::TRAIN_WIDOWMINE;
+        case sc2::UNIT_TYPEID::TERRAN_HELLION:
+            return sc2::ABILITY_ID::TRAIN_HELLION;
+        case sc2::UNIT_TYPEID::TERRAN_HELLIONTANK:
+            return sc2::ABILITY_ID::TRAIN_HELLBAT;
+        case sc2::UNIT_TYPEID::TERRAN_CYCLONE:
+            return sc2::ABILITY_ID::TRAIN_CYCLONE;
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+            return sc2::ABILITY_ID::TRAIN_SIEGETANK;
+        case sc2::UNIT_TYPEID::TERRAN_THOR:
+            return sc2::ABILITY_ID::TRAIN_THOR;
     }
     return sc2::ABILITY_ID::BUILD_ASSIMILATOR; // placeholder
 }
