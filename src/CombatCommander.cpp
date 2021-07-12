@@ -65,8 +65,9 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-        break;}
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{ // FIXME: make sure flight points are valid
+        break;
+        }
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
             // first, generate target flight point
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
             sc2::Point3D enemyMineralMidpoint;
@@ -121,6 +122,23 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_LIBERATORAGMODE, enemyMineralMidpoint, true);
         break;
         }
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
+            // have army units rally at natural in the direction of the enemy main
+            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            sc2::Point2D natural;
+            if(gInterface->map->getNthExpansion(1) != nullptr)
+                natural = gInterface->map->getNthExpansion(1)->baseLocation;
+            else return;
+            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            dx /= sqrt(dx*dx + dy*dy);
+            dy /= sqrt(dx*dx + dy*dy);
+            dx *= 2;
+            dy *= 2;
+            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
+        break;
+        }
     }
     
 }
@@ -162,7 +180,6 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
                     logger.infoInit().withStr("repair go brrrr").write();
                     gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::EFFECT_REPAIR, unit_);
                 }
-                    
                 else
                     gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
             }
