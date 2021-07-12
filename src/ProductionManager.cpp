@@ -13,7 +13,7 @@ void ProductionManager::OnStep(){
     callMules();
 
     // if queue still empty and strategy is done, just do normal macro stuff
-    if(productionQueue.empty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+    if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
         TryBuildBarracks();         // max : 8
         tryBuildRefinery();
         tryBuildCommandCenter();
@@ -36,7 +36,7 @@ void ProductionManager::OnStep(){
                 gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
-        logger.infoInit().withStr("ProdQueue Size:").withInt(productionQueue.size()).write();
+        logger.infoInit().withStr("ProdQueue Size:").withInt(strategy->getBuildOrderSize()).write();
         logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
@@ -151,8 +151,8 @@ void ProductionManager::handleBuildOrder(){
 
 void ProductionManager::handleBuildOrderDeadlock(){
     // if requirements for any of the highest priority level items are not met,
-    // we should add requirements in a step with the same priority level to the build order
-    // TODO: for the above line, we should add a separate list to track those? like emergency build order
+    // we should add requirements in a step with the same priority level but + 1 to the build order
+
 }
 
 void ProductionManager::parseStep(Step s){
