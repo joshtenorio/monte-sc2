@@ -174,7 +174,14 @@ void ProductionManager::handleBuildOrderDeadlock(){
 }
 
 void ProductionManager::handleBarracks(){
+    sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+    if(barracks.empty()) return;
 
+    for(auto& b : barracks){
+        if(b->orders.empty() || b->build_progress < 1.0 || isBuildingBusy(b->tag)) continue;
+        // don't forget to add busy building tag if we give an order
+        // TODO: experiment, what is b->addon_tag if b doesn't have addon?
+    }
 }
 
 void ProductionManager::handleFactories(){
@@ -186,7 +193,9 @@ void ProductionManager::handleStarports(){
 }
 
 void ProductionManager::handleTownHalls(){
-    sc2::Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    if(ccs.empty()) return;
+
     for(auto& cc : ccs){
         // if townhall is busy or is in progress, ignore it
         if(!cc->orders.empty() || cc->build_progress < 1.0) continue;
@@ -231,9 +240,25 @@ void ProductionManager::parseStep(Step s){
             trainUnit(s);
             break;
         case TYPE_SET_PRODUCTION:
-            // TODO: need to implement
-            // 1. determine what produces the unit
+            // 1. determine what produces the unit and if it requires a techlab
+            sc2::UNIT_TYPEID buildingType = API::getProducer(s.getAbility());
+            bool requiresTechLab = API::requiresTechLab(s.getAbility());
+
             // 2. set the config to the unit
+            switch(buildingType){
+                case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+                    if(requiresTechLab) config.barracksTechOutput = s.getAbility();
+                    else config.barracksOutput = s.getAbility();
+                case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+                    if(requiresTechLab) config.factoryTechOutput = s.getAbility();
+                    else config.factoryOutput = s.getAbility();
+                case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+                    if(requiresTechLab) config.starportTechOutput = s.getAbility();
+                    else config.starportOutput = s.getAbility();
+            }
+
+            // 3. remove the step from buildorder
+            strategy->removeStep(s); // TODO: make sure this is working and doesn't have any side effects
             break;
     }
 }
