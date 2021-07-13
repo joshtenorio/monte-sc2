@@ -106,6 +106,10 @@ int Strategy::getBuildOrderSize(){
     return buildOrder.size();
 }
 
+ProductionConfig Strategy::getConfig(){
+    return config;
+}
+
 // TODO: is this necessary since we specify step type in metatype?
 int Strategy::getType(sc2::ABILITY_ID ability){
     switch(ability){

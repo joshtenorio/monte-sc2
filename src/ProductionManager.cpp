@@ -20,7 +20,7 @@ void ProductionManager::OnStep(){
     handleBuildOrder();
 
     // TODO: temporarily removed while testing handleBuildOrder();
-    /**
+    
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
         TryBuildBarracks();         // max : 8
@@ -32,7 +32,7 @@ void ProductionManager::OnStep(){
         // handle upgrades
         handleUpgrades();
     } // end if prod queue empty
-    */
+    
 
 
     // building manager
@@ -54,6 +54,7 @@ void ProductionManager::OnStep(){
 
 void ProductionManager::OnGameStart(){
     strategy->initialize();
+    config = strategy->getConfig();
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
