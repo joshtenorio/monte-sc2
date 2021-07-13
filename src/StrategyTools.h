@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <limits>
 #include <sc2api/sc2_unit.h>
 
 #define TYPE_NULL           -1
@@ -8,6 +9,7 @@
 #define TYPE_ADDON          1
 #define TYPE_TRAIN          2
 #define TYPE_BUILDINGCAST   3
+#define TYPE_SET_PRODUCTION 4
 
 #define STEP_BLOCKING       true
 #define STEP_NONBLOCKING    false
@@ -15,6 +17,9 @@
 #define STEP_HIGHEST_PRIO   10
 
 #define STEP_NULL Step(TYPE_NULL, sc2::ABILITY_ID::BUILD_ASSIMILATOR, false, 0, -1)
+
+#define PRODUCTION_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
+#define PRODUCTION_NOMAX -1
 
 typedef struct MetaType_s_t {
     MetaType_s_t() {};
@@ -80,25 +85,29 @@ typedef struct ProductionConfig_s_t {
     ProductionConfig_s_t() {};
 
     // defines the maximum amount of a unit we can build
-    int maxWorkers = -1; // most useful for 1 base all ins. if this is negative it should be ignored
-    int maxBarracks = 8;
-    int maxFactories = 1;
-    int maxStarports = 2;
-    int maxRefineries = 6;
-    int maxEngineeringBays = 2;
-    int maxArmories = 1;
+    short maxWorkers = std::numeric_limits<short>::max();
+    short maxBarracks = 8;
+    short maxFactories = 1;
+    short maxStarports = 2;
+    short maxRefineries = 6;
+    short maxEngineeringBays = 2;
+    short maxArmories = 1;
+    short maxOrbitals = std::numeric_limits<short>::max();
+
+    // if we should automatically morph a cc
+    bool autoMorphCC = true;
 
     // micro config // TODO: integrate strategy into combatcommander
     bool buildBunker = true;
     bool pullWorkers = true;
 
-    // defines what we produce by default; are guaranteed to be true during an opener
-    sc2::ABILITY_ID barracksOutput;
-    sc2::ABILITY_ID barracksTechOutput;
-    sc2::ABILITY_ID factoryOutput;
-    sc2::ABILITY_ID factoryTechOutput;
-    sc2::ABILITY_ID starportOutput;
-    sc2::ABILITY_ID starportTechOutput;
+    // defines what we produce by default
+    sc2::ABILITY_ID barracksOutput = PRODUCTION_UNUSED;
+    sc2::ABILITY_ID barracksTechOutput = PRODUCTION_UNUSED;
+    sc2::ABILITY_ID factoryOutput = PRODUCTION_UNUSED;
+    sc2::ABILITY_ID factoryTechOutput = PRODUCTION_UNUSED;
+    sc2::ABILITY_ID starportOutput = PRODUCTION_UNUSED;
+    sc2::ABILITY_ID starportTechOutput = PRODUCTION_UNUSED;
 
     void operator = (const ProductionConfig_s_t& pc){
         maxWorkers = pc.maxWorkers;
@@ -108,6 +117,9 @@ typedef struct ProductionConfig_s_t {
         maxRefineries = pc.maxRefineries;
         maxEngineeringBays = pc.maxEngineeringBays;
         maxArmories = pc.maxArmories;
+        maxOrbitals = pc.maxOrbitals;
+
+        autoMorphCC = pc.autoMorphCC;
    
         buildBunker = pc.buildBunker;
         pullWorkers = pc.pullWorkers;

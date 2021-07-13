@@ -44,6 +44,7 @@ class Strategy{
     protected:
     std::vector<Step> buildOrder;
 
+    // this should be adjusted in initialize()
     ProductionConfig config;
 
 };

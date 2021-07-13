@@ -23,7 +23,15 @@ bool isUnitIdle(const sc2::Unit* unit){
 }
 
 size_t CountUnitType(sc2::UNIT_TYPEID unitType) {
-    return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unitType)).size();
+    return gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(unitType)).size();
+}
+
+int countReadyUnits(sc2::UNIT_TYPEID type){
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(type));
+    int c = 0;
+    for(auto& u : units)
+        if(u->build_progress >= 1.0) c++;
+    return c;
 }
 
 

@@ -25,7 +25,8 @@ namespace API {
 
     int countIdleUnits(sc2::UNIT_TYPEID type);
     bool isUnitIdle(const sc2::Unit* unit);
-    size_t CountUnitType(UNIT_TYPEID unitType);
+    size_t CountUnitType(sc2::UNIT_TYPEID unitType);
+    int countReadyUnits(sc2::UNIT_TYPEID type);
     
     // get the closest n units within radius r of loc
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType = sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR);

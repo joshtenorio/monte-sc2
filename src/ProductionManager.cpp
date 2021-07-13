@@ -23,27 +23,24 @@ void ProductionManager::OnStep(){
     
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
-        TryBuildBarracks();         // max : 8
+        TryBuildBarracks();
         tryBuildRefinery();
         tryBuildCommandCenter();
-        tryBuildArmory();           // max : 1
-        tryBuildEngineeringBay();   // max : 2
+        tryBuildArmory();
+        tryBuildEngineeringBay();
 
         // handle upgrades
         handleUpgrades();
     } // end if prod queue empty
     
-
+    handleBarracks();
+    handleFactories();
+    handleStarports();
+    handleTownHalls();
 
     // building manager
     bm.OnStep();
 
-    // TODO: make this into function?
-    Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
-    //if(strategy->maxWorkers < API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV))
-    for(auto& cc : ccs)
-        if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
-            gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         logger.infoInit().withStr("BuildOrder Size:").withInt(strategy->getBuildOrderSize()).write();
@@ -95,7 +92,11 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
-    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
+    if(
+        API::isStructure(unit_->unit_type.ToType()) ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MULE) return;
+    
     strategy->removeStep(API::unitTypeIDToAbilityID(unit_->unit_type.ToType()));
     
 }
@@ -109,6 +110,7 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
 
     // if unit destroyed was a town hall, update ownership in mapper
+    // TODO: move this to mapper
     if(
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
@@ -171,6 +173,49 @@ void ProductionManager::handleBuildOrderDeadlock(){
     } // end build order loop
 }
 
+void ProductionManager::handleBarracks(){
+
+}
+
+void ProductionManager::handleFactories(){
+
+}
+
+void ProductionManager::handleStarports(){
+
+}
+
+void ProductionManager::handleTownHalls(){
+    sc2::Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
+    for(auto& cc : ccs){
+        // if townhall is busy or is in progress, ignore it
+        if(!cc->orders.empty() || cc->build_progress < 1.0) continue;
+
+        // if cc is a command center and we have the relevant tech requirement,
+        // morph it to orbital/planetary automatically if config says so
+        if(
+            config.autoMorphCC &&
+            (int) config.maxOrbitals > API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) &&
+            API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1 &&
+            cc->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+        else if(
+            config.autoMorphCC &&
+            (int) config.maxOrbitals <= API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) &&
+            API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) >= 1 &&
+            cc->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+        // otherwise, build an scv
+        else if(
+            API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV) < (int) config.maxWorkers
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::TRAIN_SCV);
+    }
+}
+
+
 void ProductionManager::parseStep(Step s){
     switch(s.getType()){
         case TYPE_ADDON:
@@ -184,6 +229,11 @@ void ProductionManager::parseStep(Step s){
             break;
         case TYPE_TRAIN:
             trainUnit(s);
+            break;
+        case TYPE_SET_PRODUCTION:
+            // TODO: need to implement
+            // 1. determine what produces the unit
+            // 2. set the config to the unit
             break;
     }
 }

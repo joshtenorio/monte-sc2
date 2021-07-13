@@ -31,6 +31,11 @@ class ProductionManager : public Manager {
     void handleBuildOrder();
     void handleBuildOrderDeadlock();
 
+    void handleBarracks();
+    void handleFactories();
+    void handleStarports();
+    void handleTownHalls();
+
     // identify what building to cast ability/train unit/start upgrade, or if need to get scv to build a structure
     void parseStep(Step s);
     void buildStructure(Step s);
@@ -60,7 +65,7 @@ class ProductionManager : public Manager {
     Strategy* strategy;
     BuildingManager bm;
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
-    ProductionConfig config;
+    ProductionConfig config; // TODO: when we make an InformationManager class this class should be friends with that class
 
     void upgradeInfantryWeapons(int currLevel);
     void upgradeInfantryArmor(int currLevel);
