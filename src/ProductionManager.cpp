@@ -55,7 +55,9 @@ void ProductionManager::OnGameStart(){
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
-    bm.OnBuildingConstructionComplete(building_);
+    // building manager doesn't handle addons
+    if(!API::isAddon(building_->unit_type.ToType()))
+        bm.OnBuildingConstructionComplete(building_);
 
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
@@ -87,7 +89,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // only run this after the 50th loop
     // necessary to avoid crashing when the main cc is created
-    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()))
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()) && !API::isAddon(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
@@ -189,13 +191,21 @@ void ProductionManager::handleBarracks(){
             busyBuildings.emplace_back(b->tag);
         }
         // reactor addon
-        else if(b->add_on_tag != 0 && gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR){
+        else if(
+            b->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR &&
+            config.barracksOutput != PRODUCTION_UNUSED
+        ){
             gInterface->actions->UnitCommand(b, config.barracksOutput);
             gInterface->actions->UnitCommand(b, config.barracksOutput);
             busyBuildings.emplace_back(b->tag);
         }
         // techlab addon
-        else if(b->add_on_tag != 0 && gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB){
+        else if(
+            b->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB &&
+            config.barracksTechOutput != PRODUCTION_UNUSED
+        ){
             gInterface->actions->UnitCommand(b, config.barracksTechOutput);
             busyBuildings.emplace_back(b->tag);
         }
@@ -203,11 +213,71 @@ void ProductionManager::handleBarracks(){
 }
 
 void ProductionManager::handleFactories(){
+    sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    if(factories.empty()) return;
 
+    for(auto& f : factories){
+        if(!f->orders.empty() || f->build_progress < 1.0 || isBuildingBusy(f->tag)) continue;
+
+        // no addon
+        if(f->add_on_tag == 0 && config.factoryOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+        // reactor addon
+        else if(
+            f->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(f->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR &&
+            config.factoryOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+        // techlab addon
+        else if(
+            f->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(f->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB &&
+            config.factoryTechOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(f, config.factoryTechOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+    } // end for f : factories
 }
 
 void ProductionManager::handleStarports(){
+    sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+    if(starports.empty()) return;
 
+    for(auto& s : starports){
+        if(!s->orders.empty() || s->build_progress < 1.0 || isBuildingBusy(s->tag)) continue;
+
+        // no addon
+        if(s->add_on_tag == 0 && config.starportOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+        // reactor addon
+        else if(
+            s->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(s->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR &&
+            config.starportOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+        // techlab addon
+        else if(
+            s->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(s->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB &&
+            config.starportTechOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(s, config.starportTechOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+    } // end for s : starports
 }
 
 void ProductionManager::handleTownHalls(){

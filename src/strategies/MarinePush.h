@@ -8,6 +8,4 @@ class MarinePush : public Strategy {
     MarinePush() {};
     void initialize();
 
-    protected:
-    
 };

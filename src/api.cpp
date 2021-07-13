@@ -572,6 +572,20 @@ bool isTownHall(sc2::UNIT_TYPEID unit){
     }
 }
 
+bool isAddon(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
+            return true;
+        default:
+            return false;
+    }
+}
+
 
 } // end namespace
 std::unique_ptr<Interface> gInterface;
