@@ -173,15 +173,33 @@ void ProductionManager::handleBuildOrderDeadlock(){
     } // end build order loop
 }
 
+// TODO: for handleBarracks, factories, starports etc. try using tryTrainUnit in the function implementation
 void ProductionManager::handleBarracks(){
     sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
     if(barracks.empty()) return;
 
     for(auto& b : barracks){
-        if(b->orders.empty() || b->build_progress < 1.0 || isBuildingBusy(b->tag)) continue;
+        if(!b->orders.empty() || b->build_progress < 1.0 || isBuildingBusy(b->tag)) continue;
         // don't forget to add busy building tag if we give an order
-        // TODO: experiment, what is b->addon_tag if b doesn't have addon?
-    }
+        // NOTE: if b->addon_tag is zero, that barracks doesn't have an addon
+
+        // no addon
+        if(b->add_on_tag == 0 && config.barracksOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            busyBuildings.emplace_back(b->tag);
+        }
+        // reactor addon
+        else if(b->add_on_tag != 0 && gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR){
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            busyBuildings.emplace_back(b->tag);
+        }
+        // techlab addon
+        else if(b->add_on_tag != 0 && gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB){
+            gInterface->actions->UnitCommand(b, config.barracksTechOutput);
+            busyBuildings.emplace_back(b->tag);
+        }
+    } // end for b : barracks
 }
 
 void ProductionManager::handleFactories(){
@@ -248,13 +266,13 @@ void ProductionManager::parseStep(Step s){
             switch(buildingType){
                 case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
                     if(requiresTechLab) config.barracksTechOutput = s.getAbility();
-                    else config.barracksOutput = s.getAbility();
+                    else                config.barracksOutput = s.getAbility();
                 case sc2::UNIT_TYPEID::TERRAN_FACTORY:
                     if(requiresTechLab) config.factoryTechOutput = s.getAbility();
-                    else config.factoryOutput = s.getAbility();
+                    else                config.factoryOutput = s.getAbility();
                 case sc2::UNIT_TYPEID::TERRAN_STARPORT:
                     if(requiresTechLab) config.starportTechOutput = s.getAbility();
-                    else config.starportOutput = s.getAbility();
+                    else                config.starportOutput = s.getAbility();
             }
 
             // 3. remove the step from buildorder
