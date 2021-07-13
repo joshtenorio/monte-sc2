@@ -482,7 +482,7 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
     }
 }
 
-sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit){
+sc2::UNIT_TYPEID getProducer(sc2::ABILITY_ID unit){
     switch(unit){
         case sc2::ABILITY_ID::TRAIN_BANSHEE:
         case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
@@ -508,6 +508,22 @@ sc2::UNIT_TYPEID buildingForUnit(sc2::ABILITY_ID unit){
             break;
         default:
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
+    }
+}
+
+bool requiresTechLab(sc2::ABILITY_ID unit){
+    switch(unit){
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+        case sc2::ABILITY_ID::TRAIN_THOR:
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+            return true;
+        default:
+            return false;
     }
 }
 

@@ -350,7 +350,7 @@ bool ProductionManager::tryBuildEngineeringBay(){
 
 // trains at most n units
 bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
-    sc2::UNIT_TYPEID buildingID = API::buildingForUnit(unitToTrain);
+    sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);
 
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(buildingID));
     if(buildings.empty()) return false;
