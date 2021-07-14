@@ -126,7 +126,7 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
         break;
         }
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
-            // have army units rally at natural in the direction of the enemy main
+            // have siege tanks rally at natural in the direction of the enemy main
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
             sc2::Point2D natural;
             if(gInterface->map->getNthExpansion(1) != nullptr)
@@ -139,7 +139,11 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
+
+            // tanks should siege only if we have less than 5 sieged up
+            sc2::Units siegedTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED));
+            if(siegedTanks.size() < 5)
+                gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
         break;
         }
     }
@@ -180,7 +184,6 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         if(API::isStructure(unit_->unit_type.ToType()))
             for(int n = 0; n < workers.size(); n++){
                 if(n % 3 == 0){
-                    logger.infoInit().withStr("repair go brrrr").write();
                     gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::EFFECT_REPAIR, unit_);
                 }
                 else
@@ -198,7 +201,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 void CombatCommander::marineOnStep(){
     int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
 
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave){
+    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
