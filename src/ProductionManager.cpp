@@ -5,81 +5,50 @@ void ProductionManager::OnStep(){
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
-    // fill queue with steps
-    fillQueue();
+    // handle deadlock if it exists // TODO: fix this at some point
+    //handleBuildOrderDeadlock();
 
+    //strategy->debugPrintValidSteps();
+    
     // build a supply depot if needed
     TryBuildSupplyDepot();
 
     // handle mules
     callMules();
 
+    // build stuff in the build order
+    handleBuildOrder();
+
+    // handle building scvs/auto morphing ccs
+    handleTownHalls();
+
+    // TODO: temporarily removed while testing handleBuildOrder();
+    
     // if queue still empty and strategy is done, just do normal macro stuff
-    if(productionQueue.empty() && strategy->peekNextPriorityStep() == STEP_NULL){
-        
-        
-        
-        TryBuildBarracks();         // max : 8
+    if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+        TryBuildBarracks();
         tryBuildRefinery();
         tryBuildCommandCenter();
-        tryBuildArmory();           // max : 1
-        tryBuildEngineeringBay();   // max : 2
-
-        // check on army buildings
-        for(auto& a : armyBuildings){
-
-            // if army building is a barrack, then place a reactor if possible
-            if(
-                a.building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKS &&
-                a.addon == nullptr &&
-                gInterface->query->Placement(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(a.building->pos.x + 2.5, a.building->pos.y - 0.5))
-                ){
-                if(a.building->orders.empty())
-                    gInterface->actions->UnitCommand(a.building, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
-            }
-
-        } // end for loop
+        tryBuildArmory();
+        tryBuildEngineeringBay();
+        tryBuildAddon();
 
         // handle upgrades
         handleUpgrades();
     } // end if prod queue empty
-
-
-
-    for(auto& a : armyBuildings){
-        // if army building is unused, give it an order
-        if(a.order == ARMYBUILDING_UNUSED){
-            switch(a.building->unit_type.ToType()){
-                case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
-                    a.order = sc2::ABILITY_ID::TRAIN_MARINE;
-                break;
-                case sc2::UNIT_TYPEID::TERRAN_FACTORY:
-                break;
-                case sc2::UNIT_TYPEID::TERRAN_STARPORT:
-                    a.order = sc2::ABILITY_ID::TRAIN_MEDIVAC;
-                break;
-            }
-        }
-    }
-        
-
-    // act on items in the queue
-    parseQueue();
-
-    // handle ArmyBuildings that have an order set
-    handleArmyBuildings();
+    
+    // handle idle army producers
+    handleBarracks();
+    handleFactories();
+    handleStarports();
+    
 
     // building manager
     bm.OnStep();
 
-    // TODO: make this into function?
-    Units ccs = gInterface->observation->GetUnits(Unit::Alliance::Self, IsTownHall());
-    for(auto& cc : ccs)
-        if(gInterface->observation->GetMinerals() >= 50 && cc->orders.empty())
-            gInterface->actions->UnitCommand(cc, ABILITY_ID::TRAIN_SCV);
 
     if(gInterface->observation->GetGameLoop() % 400 == 0){
-        logger.infoInit().withStr("ProdQueue Size:").withInt(productionQueue.size()).write();
+        logger.infoInit().withStr("BuildOrder Size:").withInt(strategy->getBuildOrderSize()).write();
         logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
@@ -87,10 +56,13 @@ void ProductionManager::OnStep(){
 
 void ProductionManager::OnGameStart(){
     strategy->initialize();
+    config = strategy->getConfig();
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
-    bm.OnBuildingConstructionComplete(building_);
+    // building manager doesn't handle addons
+    if(!API::isAddon(building_->unit_type.ToType()))
+        bm.OnBuildingConstructionComplete(building_);
 
     switch(building_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_REFINERY:
@@ -100,13 +72,6 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
         case sc2::UNIT_TYPEID::TERRAN_FACTORY:
         case sc2::UNIT_TYPEID::TERRAN_STARPORT:
-            ArmyBuilding a;
-            a.addon = nullptr;
-            a.addonTag = -1; // TODO: put -1 in some define somewhere for unused tag
-            a.building = building_;
-            a.buildingTag = building_->tag;
-            a.order = ARMYBUILDING_UNUSED;
-            armyBuildings.emplace_back(a);
             break;
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
@@ -114,72 +79,45 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
         case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
         case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
-            // search through armybuildings and see whose
-            // addon_tag matches building_
-            for (auto& ab : armyBuildings){
-                if(ab.building->add_on_tag == building_->tag){
-                    ab.addon = building_;
-                    ab.addonTag = building_->tag;
-                    break;
-                }
-            }
         case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-            // search through production queue to remove 
-            for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-                if(API::unitTypeIDToAbilityID(building_->unit_type.ToType()) == (*itr).ability)
-                    itr = productionQueue.erase(itr);
-                else ++itr;
-            }
+            // remove step from build order
+            strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
-            break;
     }
     
-    // loop through production queue to check which Step corresponds to
-    // the structure that just finished, doesn't apply to morphs
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(building_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability))
-            itr = productionQueue.erase(itr);
-        else ++itr;
-    }
+    strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
 }
 
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // only run this after the 50th loop
     // necessary to avoid crashing when the main cc is created
-    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()))
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()) && !API::isAddon(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
-    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) return;
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(unit_->unit_type.ToType() == API::abilityToUnitTypeID((*itr).ability)){   
-            itr = productionQueue.erase(itr);
-        }
-            
-        else ++itr;
-   }
+    if(
+        API::isStructure(unit_->unit_type.ToType()) ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MULE) return;
+    
+    strategy->removeStep(API::unitTypeIDToAbilityID(unit_->unit_type.ToType()));
+    
 }
 
 void ProductionManager::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     // remove relevant thing from production queue
-    // requires upgrade to ability function in api.cpp
-    for(auto itr = productionQueue.begin(); itr != productionQueue.end(); ){
-        if(API::upgradeIDToAbilityID(upgrade_) == (*itr).ability){
-            itr = productionQueue.erase(itr);
-        }
-        else ++itr;
-   }
-    
+    strategy->removeStep(API::upgradeIDToAbilityID(upgrade_));
 }
 
 void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     bm.OnUnitDestroyed(unit_);
 
     // if unit destroyed was a town hall, update ownership in mapper
+    // TODO: move this to mapper
     if(
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
@@ -187,62 +125,242 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
     )
         gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
         
-    // remove army building or addon from army building if applicable
-    for(auto itr = armyBuildings.begin(); itr != armyBuildings.end(); ){
-        if(unit_->tag == (*itr).buildingTag){
-            itr = armyBuildings.erase(itr);
-            break;
+
+}
+
+void ProductionManager::handleBuildOrder(){
+    // in a loop
+    // get the highest priority item and save its priority level
+    // then, in the loop only consider steps with the same priority level
+    // or we reach a blocking step (we consider the blocking step)
+    if(strategy->isEmpty()) return;
+
+    int currentSupply = gInterface->observation->GetFoodUsed();
+    int priorityLevel = strategy->getHighestPriorityStep().priority;
+    for(int n = 0; n < strategy->getBuildOrderSize(); n++){
+        Step s = strategy->getNthBuildOrderStep(n);
+        if(s.priority == priorityLevel && s.reqSupply <= currentSupply){
+            parseStep(s);
         }
-        else if(unit_->tag == (*itr).addonTag){
-            (*itr).addon = nullptr;
-            (*itr).addonTag = -1;
-            break;
+
+        if(s.blocking) break;
+    } // end loop
+}
+
+void ProductionManager::handleBuildOrderDeadlock(){
+    // if requirements for any of the highest priority level items are not met,
+    // we should add requirements in a step with the highest priority level + 1 to the build order
+    if(strategy->isEmpty()) return;
+
+    int priorityLevel = strategy->getHighestPriorityStep().priority;
+    for(int n = 0; n < strategy->getBuildOrderSize(); n++){
+        Step s = strategy->getNthBuildOrderStep(n);
+        if(s.priority == priorityLevel){
+            std::vector<sc2::UNIT_TYPEID> requirements = API::getTechRequirements(s.getAbility());
+            if(requirements.empty()) continue;
+            
+            // check if we have requirements
+            std::vector<bool> requirementsAvailable;
+            requirementsAvailable.reserve(requirements.size());
+            for(int n = 0; n < requirements.size(); n++){
+                sc2::Units requirement = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(requirements[n]));
+                if(requirement.empty()) requirementsAvailable[n] = false;
+                else requirementsAvailable[n] = true;
+            }
+
+            for(int n = 0; n < requirementsAvailable.size(); n++){
+                if(!requirementsAvailable[n]){
+                    // add tech requirements to build order
+                    strategy->addEmergencyBuildOrderStep(TYPE_BUILD, API::unitTypeIDToAbilityID(requirements[n]), false);
+                }
+            }
+        } // end if s.priority level == prioritylevel
+
+        if(s.blocking) break;
+    } // end build order loop
+}
+
+// TODO: for handleBarracks, factories, starports etc. try using tryTrainUnit in the function implementation
+void ProductionManager::handleBarracks(){
+    sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+    if(barracks.empty()) return;
+
+    for(auto& b : barracks){
+        if(!b->orders.empty() || b->build_progress < 1.0 || isBuildingBusy(b->tag)) continue;
+        // don't forget to add busy building tag if we give an order
+        // NOTE: if b->addon_tag is zero, that barracks doesn't have an addon
+
+        // no addon
+        if(b->add_on_tag == 0 && config.barracksOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            busyBuildings.emplace_back(b->tag);
         }
-        else ++ itr;
-    }
-
+        // reactor addon
+        else if(
+            b->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR &&
+            config.barracksOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            gInterface->actions->UnitCommand(b, config.barracksOutput);
+            busyBuildings.emplace_back(b->tag);
+        }
+        // techlab addon
+        else if(
+            b->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB &&
+            config.barracksTechOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(b, config.barracksTechOutput);
+            busyBuildings.emplace_back(b->tag);
+        }
+    } // end for b : barracks
 }
 
-void ProductionManager::fillQueue(){
-    // first, make sure nothing in the queue is blocking
-    for(auto& s : productionQueue)
-        if(s.blocking) return;
+void ProductionManager::handleFactories(){
+    sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    if(factories.empty()) return;
 
-    Step s = strategy->peekNextPriorityStep();
-    if(!(s == STEP_NULL)) productionQueue.emplace_back(strategy->popNextPriorityStep());
-    else return; // technically redundant since if step is null, the while loop won't run anyways
+    for(auto& f : factories){
+        if(!f->orders.empty() || f->build_progress < 1.0 || isBuildingBusy(f->tag)) continue;
 
-    // accumulate all of the non-blocking steps until a blocking step is accumulated or null step is reached
-    while(!s.blocking && !(s == STEP_NULL)){
-        s = strategy->peekNextPriorityStep();
-        if(!(s == STEP_NULL)) productionQueue.emplace_back(strategy->popNextPriorityStep());
-        else break; // if step is null, stop filling the queue
-        // TODO: for now this is break just in case i want to do stuff after while loop
+        // no addon
+        if(f->add_on_tag == 0 && config.factoryOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+        // reactor addon
+        else if(
+            f->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(f->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR &&
+            config.factoryOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            gInterface->actions->UnitCommand(f, config.factoryOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+        // techlab addon
+        else if(
+            f->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(f->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB &&
+            config.factoryTechOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(f, config.factoryTechOutput);
+            busyBuildings.emplace_back(f->tag);
+        }
+    } // end for f : factories
+}
+
+void ProductionManager::handleStarports(){
+    sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+    if(starports.empty()) return;
+
+    for(auto& s : starports){
+        if(!s->orders.empty() || s->build_progress < 1.0 || isBuildingBusy(s->tag)) continue;
+
+        // no addon
+        if(s->add_on_tag == 0 && config.starportOutput != PRODUCTION_UNUSED){
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+        // reactor addon
+        else if(
+            s->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(s->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR &&
+            config.starportOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            gInterface->actions->UnitCommand(s, config.starportOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+        // techlab addon
+        else if(
+            s->add_on_tag != 0 &&
+            gInterface->observation->GetUnit(s->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB &&
+            config.starportTechOutput != PRODUCTION_UNUSED
+        ){
+            gInterface->actions->UnitCommand(s, config.starportTechOutput);
+            busyBuildings.emplace_back(s->tag);
+        }
+    } // end for s : starports
+}
+
+void ProductionManager::handleTownHalls(){
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    if(ccs.empty()) return;
+
+    for(auto& cc : ccs){
+        // if townhall is busy or is in progress, ignore it
+        if(!cc->orders.empty() || cc->build_progress < 1.0) continue;
+
+        // if cc is a command center and we have the relevant tech requirement,
+        // morph it to orbital/planetary automatically if config says so
+        if(
+            config.autoMorphCC &&
+            (int) config.maxOrbitals > API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) &&
+            API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= 1 &&
+            cc->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+        else if(
+            config.autoMorphCC &&
+            (int) config.maxOrbitals <= API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) &&
+            API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) >= 1 &&
+            cc->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+        // otherwise, build an scv
+        else if(
+            API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SCV) < (int) config.maxWorkers
+            )
+            gInterface->actions->UnitCommand(cc, sc2::ABILITY_ID::TRAIN_SCV);
     }
 }
 
-void ProductionManager::parseQueue(){
-    for(auto& s : productionQueue){
-        // skip step if we don't have enough supply for step
-        int currSupply = gInterface->observation->GetFoodUsed();
-        if(currSupply < s.reqSupply) continue;
 
-        // this could probably be switch statement especially if i combine researchUpgrade and morphStructure
-        if(API::parseStep(s) == ABIL_BUILD) buildStructure(s);
-        else if(API::parseStep(s) == ABIL_TRAIN) trainUnit(s);
-        else if(API::parseStep(s) == ABIL_RESEARCH) researchUpgrade(s);
-        else if(API::parseStep(s) == ABIL_MORPH) morphStructure(s);
+void ProductionManager::parseStep(Step s){
+    switch(s.getType()){
+        case TYPE_ADDON:
+            buildAddon(s);
+            break;
+        case TYPE_BUILD:
+            buildStructure(s);
+            break;
+        case TYPE_BUILDINGCAST:
+            castBuildingAbility(s);
+            break;
+        case TYPE_TRAIN:
+            trainUnit(s);
+            break;
+        case TYPE_SET_PRODUCTION:
+            // 1. determine what produces the unit and if it requires a techlab
+            sc2::UNIT_TYPEID buildingType = API::getProducer(s.getAbility());
+            bool requiresTechLab = API::requiresTechLab(s.getAbility());
+
+            // 2. set the config to the unit
+            switch(buildingType){
+                case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+                    if(requiresTechLab) config.barracksTechOutput = s.getAbility();
+                    else                config.barracksOutput = s.getAbility();
+                    break;
+                case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+                    if(requiresTechLab) config.factoryTechOutput = s.getAbility();
+                    else                config.factoryOutput = s.getAbility();
+                    break;
+                case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+                    if(requiresTechLab) config.starportTechOutput = s.getAbility();
+                    else                config.starportOutput = s.getAbility();
+                    break;
+            }
+
+            // 3. remove the step from buildorder
+            strategy->removeStep(s); // TODO: make sure this is working and doesn't have any side effects
+            break;
     }
-}
-
-void ProductionManager::swapAddon(ArmyBuilding* b1, ArmyBuilding* b2){
-    // save positions of each building in local variables
-    // lift both buildings
-
 }
 
 void ProductionManager::buildStructure(Step s){
-    sc2::ABILITY_ID ability = s.ability;
+    sc2::ABILITY_ID ability = s.getAbility();
     switch(ability){
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             TryBuildSupplyDepot();
@@ -271,46 +389,37 @@ void ProductionManager::buildStructure(Step s){
     }
 }
 
+void ProductionManager::buildAddon(Step s){
+    // TODO: determine if we can/should swap addons
+    // for now just pass it to castBuildingAbility
+    castBuildingAbility(s);
+}
+
 void ProductionManager::trainUnit(Step s){
-    if(s.produceSingle){
-        tryTrainUnit(s.ability);
-    }
-    else{
-        setArmyBuildingOrder(nullptr, s.ability);
-    }
-    
+    // for now just pass it to tryTrainUnit
+    tryTrainUnit(s.getAbility(), 1);
 }
 
 // TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
-void ProductionManager::researchUpgrade(Step s){
+void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
-    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
+    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
     sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
     for(auto& b : buildings){
         if(b->build_progress < 1.0) continue;
         bool canResearch = false;
         sc2::AvailableAbilities researchs = gInterface->query->GetAbilitiesForUnit(b, false, false);
         for(auto& r : researchs.abilities){
-            if(r.ability_id == s.ability){
+            if(r.ability_id == s.getAbility()){
                 canResearch = true;
                 break;
             }
         }
         if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag)){
-            logger.infoInit().withStr("researching").withInt((int) s.ability).write();
-            gInterface->actions->UnitCommand(b, s.ability);
+            logger.infoInit().withStr("casting building ability").withInt((int) s.getAbility()).write();
+            gInterface->actions->UnitCommand(b, s.getAbility());
             busyBuildings.emplace_back(b->tag);
             return;
-        }
-    }
-}
-
-void ProductionManager::morphStructure(Step s){
-    sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.ability);
-    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
-    for(auto& b : buildings){
-        if(b->orders.empty() && b->build_progress >= 1.0){
-            gInterface->actions->UnitCommand(b, s.ability);
         }
     }
 }
@@ -319,10 +428,11 @@ bool ProductionManager::TryBuildSupplyDepot(){
     int numTownhalls = (int) (API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS));
+    int numBarracks = (int) API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
     int cycle = 1 + numTownhalls;
-    // cycle: how much supply cushion we want, this is numTownhalls + numBarracks
+    if(numTownhalls > 1) cycle += numBarracks;
+    // cycle: how much supply cushion we want, this is numTownhalls (+ numBarracks if we have two expansions)
 
-    
     // if not supply capped or we are at max supply, dont build supply depot
     if(
         gInterface->observation->GetFoodUsed() < gInterface->observation->GetFoodCap() - cycle ||
@@ -363,56 +473,50 @@ bool ProductionManager::tryBuildEngineeringBay(){
 }
 
 bool ProductionManager::tryBuildBunker(){
-    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) >= 1) return false;
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
-// if armybuilding has an order, manage them
-void ProductionManager::handleArmyBuildings(){
-    for(auto& a : armyBuildings){
-        if(a.order != ARMYBUILDING_UNUSED && a.building->orders.empty()){
-            gInterface->actions->UnitCommand(a.building, a.order);
-        }
-        if(a.order != ARMYBUILDING_UNUSED && a.addon != nullptr && a.building->orders.size() <= 1){
-            if(
-                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
-                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
-                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
-                a.addon->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REACTOR
-            )
-                gInterface->actions->UnitCommand(a.building, a.order);
-        } // end if order not unused and addon not null
+bool ProductionManager::tryBuildAddon(){
+    sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+    for(auto& b : barracks){
+        if(b->add_on_tag != 0 || b->build_progress < 1.0 || !b->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(b, config.barracksDefaultAddon);
     }
+
+    sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    for(auto& f : factories){
+        if(f->add_on_tag != 0 || f->build_progress < 1.0 || !f->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(f, config.factoryDefaultAddon);
+    }
+
+    sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+    for(auto& s : starports){
+        if(s->add_on_tag != 0 || s->build_progress < 1.0 || !s->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(s, config.starportDefaultAddon);
+    }
+
+    return true;
 }
 
-void ProductionManager::setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order){
-    // if a == nullptr, give all barracks/factories/starports same order
-    // if a is an actual ArmyBuilding, then only set order for that one
-    if(a == nullptr){
-        sc2::UNIT_TYPEID buildingID = API::buildingForUnit(order);
-        for(auto& ab : armyBuildings)
-            if(ab.building->unit_type.ToType() == buildingID) ab.order = order;
-    }
-    else{
-        a->order = order;
-    }
-}
+// trains at most n units
+bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
+    sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);
 
-// trains a single unit
-bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain){
-    sc2::UNIT_TYPEID buildingID = API::buildingForUnit(unitToTrain);
-    // prioritise a ArmyBuilding that doesn't have an order
-    for(auto& a : armyBuildings){
-        if(a.order == ARMYBUILDING_UNUSED && a.building->unit_type.ToType() == buildingID && a.building->orders.empty()){
-            gInterface->actions->UnitCommand(a.building, unitToTrain);
-            return true;
-        }
-    }
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(buildingID));
+    if(buildings.empty()) return false;
 
-    // if function reaches this point, it is likely there is no armybuilding w/o an order so just pick a valid armybuilding
-    for(auto& a : armyBuildings){
-        if(a.building->unit_type.ToType() == buildingID && a.building->orders.empty()){
-            gInterface->actions->UnitCommand(a.building, unitToTrain);
+    // TODO: add support for training n units and reactors
+    // TODO: check available abilities for this building (like what we do with castBuildingAbility)
+    for(auto& b : buildings){
+        if(b->build_progress < 1.0) continue;
+
+        if(b->orders.empty() && !isBuildingBusy(b->tag)){
+            //logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
+            gInterface->actions->UnitCommand(b, unitToTrain);
+            busyBuildings.emplace_back(b->tag);
             return true;
         }
     }
@@ -446,59 +550,19 @@ void ProductionManager::handleUpgrades(){
     if(getCombatShields){
         sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
         if(!techLabs.empty()){
-            researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_COMBATSHIELD, -1, false, false));
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_COMBATSHIELD, false, false, false));
         }
     }
 
     // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
     // based on those upgrade levels, select the next upgrade to prioritise
     if(infantryWeapons > infantryArmor){
-        switch(infantryArmor){
-            case 0:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, -1, false, false));
-                break;
-            case 1:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, -1, false, false));
-                break;
-            case 2:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, -1, false, false));
-                break;
-        }
-        switch(infantryWeapons){
-            case 0:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, -1, false, false));
-                break;
-            case 1:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, -1, false, false));
-                break;
-            case 2:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, -1, false, false));
-                break;
-        }
+        upgradeInfantryArmor(infantryArmor);
+        upgradeInfantryWeapons(infantryWeapons);
     }
     else{
-        switch(infantryWeapons){
-            case 0:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, -1, false, false));
-                break;
-            case 1:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, -1, false, false));
-                break;
-            case 2:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, -1, false, false));
-                break;
-        }
-        switch(infantryArmor){
-            case 0:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, -1, false, false));
-                break;
-            case 1:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, -1, false, false));
-                break;
-            case 2:
-                researchUpgrade(Step(sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, -1, false, false));
-                break;
-        }
+        upgradeInfantryWeapons(infantryWeapons);
+        upgradeInfantryArmor(infantryArmor);
     }
 }
 
@@ -515,21 +579,18 @@ void ProductionManager::callMules(){
 
             // get a visible mineral unit closest to the current expansion
             // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically
+            //          ie i think we should have Mapper extend Manager
             sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
-	    if(minerals.empty()) return;
+	        if(minerals.empty()) return;
             const sc2::Unit* mineralTarget = minerals.front();
             for(auto& m : minerals)
                 if(sc2::DistanceSquared2D(current->baseLocation, m->pos) < sc2::DistanceSquared2D(current->baseLocation, mineralTarget->pos)){
                     mineralTarget = m;
                 }
 
-            
-            if(mineralTarget != nullptr){
+            if(mineralTarget != nullptr)
                 gInterface->actions->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineralTarget);
-            }
-                
         } // end if orbital energy >= 50
-            
     }
 }
 
@@ -537,4 +598,32 @@ bool ProductionManager::isBuildingBusy(sc2::Tag bTag){
     for(auto& b : busyBuildings)
         if(b == bTag) return true;
     return false;
+}
+
+void ProductionManager::upgradeInfantryWeapons(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3, false, false, false));
+            break;
+    }
+}
+
+void ProductionManager::upgradeInfantryArmor(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, false, false, false));
+            break;
+    }
 }

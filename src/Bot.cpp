@@ -2,10 +2,10 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_6_3"; // update this everytime we upload
+std::string version = "v0_7_0"; // update this everytime we upload
 
-std::vector<sc2::UNIT_TYPEID> depotTypes; // used for filtering for depots
-
+// TODO: move this to header?
+std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -20,6 +20,7 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
+    API::OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
     gInterface->matchID = logger.createOutputPrefix();
@@ -89,17 +90,18 @@ void Bot::OnStep() {
     // raise supply depots if enemy is nearby
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
-    for (auto& d : depots){
-        bool enemyNearby = false;
-        for (auto& e : enemies){
-            if(sc2::DistanceSquared3D(d->pos, e->pos) < 49){ // TODO: tune this value
-                enemyNearby = true;
-                break;
-            }
-        } // end e : enemies
-        if(enemyNearby) Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
-        else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
-    } // end d : depots
+    if(Observation()->GetGameLoop() % 20 == 0)
+        for (auto& d : depots){
+            bool enemyNearby = false;
+            for (auto& e : enemies){
+                if(sc2::DistanceSquared3D(d->pos, e->pos) < 49){ // TODO: tune this value
+                    enemyNearby = true;
+                    break;
+                }
+            } // end e : enemies
+            if(enemyNearby) Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
+            else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        } // end d : depots
 
 }
 

@@ -16,6 +16,8 @@ const sc2::Unit* Worker::getUnit(){
 }
 void WorkerManager::OnStep(){
 
+    //printDebug();
+
     // run distributeWorkers every 15 loops and after everything initializes
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
@@ -28,7 +30,11 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     else w.job = JOB_UNEMPLOYED;
     w.tag = (*unit_).tag;
     workers.emplace_back(w);
-    if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
+    //if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
+    const sc2::Unit* mineralTarget = FindNearestMineralPatch(unit_->pos);
+    if(mineralTarget != nullptr)
+        gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
+    
 }
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
@@ -45,10 +51,9 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
     // send to mine at the current base
-    //Expansion* e = gInterface->map->getCurrentExpansion();
-    Expansion* e = gInterface->map->getNthExpansion(0); // temporary
+    Expansion* e = gInterface->map->getNthExpansion(0);
     if (e != nullptr){
-        const sc2::Unit* mineralTarget = e->mineralLine.front();
+        const sc2::Unit* mineralTarget = FindNearestMineralPatch(e->baseLocation);
         gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
         getWorker(unit_)->job = JOB_GATHERING_MINERALS;
     }
@@ -200,7 +205,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
         }
         return closestWorker;
     }
-    else{
+    else{ // FIXME: if jobType != -1 it crashes here it seems
         for(auto& w : workers){
             if(w.getUnit() == nullptr) continue;
             if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos) && w.job == jobType){
@@ -222,4 +227,40 @@ bool WorkerManager::isFree(Worker* w){
         w->job == JOB_UNEMPLOYED
     ) return true;
     else return false;
+}
+
+void WorkerManager::printDebug(){
+    int countUnemployed = 0, countMinerals = 0, countGas = 0, countBuilding = 0, countBuildingGas = 0, countScouting = 0;
+    // count how many of each worker type we have
+    for(auto& w : workers){
+        switch(w.job){
+            case JOB_UNEMPLOYED:
+                countUnemployed++;
+                break;
+            case JOB_GATHERING_MINERALS:
+                countMinerals++;
+                break;
+            case JOB_GATHERING_GAS:
+                countGas++;
+                break;
+            case JOB_BUILDING:
+                countBuilding++;
+                break;
+            case JOB_BUILDING_GAS:
+                countBuildingGas++;
+                break;
+            case JOB_SCOUTING:
+                countScouting++;
+                break;
+        }
+    }
+    // print to debug
+    gInterface->debug->debugTextOut("unemployed: " + std::to_string(countUnemployed));
+    gInterface->debug->debugTextOut("mining minerals: " + std::to_string(countMinerals));
+    gInterface->debug->debugTextOut("mining gas: " + std::to_string(countGas));
+    gInterface->debug->debugTextOut("building : " + std::to_string(countBuilding));
+    gInterface->debug->debugTextOut("building gas: " + std::to_string(countBuildingGas));
+    gInterface->debug->debugTextOut("scouting: " + std::to_string(countScouting));
+
+    gInterface->debug->sendDebug();
 }
