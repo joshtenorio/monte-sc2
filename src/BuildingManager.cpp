@@ -143,7 +143,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
         if(loc.x == POINT2D_NULL.x || loc.y == POINT2D_NULL.y) return false;
         
-        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING;
+        //gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING; // commented out so we accurately track worker jobs
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
@@ -158,7 +158,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         if(gas == nullptr) return false;
 
-        gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
+        //gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
         gInterface->actions->UnitCommand(
            unit_to_build,
             ability_type_for_structure,

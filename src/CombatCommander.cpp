@@ -251,7 +251,7 @@ void CombatCommander::marineOnStep(){
                 
                 
         } // end for loop
-    } // end if idle bio > 12
+    } // end if idle bio > wave amount
 }
 
 void CombatCommander::medivacOnStep(){

@@ -16,6 +16,8 @@ const sc2::Unit* Worker::getUnit(){
 }
 void WorkerManager::OnStep(){
 
+    printDebug();
+
     // run distributeWorkers every 15 loops and after everything initializes
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
@@ -45,10 +47,9 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
     // send to mine at the current base
-    //Expansion* e = gInterface->map->getCurrentExpansion();
-    Expansion* e = gInterface->map->getNthExpansion(0); // temporary
+    Expansion* e = gInterface->map->getCurrentExpansion();
     if (e != nullptr){
-        const sc2::Unit* mineralTarget = e->mineralLine.front();
+        const sc2::Unit* mineralTarget = FindNearestMineralPatch(e->baseLocation);
         gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
         getWorker(unit_)->job = JOB_GATHERING_MINERALS;
     }
@@ -74,8 +75,6 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
     for(auto& r : refineries){
         if(r->ideal_harvesters <= 0 || r->vespene_contents <= 0) continue;
-        
-        gInterface->debug->debugTextOut(std::to_string(r->assigned_harvesters), r->pos);
 
         if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
@@ -93,7 +92,6 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
         }
     }
-    gInterface->debug->sendDebug();
 
     // 2. send to next base if base is overfull
     sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
@@ -225,4 +223,40 @@ bool WorkerManager::isFree(Worker* w){
         w->job == JOB_UNEMPLOYED
     ) return true;
     else return false;
+}
+
+void WorkerManager::printDebug(){
+    int countUnemployed = 0, countMinerals = 0, countGas = 0, countBuilding = 0, countBuildingGas = 0, countScouting = 0;
+    // count how many of each worker type we have
+    for(auto& w : workers){
+        switch(w.job){
+            case JOB_UNEMPLOYED:
+                countUnemployed++;
+                break;
+            case JOB_GATHERING_MINERALS:
+                countMinerals++;
+                break;
+            case JOB_GATHERING_GAS:
+                countGas++;
+                break;
+            case JOB_BUILDING:
+                countBuilding++;
+                break;
+            case JOB_BUILDING_GAS:
+                countBuildingGas++;
+                break;
+            case JOB_SCOUTING:
+                countScouting++;
+                break;
+        }
+    }
+    // print to debug
+    gInterface->debug->debugTextOut("unemployed: " + std::to_string(countUnemployed));
+    gInterface->debug->debugTextOut("mining minerals: " + std::to_string(countMinerals));
+    gInterface->debug->debugTextOut("mining gas: " + std::to_string(countGas));
+    gInterface->debug->debugTextOut("building : " + std::to_string(countBuilding));
+    gInterface->debug->debugTextOut("building gas: " + std::to_string(countBuildingGas));
+    gInterface->debug->debugTextOut("scouting: " + std::to_string(countScouting));
+
+    gInterface->debug->sendDebug();
 }

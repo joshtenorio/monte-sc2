@@ -8,7 +8,7 @@ void ProductionManager::OnStep(){
     // handle deadlock if it exists // TODO: fix this at some point
     //handleBuildOrderDeadlock();
 
-    strategy->debugPrintValidSteps();
+    //strategy->debugPrintValidSteps();
     
     // build a supply depot if needed
     TryBuildSupplyDepot();
@@ -18,6 +18,9 @@ void ProductionManager::OnStep(){
 
     // build stuff in the build order
     handleBuildOrder();
+
+    // handle building scvs/auto morphing ccs
+    handleTownHalls();
 
     // TODO: temporarily removed while testing handleBuildOrder();
     
@@ -34,10 +37,11 @@ void ProductionManager::OnStep(){
         handleUpgrades();
     } // end if prod queue empty
     
+    // handle idle army producers
     handleBarracks();
     handleFactories();
     handleStarports();
-    handleTownHalls();
+    
 
     // building manager
     bm.OnStep();
