@@ -128,6 +128,11 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
             // have siege tanks rally at natural in the direction of the enemy main
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            if(
+                    gInterface->observation->GetGameInfo().map_name == "Blackburn AIE" &&
+                    gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1) != nullptr
+                    )
+                    enemyMain = gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1)->baseLocation;
             sc2::Point2D natural;
             if(gInterface->map->getNthExpansion(1) != nullptr)
                 natural = gInterface->map->getNthExpansion(1)->baseLocation;
