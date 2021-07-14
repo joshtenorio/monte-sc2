@@ -22,7 +22,7 @@ class CombatCommander : public Manager {
 
     void marineOnStep();
     void medivacOnStep();
-    void liberatorOnStep();
+    void siegeTankOnStep();
     void manageStim(const sc2::Unit* unit);
     
 
@@ -32,5 +32,6 @@ class CombatCommander : public Manager {
     // used for marine control
     bool reachedEnemyMain;
     std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
+    std::vector<sc2::Tag> defensiveTanks; // TODO: temporary until we implement squads and micro managers
     int foo;
 };

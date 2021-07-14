@@ -21,13 +21,13 @@ void CombatCommander::OnStep(){
     // handle marines
     marineOnStep();
 
-    // handle medivacs every so often
+    // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
-       medivacOnStep();
+        medivacOnStep();
+        siegeTankOnStep();
     } // end if gameloop % 12 == 0
 
-    // handle liberators
-    liberatorOnStep();
+    
 
     // if we have a bunker, put marines in it
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
@@ -142,8 +142,11 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
 
             // tanks should siege only if we have less than 5 sieged up
             sc2::Units siegedTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED));
-            if(siegedTanks.size() < 5)
+            if(siegedTanks.size() < 5){
                 gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
+                defensiveTanks.emplace_back(unit_->tag);
+            }
+                
         break;
         }
     }
@@ -239,7 +242,7 @@ void CombatCommander::marineOnStep(){
             }
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
-                float distance = 9000;
+                float distance = std::numeric_limits<float>::max();
                 for(auto& e : enemy)
                     if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && !e->is_flying){
                         closest = e;
@@ -260,35 +263,72 @@ void CombatCommander::marineOnStep(){
 void CombatCommander::medivacOnStep(){
     sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
-        // move each medivac to the closest productive marine
+        // move each medivac to the marine that is closest to the enemy main
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
         const sc2::Unit* closestMarine = nullptr;
-        float d = 10000;
+        float d = std::numeric_limits<float>::max();
         for(auto& ma : marines){
             if(ma != nullptr)
-                if(d > sc2::DistanceSquared2D(ma->pos, med->pos) && !ma->orders.empty()){
+                if(d > sc2::DistanceSquared2D(ma->pos, enemyMain) && !ma->orders.empty()){
                     closestMarine = ma;
-                    d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                    d = sc2::DistanceSquared2D(ma->pos, enemyMain);
                 }
         } // end marine loop
         if(closestMarine == nullptr) // if no marines are productive, then pick the closest marine in general
             for(auto& ma : marines){
                 if(ma != nullptr)
-                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
+                    if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
                         closestMarine = ma;
-                        d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                        d = sc2::DistanceSquared2D(ma->pos, enemyMain);
             }
         } // end marine loop
-
-        if(d > 13 && closestMarine != nullptr){
+        gInterface->debug->debugSphereOut(med->pos, sqrtf(13));
+        gInterface->debug->sendDebug();
+        if(d > 52 && closestMarine != nullptr){
+            // if distance is > sqrt(52) then boost medivac
+            gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::EFFECT_MEDIVACIGNITEAFTERBURNERS);
+            gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos, true);
+        }
+        else if(d > 13 && closestMarine != nullptr){
             // if distance to closest marine is > sqrt(13), move medivac to marine's position
             gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
         }
     } // end medivac loop
 }
 
-void CombatCommander::liberatorOnStep(){
+void CombatCommander::siegeTankOnStep(){
+    sc2::Units siegeTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
 
+    // unsieged tanks should follow the marine that is closest to the enemy main
+    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    for(auto& st : siegeTanks){
+        // if tank is assigned to defend natural, ignore it
+        bool defensive = false;
+        for(auto& tag : defensiveTanks){
+            if(tag == st->tag){
+                defensive = true;
+                break;
+            }
+        }
+        if(defensive) continue;
+
+        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        const sc2::Unit* closestMarine = nullptr;
+        float d = std::numeric_limits<float>::max();
+        for(auto& ma : marines){
+            if(ma != nullptr)
+                if(d > sc2::DistanceSquared2D(ma->pos, enemyMain) && !ma->orders.empty()){
+                    closestMarine = ma;
+                    d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                }
+        } // end marine loop
+
+        if(d > 13 && closestMarine != nullptr){
+            // if distance to closest marine is > sqrt(13), move tank to marine's position
+            gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
+        }
+    }
 }
 
 

@@ -16,7 +16,7 @@ const sc2::Unit* Worker::getUnit(){
 }
 void WorkerManager::OnStep(){
 
-    printDebug();
+    //printDebug();
 
     // run distributeWorkers every 15 loops and after everything initializes
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
