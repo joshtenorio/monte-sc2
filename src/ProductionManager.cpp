@@ -28,6 +28,7 @@ void ProductionManager::OnStep(){
         tryBuildCommandCenter();
         tryBuildArmory();
         tryBuildEngineeringBay();
+        tryBuildAddon();
 
         // handle upgrades
         handleUpgrades();
@@ -471,6 +472,31 @@ bool ProductionManager::tryBuildBunker(){
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
+bool ProductionManager::tryBuildAddon(){
+    sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+    for(auto& b : barracks){
+        if(b->add_on_tag != 0 || b->build_progress < 1.0 || !b->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(b, config.barracksDefaultAddon);
+    }
+
+    sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    for(auto& f : factories){
+        if(f->add_on_tag != 0 || f->build_progress < 1.0 || !f->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(f, config.factoryDefaultAddon);
+    }
+
+    sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+    for(auto& s : starports){
+        if(s->add_on_tag != 0 || s->build_progress < 1.0 || !s->orders.empty()) continue;
+
+        gInterface->actions->UnitCommand(s, config.starportDefaultAddon);
+    }
+
+    return true;
+}
+
 // trains at most n units
 bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
     sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);
@@ -484,7 +510,7 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
         if(b->build_progress < 1.0) continue;
 
         if(b->orders.empty() && !isBuildingBusy(b->tag)){
-            logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
+            //logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
             gInterface->actions->UnitCommand(b, unitToTrain);
             busyBuildings.emplace_back(b->tag);
             return true;

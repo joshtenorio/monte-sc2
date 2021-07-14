@@ -98,7 +98,6 @@ typedef struct ProductionConfig_s_t {
     bool autoMorphCC = true;
 
     // micro config // TODO: integrate strategy into combatcommander
-    bool buildBunker = true;
     bool pullWorkers = true;
 
     // defines what we produce by default
@@ -108,6 +107,11 @@ typedef struct ProductionConfig_s_t {
     sc2::ABILITY_ID factoryTechOutput = PRODUCTION_UNUSED;
     sc2::ABILITY_ID starportOutput = PRODUCTION_UNUSED;
     sc2::ABILITY_ID starportTechOutput = PRODUCTION_UNUSED;
+
+    sc2::ABILITY_ID barracksDefaultAddon = sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS;
+    sc2::ABILITY_ID factoryDefaultAddon = sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY;
+    sc2::ABILITY_ID starportDefaultAddon = sc2::ABILITY_ID::BUILD_REACTOR_STARPORT;
+
 
     void operator = (const ProductionConfig_s_t& pc){
         maxWorkers = pc.maxWorkers;
@@ -121,7 +125,6 @@ typedef struct ProductionConfig_s_t {
 
         autoMorphCC = pc.autoMorphCC;
    
-        buildBunker = pc.buildBunker;
         pullWorkers = pc.pullWorkers;
 
         barracksOutput = pc.barracksOutput;
@@ -130,5 +133,9 @@ typedef struct ProductionConfig_s_t {
         factoryTechOutput = pc.factoryTechOutput;
         starportOutput = pc.starportOutput;
         starportTechOutput = pc.starportTechOutput;
+
+        barracksDefaultAddon = pc.barracksDefaultAddon;
+        factoryDefaultAddon = pc.factoryDefaultAddon;
+        starportDefaultAddon = pc.starportDefaultAddon;
     }
 } ProductionConfig;
