@@ -2,8 +2,6 @@
 
 void ProductionManager::OnStep(){
 
-    logger.infoInit().withStr("factory output is").withInt((int) config.factoryOutput).write();
-
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
