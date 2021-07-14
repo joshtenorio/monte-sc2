@@ -74,6 +74,8 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
     for(auto& r : refineries){
         if(r->ideal_harvesters <= 0 || r->vespene_contents <= 0) continue;
+        
+        gInterface->debug->debugTextOut(std::to_string(r->assigned_harvesters), r->pos);
 
         if(r->assigned_harvesters < gasWorkers){
             // add one worker at a time
@@ -91,6 +93,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
 
         }
     }
+    gInterface->debug->sendDebug();
 
     // 2. send to next base if base is overfull
     sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
