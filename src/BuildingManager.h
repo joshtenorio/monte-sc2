@@ -30,8 +30,5 @@ class BuildingManager : public Manager {
     protected:
     BuildingPlacer bp;
     std::vector<Construction> inProgressBuildings;
-
-    private:
-    // put functions here to help determine what building to build from (for upgrades) or if an scv needs to be called
-    // idea: assume that if it is not of a barracks/factory/starport/enggbay/armory/academy/etc then an scv is required
+    std::vector<sc2::Tag> reservedWorkers;
 };

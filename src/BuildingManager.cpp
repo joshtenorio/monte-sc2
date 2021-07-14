@@ -3,9 +3,16 @@
 void BuildingManager::OnStep(){
 
     // debug
-    if(gInterface->observation->GetGameLoop() % 400 == 0)
+    if(gInterface->observation->GetGameLoop() % 400 == 0){
         logger.infoInit().withInt(inProgressBuildings.size()).withStr("in progress buildings").write();
+    }
 
+    // clear the cache of reserved workers every once in a while
+    if(gInterface->observation->GetGameLoop() % 5 == 0)
+        reservedWorkers.clear();
+    
+    gInterface->debug->debugTextOut(std::to_string(reservedWorkers.size()) + " reserved workers");
+    gInterface->debug->sendDebug();
     // make sure all in-progress buildings are being worked on
     // kinda inefficient method
     bool workedOn = false;
@@ -109,6 +116,11 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     else 
         w->job = JOB_BUILDING;
     inProgressBuildings.emplace_back(std::make_pair(building_->tag, w));
+
+    for(auto itr = reservedWorkers.begin(); itr != reservedWorkers.end(); ){
+        if((*itr) == w->tag)  itr = reservedWorkers.erase(itr);
+        else ++itr;
+    }    
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){
@@ -122,11 +134,20 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
     int num = 0;
     for(const auto& unit : units){
         // check how many workers are already building this
-        
         for (const auto& order : unit->orders){
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
                 num++;
         }
+
+        bool isReserved = false;
+        for(auto& t : reservedWorkers)
+            if(t == unit->tag){
+                isReserved = true; 
+                break;
+            }
+                
+        
+        if(isReserved) continue;
 
         if(num >= maxConcurrent) return false;
 
@@ -135,15 +156,15 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
             unit_to_build = unit;
     }
     
-    // TODO: this can be refactored into switch statement
     if(unit_to_build == nullptr)
         return false;
 
+    // TODO: this can be refactored into switch statement
     if(ability_type_for_structure != sc2::ABILITY_ID::BUILD_REFINERY){
         sc2::Point2D loc = bp.findLocation(ability_type_for_structure, unit_to_build->pos);
         if(loc.x == POINT2D_NULL.x || loc.y == POINT2D_NULL.y) return false;
         
-        //gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING; // commented out so we accurately track worker jobs
+        reservedWorkers.emplace_back(unit_to_build->tag);
         gInterface->actions->UnitCommand(
             unit_to_build,
             ability_type_for_structure,
@@ -158,7 +179,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         if(gas == nullptr) return false;
 
-        //gInterface->wm->getWorker(unit_to_build)->job = JOB_BUILDING_GAS;
+        reservedWorkers.emplace_back(unit_to_build->tag);
         gInterface->actions->UnitCommand(
            unit_to_build,
             ability_type_for_structure,
