@@ -53,6 +53,20 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
     return output;
 }
 
+sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, std::vector<sc2::UNIT_TYPEID> unitTypes){
+    sc2::Units pool;
+    pool = gInterface->observation->GetUnits(alliance, sc2::IsUnits(unitTypes));
+
+    sc2::Units output;
+    for(auto& u : pool){
+        if(sc2::DistanceSquared2D(u->pos, loc) < r*r){
+            output.emplace_back(u);
+        }
+        if(output.size() >= n) break;
+    }
+    return output;
+}
+
 
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){

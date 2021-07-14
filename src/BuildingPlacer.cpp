@@ -86,8 +86,7 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                     if(findRefineryLocation(e) != nullptr){
                         return findRefineryLocation(e);
                     }
-                }
-            */
+                } */
             sc2::Units geysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
             const sc2::Unit* geyserToBuild = nullptr;
             float distSquared = 9000;
@@ -98,7 +97,6 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                 }
             }
             return geyserToBuild;
-            //return nullptr;
             break;
         }
         default:
@@ -120,12 +118,41 @@ sc2::Point2D BuildingPlacer::findSupplyDepotLocation(){
 }
 
 const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
+    /**
     if(e->numFriendlyRefineries == 0)
         return e->gasGeysers.front();
     else if(e->numFriendlyRefineries == 1)
         return e->gasGeysers.back();
     else
         return nullptr;
+    */
+   // FIXME: update mapper so that we can use the above code instead of doing this below
+    std::vector<sc2::UNIT_TYPEID> geyserTypes;
+    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER);
+    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER);
+    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER);
+    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER);
+    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER);
+
+    sc2::Units geysers = API::getClosestNUnits(e->baseLocation, 2, 11, sc2::Unit::Alliance::Neutral, geyserTypes);
+
+    if(geysers.empty()) return nullptr;
+
+    if(e->numFriendlyRefineries == 0){
+        gInterface->debug->debugSphereOut(geysers.front()->pos, 1.5);
+        gInterface->debug->sendDebug();
+        return e->gasGeysers.front();
+    }
+        
+    else if(e->numFriendlyRefineries == 1){
+        gInterface->debug->debugSphereOut(geysers.back()->pos, 1.5);
+        gInterface->debug->sendDebug();
+        return e->gasGeysers.back();
+    }
+        
+    else
+        return nullptr;
+
 }
 
 sc2::Point2D BuildingPlacer::findCommandCenterLocation(){

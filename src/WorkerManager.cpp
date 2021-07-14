@@ -30,7 +30,11 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     else w.job = JOB_UNEMPLOYED;
     w.tag = (*unit_).tag;
     workers.emplace_back(w);
-    if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
+    //if(gInterface->observation->GetGameLoop() > 100) OnUnitIdle(unit_);
+    const sc2::Unit* mineralTarget = FindNearestMineralPatch(unit_->pos);
+    if(mineralTarget != nullptr)
+        gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
+    
 }
 
 void WorkerManager::OnUnitDestroyed(const Unit* unit_){
@@ -47,7 +51,7 @@ void WorkerManager::OnUnitDestroyed(const Unit* unit_){
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
     // send to mine at the current base
-    Expansion* e = gInterface->map->getCurrentExpansion();
+    Expansion* e = gInterface->map->getNthExpansion(0);
     if (e != nullptr){
         const sc2::Unit* mineralTarget = FindNearestMineralPatch(e->baseLocation);
         gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::SMART, mineralTarget);
@@ -201,7 +205,7 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
         }
         return closestWorker;
     }
-    else{
+    else{ // FIXME: if jobType != -1 it crashes here it seems
         for(auto& w : workers){
             if(w.getUnit() == nullptr) continue;
             if(distance > sc2::DistanceSquared2D(pos, w.getUnit()->pos) && w.job == jobType){
