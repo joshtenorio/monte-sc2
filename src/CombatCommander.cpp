@@ -283,16 +283,19 @@ void CombatCommander::medivacOnStep(){
                         d = sc2::DistanceSquared2D(ma->pos, enemyMain);
             }
         } // end marine loop
-        gInterface->debug->debugSphereOut(med->pos, sqrtf(13));
-        gInterface->debug->sendDebug();
-        if(d > 52 && closestMarine != nullptr){
-            // if distance is > sqrt(52) then boost medivac
-            gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::EFFECT_MEDIVACIGNITEAFTERBURNERS);
-            gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos, true);
-        }
-        else if(d > 13 && closestMarine != nullptr){
-            // if distance to closest marine is > sqrt(13), move medivac to marine's position
+
+        if(closestMarine != nullptr){
+            float distSquaredToMarine = sc2::DistanceSquared2D(closestMarine->pos, med->pos);
+            if(distSquaredToMarine > 121){
+                // if medivac is somewhat far then we should boost
+                gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::EFFECT_MEDIVACIGNITEAFTERBURNERS);
+                gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos, true);
+            }
+            else if(distSquaredToMarine > 36){
+                // if distance to closest marine is > sqrt(36), move medivac to marine's position
             gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
+            }
+
         }
     } // end medivac loop
 }
@@ -323,7 +326,6 @@ void CombatCommander::siegeTankOnStep(){
                     d = sc2::DistanceSquared2D(ma->pos, enemyMain);
                 }
         } // end marine loop
-
         if(d > 13 && closestMarine != nullptr){
             // if distance to closest marine is > sqrt(13), move tank to marine's position
             gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
