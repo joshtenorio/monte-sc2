@@ -2,10 +2,10 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_6_4"; // update this everytime we upload
+std::string version = "v0_7_0"; // update this everytime we upload
 
-std::vector<sc2::UNIT_TYPEID> depotTypes; // used for filtering for depots
-
+// TODO: move this to header?
+std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
@@ -20,6 +20,7 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
+    API::OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
     gInterface->matchID = logger.createOutputPrefix();

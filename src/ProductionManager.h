@@ -10,18 +10,6 @@
 
 using namespace sc2;
 
-#define ARMYBUILDING_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
-
-typedef struct ArmyBuilding_s_t {
-    const sc2::Unit* building;
-    sc2::ABILITY_ID order; // used for continuous production of units
-    const sc2::Unit* addon;
-
-    // tags
-    sc2::Tag buildingTag;
-    sc2::Tag addonTag;
-} ArmyBuilding;
-
 class ProductionManager : public Manager {
     public:
     // constructors
@@ -39,18 +27,21 @@ class ProductionManager : public Manager {
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
     void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
-    // fill queue with stuff to do
-    void fillQueue();
+    protected:
+    void handleBuildOrder();
+    void handleBuildOrderDeadlock();
 
-    // swap addons
-    void swapAddon(ArmyBuilding* b1, ArmyBuilding* b2);
+    void handleBarracks();
+    void handleFactories();
+    void handleStarports();
+    void handleTownHalls();
 
-    // identify what building to morph/train unit/start upgrade, or if need to get scv to build a structure
-    void parseQueue();
+    // identify what building to cast ability/train unit/start upgrade, or if need to get scv to build a structure
+    void parseStep(Step s);
     void buildStructure(Step s);
+    void buildAddon(Step s);
     void trainUnit(Step s);
-    void researchUpgrade(Step s);
-    void morphStructure(Step s); // TODO: could we use researchUpgrade for morphs?
+    void castBuildingAbility(Step s);
 
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks();
@@ -60,10 +51,7 @@ class ProductionManager : public Manager {
     bool tryBuildEngineeringBay();
     bool tryBuildBunker();
 
-    // ArmyBuilding related stuff
-    void handleArmyBuildings();
-    void setArmyBuildingOrder(ArmyBuilding* a, sc2::ABILITY_ID order);
-    bool tryTrainUnit(sc2::ABILITY_ID unitToTrain);
+    bool tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n);
 
     // handle upgrades
     void handleUpgrades();
@@ -74,10 +62,12 @@ class ProductionManager : public Manager {
     // returns true if the building has been given an order in the current loop
     bool isBuildingBusy(sc2::Tag bTag);
 
-    protected:
+    private:
     Strategy* strategy;
     BuildingManager bm;
-    std::vector<Step> productionQueue; // list of structures/upgrades/units currently being built
-    std::vector<ArmyBuilding> armyBuildings; // list of structures that produce army units
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
+    ProductionConfig config; // TODO: when we make an InformationManager class this class should be friends with that class
+
+    void upgradeInfantryWeapons(int currLevel);
+    void upgradeInfantryArmor(int currLevel);
 };
