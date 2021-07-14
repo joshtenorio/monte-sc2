@@ -92,7 +92,7 @@ typedef struct ProductionConfig_s_t {
     short maxRefineries = 6;
     short maxEngineeringBays = 2;
     short maxArmories = 1;
-    short maxOrbitals = std::numeric_limits<short>::max();
+    short maxOrbitals = 3; //std::numeric_limits<short>::max();
 
     // if we should automatically morph a cc
     bool autoMorphCC = true;

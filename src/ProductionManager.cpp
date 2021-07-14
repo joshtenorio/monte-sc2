@@ -2,10 +2,12 @@
 
 void ProductionManager::OnStep(){
 
+    logger.infoInit().withStr("factory output is").withInt((int) config.factoryOutput).write();
+
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
-    // handle deadlock if it exists
+    // handle deadlock if it exists // TODO: fix this at some point
     //handleBuildOrderDeadlock();
 
     strategy->debugPrintValidSteps();
@@ -337,12 +339,15 @@ void ProductionManager::parseStep(Step s){
                 case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
                     if(requiresTechLab) config.barracksTechOutput = s.getAbility();
                     else                config.barracksOutput = s.getAbility();
+                    break;
                 case sc2::UNIT_TYPEID::TERRAN_FACTORY:
                     if(requiresTechLab) config.factoryTechOutput = s.getAbility();
                     else                config.factoryOutput = s.getAbility();
+                    break;
                 case sc2::UNIT_TYPEID::TERRAN_STARPORT:
                     if(requiresTechLab) config.starportTechOutput = s.getAbility();
                     else                config.starportOutput = s.getAbility();
+                    break;
             }
 
             // 3. remove the step from buildorder
@@ -477,8 +482,10 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
             logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
             gInterface->actions->UnitCommand(b, unitToTrain);
             busyBuildings.emplace_back(b->tag);
+            return true;
         }
     }
+    return false;
 }
 
 void ProductionManager::handleUpgrades(){
