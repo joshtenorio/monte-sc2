@@ -4,14 +4,21 @@
 void ScoutManager::OnGameStart(){
     scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SCV);
     scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_REAPER);
+
+    // initializing visitTable
+    visitTable.reserve(17);
+    for(int n = 0; n < 17; n++){ // could we do n < visitTable.max_size() instead?
+        visitTable.emplace_back(0);
+    }
+    
 }
 
 void ScoutManager::OnStep(){
 
-    if(gInterface->observation->GetGameLoop() % 1250 == 0 && gInterface->observation->GetGameLoop() >= 3000)
+    if(gInterface->observation->GetGameLoop() % 625 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
 
-    // update 
+    // update expansions
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 
@@ -64,33 +71,23 @@ bool ScoutManager::createScoutingMission(){
     }
     if(scout == nullptr) return false;
 
-    // 2. iterate through expansions and scouts: scout the furthest neutral expansion that isn't being scouted
+    // 2. iterate through expansions and pick the one we've been to the least, starting from the furthest
     // the "iterate through scouts" probably isnt necessary since we only create a scouting mission if scouts.empty()
-    sc2::Point2D target;
-    for(int n = gInterface->map->numOfExpansions() - 1; n > 0; n--){
-        bool alreadyScouting = false;
+    int expNumber = gInterface->map->numOfExpansions() - 1;
+    sc2::Point2D target = gInterface->map->getNthExpansion(expNumber)->baseLocation;
+    for(int n = expNumber; n >= 0; n--){
         Expansion* e = gInterface->map->getNthExpansion(n);
         if(e == nullptr) continue;
-        if(e->ownership == OWNER_ENEMY || e->ownership == OWNER_SELF) continue;
-
-        for(auto& s : scouts)
-            if(s.target == e->baseLocation){
-                alreadyScouting = true;
-                break;
-            }
+        if(e->ownership == OWNER_SELF) continue;
         
-        // expansion isn't being scouted so send a scout there
-        if(!alreadyScouting){
+        if(visitTable[n] < visitTable[expNumber]){
+            logger.infoInit().withStr("found suitable scout target at expo").withInt(n).withPoint(e->baseLocation).write();
+            expNumber = n;
             target = e->baseLocation;
-            break;
         }
     }
 
-    // if we couldn't find an expansion to scout, return
-    if(target.x == 0 && target.y == 0) return false;
-
     // 3. send scout
-    // TODO: should we use move or attack move?
     logger.infoInit().withStr("Scout:").withUnit(scout).withStr("\tTarget:").withPoint(target).write();
     Scout s;
     s.u = scout;
@@ -99,6 +96,8 @@ bool ScoutManager::createScoutingMission(){
     if(s.u->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV)
         gInterface->wm->getWorker(s.u)->job = JOB_SCOUTING;
     scouts.emplace_back(s);
+    visitTable[expNumber]++;
+    logger.infoInit().withStr("we are visitng expansion number").withInt(expNumber).withStr("for the").withInt(visitTable[expNumber]).withStr("time").write();
     gInterface->actions->UnitCommand(s.u, sc2::ABILITY_ID::MOVE_MOVE, s.target);
     return true;
 }
