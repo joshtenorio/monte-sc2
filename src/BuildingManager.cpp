@@ -11,8 +11,6 @@ void BuildingManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 5 == 0)
         reservedWorkers.clear();
     
-    gInterface->debug->debugTextOut(std::to_string(reservedWorkers.size()) + " reserved workers");
-    gInterface->debug->sendDebug();
     // make sure all in-progress buildings are being worked on
     // kinda inefficient method
     bool workedOn = false;

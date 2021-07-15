@@ -3,6 +3,8 @@
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
+    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
 
     reachedEnemyMain = false;
     sm.OnGameStart();
@@ -144,13 +146,6 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             dy *= 3;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-
-            // tanks should siege only if we have less than 5 sieged up
-            sc2::Units siegedTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED));
-            if(siegedTanks.size() < 5){
-                gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_SIEGEMODE, true);
-                defensiveTanks.emplace_back(unit_->tag);
-            }
                 
         break;
         }
@@ -306,36 +301,63 @@ void CombatCommander::medivacOnStep(){
 }
 
 void CombatCommander::siegeTankOnStep(){
-    sc2::Units siegeTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
 
-    // unsieged tanks should follow the marine that is closest to the enemy main
-    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    sc2::Units siegeTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
+
     for(auto& st : siegeTanks){
-        // if tank is assigned to defend natural, ignore it
-        bool defensive = false;
-        for(auto& tag : defensiveTanks){
-            if(tag == st->tag){
-                defensive = true;
+        // get closest units within a radius of 13
+        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy);
+
+        switch(st->unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
+                gInterface->debug->debugSphereOut(st->pos, 11);
+                gInterface->debug->debugSphereOut(st->pos, 6, sc2::Colors::Green);
+                gInterface->debug->sendDebug();
+                // if nearby is empty, attack move towards the marine who is closest to enemy main
+                if(nearby.empty()){
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+                    const sc2::Unit* closestMarine = nullptr;
+                    float d = std::numeric_limits<float>::max();
+                    for(auto& ma : marines){
+                        if(ma != nullptr)
+                            if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
+                                closestMarine = ma;
+                                d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                            }
+                    } // end marine loop
+
+                    if(closestMarine != nullptr){
+                        float distToMarineSquared = sc2::DistanceSquared2D(closestMarine->pos, st->pos);
+                        if(distToMarineSquared > 36)
+                            gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
+                    }
+                } // end if nearby.empty()
+                else{
+                    // else, we want to siege up
+                    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_SIEGEMODE);
+                }
+                break;
+            } // end case sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+            case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:{
+                gInterface->debug->debugSphereOut(st->pos, 13, sc2::Colors::Red);
+                gInterface->debug->sendDebug();
+                if(nearby.empty()){
+                    gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_UNSIEGE);
+                }
+                else{
+                    // just shoot at enemy
+                    // TODO: prioritise targetting workers? good for when scv is repairing planetary, but bad if they pulled the boys
+                    //          and their workers are attacking our marines
+                }
                 break;
             }
         }
-        if(defensive) continue;
+        
 
-        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-        const sc2::Unit* closestMarine = nullptr;
-        float d = std::numeric_limits<float>::max();
-        for(auto& ma : marines){
-            if(ma != nullptr)
-                if(d > sc2::DistanceSquared2D(ma->pos, enemyMain) && !ma->orders.empty()){
-                    closestMarine = ma;
-                    d = sc2::DistanceSquared2D(ma->pos, enemyMain);
-                }
-        } // end marine loop
-        if(d > 13 && closestMarine != nullptr){
-            // if distance to closest marine is > sqrt(13), move tank to marine's position
-            gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
-        }
-    }
+    } // end marine loop
 }
 
 

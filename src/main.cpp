@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
             CreateComputer(
                 sc2::Race::Protoss,
                 sc2::Difficulty::VeryHard,
-                sc2::AIBuild::Power
+                sc2::AIBuild::Macro
                 )
         });
 
