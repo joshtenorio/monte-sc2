@@ -3,6 +3,8 @@
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
+    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
 
     reachedEnemyMain = false;
     sm.OnGameStart();
@@ -21,13 +23,13 @@ void CombatCommander::OnStep(){
     // handle marines
     marineOnStep();
 
-    // handle medivacs every so often
+    // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
-       medivacOnStep();
+        medivacOnStep();
+        siegeTankOnStep();
     } // end if gameloop % 12 == 0
 
-    // handle liberators
-    liberatorOnStep();
+    
 
     // if we have a bunker, put marines in it
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
@@ -52,21 +54,25 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:{
-            // have army units rally at natural in the direction of the enemy main
-            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            // have army units rally at natural in the direction of the third expo
+            sc2::Point2D third;
             sc2::Point2D natural;
             if(gInterface->map->getNthExpansion(1) != nullptr)
                 natural = gInterface->map->getNthExpansion(1)->baseLocation;
             else return;
-            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            if(gInterface->map->getNthExpansion(2) != nullptr)
+                third = gInterface->map->getNthExpansion(2)->baseLocation;
+            else return;
+            float dx = third.x - natural.x, dy = third.y - natural.y;
             dx /= sqrt(dx*dx + dy*dy);
             dy /= sqrt(dx*dx + dy*dy);
-            dx *= 3;
-            dy *= 3;
+            dx *= 2;
+            dy *= 2;
             sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-        break;}
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{ // FIXME: make sure flight points are valid
+        break;
+        }
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
             // first, generate target flight point
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
             sc2::Point3D enemyMineralMidpoint;
@@ -121,6 +127,28 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_LIBERATORAGMODE, enemyMineralMidpoint, true);
         break;
         }
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
+            // have siege tanks rally at natural in the direction of the enemy main
+            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+            if(
+                    gInterface->observation->GetGameInfo().map_name == "Blackburn AIE" &&
+                    gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1) != nullptr
+                    )
+                    enemyMain = gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1)->baseLocation;
+            sc2::Point2D natural;
+            if(gInterface->map->getNthExpansion(1) != nullptr)
+                natural = gInterface->map->getNthExpansion(1)->baseLocation;
+            else return;
+            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+            dx /= sqrt(dx*dx + dy*dy);
+            dy /= sqrt(dx*dx + dy*dy);
+            dx *= 3;
+            dy *= 3;
+            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+                
+        break;
+        }
     }
     
 }
@@ -154,9 +182,18 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         }
         sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
 
-        // 4. have workers and idle army attack them
-        gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        // 4. have idle army attack, and have some workers repair and some workers attack
         gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        if(API::isStructure(unit_->unit_type.ToType()))
+            for(int n = 0; n < workers.size(); n++){
+                if(n % 3 == 0){
+                    gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::EFFECT_REPAIR, unit_);
+                }
+                else
+                    gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+            }
+        else
+            gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
     }
 }
 
@@ -167,7 +204,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 void CombatCommander::marineOnStep(){
     int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
 
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave){
+    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
@@ -205,7 +242,7 @@ void CombatCommander::marineOnStep(){
             }
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
-                float distance = 9000;
+                float distance = std::numeric_limits<float>::max();
                 for(auto& e : enemy)
                     if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && !e->is_flying){
                         closest = e;
@@ -220,41 +257,107 @@ void CombatCommander::marineOnStep(){
                 
                 
         } // end for loop
-    } // end if idle bio > 12
+    } // end if idle bio > wave amount
 }
 
 void CombatCommander::medivacOnStep(){
     sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
-        // move each medivac to the closest productive marine
+        // move each medivac to the marine that is closest to the enemy main
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
         const sc2::Unit* closestMarine = nullptr;
-        float d = 10000;
+        float d = std::numeric_limits<float>::max();
         for(auto& ma : marines){
             if(ma != nullptr)
-                if(d > sc2::DistanceSquared2D(ma->pos, med->pos) && !ma->orders.empty()){
+                if(d > sc2::DistanceSquared2D(ma->pos, enemyMain) && !ma->orders.empty()){
                     closestMarine = ma;
-                    d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                    d = sc2::DistanceSquared2D(ma->pos, enemyMain);
                 }
         } // end marine loop
         if(closestMarine == nullptr) // if no marines are productive, then pick the closest marine in general
             for(auto& ma : marines){
                 if(ma != nullptr)
-                    if(d > sc2::DistanceSquared2D(ma->pos, med->pos)){
+                    if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
                         closestMarine = ma;
-                        d = sc2::DistanceSquared2D(ma->pos, med->pos);
+                        d = sc2::DistanceSquared2D(ma->pos, enemyMain);
             }
         } // end marine loop
 
-        if(d > 13 && closestMarine != nullptr){
-            // if distance to closest marine is > sqrt(13), move medivac to marine's position
+        if(closestMarine != nullptr){
+            float distSquaredToMarine = sc2::DistanceSquared2D(closestMarine->pos, med->pos);
+            if(distSquaredToMarine > 121){
+                // if medivac is somewhat far then we should boost
+                gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::EFFECT_MEDIVACIGNITEAFTERBURNERS);
+                gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos, true);
+            }
+            else if(distSquaredToMarine > 36){
+                // if distance to closest marine is > sqrt(36), move medivac to marine's position
             gInterface->actions->UnitCommand(med, sc2::ABILITY_ID::GENERAL_MOVE, closestMarine->pos);
+            }
+
         }
     } // end medivac loop
 }
 
-void CombatCommander::liberatorOnStep(){
+void CombatCommander::siegeTankOnStep(){
 
+    sc2::Units siegeTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
+
+    for(auto& st : siegeTanks){
+        // get closest units within a radius of 13
+        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy);
+
+        switch(st->unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
+                gInterface->debug->debugSphereOut(st->pos, 11);
+                gInterface->debug->debugSphereOut(st->pos, 6, sc2::Colors::Green);
+                gInterface->debug->sendDebug();
+                // if nearby is empty, attack move towards the marine who is closest to enemy main
+                if(nearby.empty()){
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+                    const sc2::Unit* closestMarine = nullptr;
+                    float d = std::numeric_limits<float>::max();
+                    for(auto& ma : marines){
+                        if(ma != nullptr)
+                            if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
+                                closestMarine = ma;
+                                d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                            }
+                    } // end marine loop
+
+                    if(closestMarine != nullptr){
+                        float distToMarineSquared = sc2::DistanceSquared2D(closestMarine->pos, st->pos);
+                        if(distToMarineSquared > 36)
+                            gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
+                    }
+                } // end if nearby.empty()
+                else{
+                    // else, we want to siege up
+                    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_SIEGEMODE);
+                }
+                break;
+            } // end case sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+            case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:{
+                gInterface->debug->debugSphereOut(st->pos, 13, sc2::Colors::Red);
+                gInterface->debug->sendDebug();
+                if(nearby.empty()){
+                    gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_UNSIEGE);
+                }
+                else{
+                    // just shoot at enemy
+                    // TODO: prioritise targetting workers? good for when scv is repairing planetary, but bad if they pulled the boys
+                    //          and their workers are attacking our marines
+                }
+                break;
+            }
+        }
+        
+
+    } // end marine loop
 }
 
 

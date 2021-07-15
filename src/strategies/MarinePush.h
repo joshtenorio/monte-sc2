@@ -7,4 +7,5 @@ class MarinePush : public Strategy {
     public:
     MarinePush() {};
     void initialize();
+
 };

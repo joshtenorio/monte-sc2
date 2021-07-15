@@ -40,7 +40,7 @@ class WorkerManager : public Manager {
     void OnUnitIdle(const Unit* unit_);
 
     void DistributeWorkers(int gasWorkers = 3);
-    const sc2::Unit* FindNearestMineralPatch(const Point2D& start);
+    const sc2::Unit* FindNearestMineralPatch(const Point2D& start); // TODO: iirc this is unused, need to remove at some point
 
     // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list
@@ -57,5 +57,6 @@ class WorkerManager : public Manager {
     bool isFree(Worker* w);
 
     protected:
+    void printDebug();
     std::vector<Worker> workers;
 };

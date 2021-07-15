@@ -27,5 +27,7 @@ class ScoutManager : public Manager {
 
     protected:
     std::vector<Scout> scouts;
+    std::vector<short> visitTable;
+
     std::vector<sc2::UNIT_TYPEID> scoutTypes; // filter for units that can scout
 };
