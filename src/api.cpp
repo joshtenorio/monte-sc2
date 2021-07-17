@@ -40,7 +40,7 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
     if(unitType == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR) // default, get any 
         pool = gInterface->observation->GetUnits(alliance);
     
-    else
+    else // TODO: should we just return the getClosestNUnits (filter imp) here?
         pool = gInterface->observation->GetUnits(alliance, IsUnit(unitType));
 
     sc2::Units output;
@@ -54,8 +54,12 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
 }
 
 sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, std::vector<sc2::UNIT_TYPEID> unitTypes){
+    return getClosestNUnits(loc, n, r, alliance, sc2::IsUnits(unitTypes));
+}
+
+sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::Filter filter){
     sc2::Units pool;
-    pool = gInterface->observation->GetUnits(alliance, sc2::IsUnits(unitTypes));
+    pool = gInterface->observation->GetUnits(alliance, filter);
 
     sc2::Units output;
     for(auto& u : pool){
@@ -65,10 +69,6 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
         if(output.size() >= n) break;
     }
     return output;
-}
-
-sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::Filter filter){
-    
 }
 
 
