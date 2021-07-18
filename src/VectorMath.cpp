@@ -29,11 +29,11 @@ Vector3D getUnitVector3D(Vector3D u){
 
 // gets a point in the direction of a vector with a specified magnitude and initial point
 sc2::Point2D getPoint2D(sc2::Point2D initial, Vector2D direction, float magnitude){
-
+    return sc2::Point2D(0, 0); // TODO: temp
 }
 
 sc2::Point3D getPoint3D(sc2::Point3D initial, Vector3D direction, float magnitude){
-
+    return sc2::Point3D(0, 0, 0); // TODO: temp
 }
 
 } // end namespace Monte
