@@ -82,7 +82,7 @@ void Bot::OnStep() {
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
         map.initialize();
-
+        
     pm.OnStep();
     wm.OnStep();
     cc.OnStep();
