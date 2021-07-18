@@ -608,6 +608,11 @@ bool isAddon(sc2::UNIT_TYPEID unit){
     }
 }
 
+bool isFlying(const sc2::Unit& u){
+    if(u.is_flying) return true;
+    else return false;
+}
+
 
 } // end namespace
 std::unique_ptr<Interface> gInterface;
