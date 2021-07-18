@@ -306,7 +306,11 @@ void CombatCommander::siegeTankOnStep(){
 
     for(auto& st : siegeTanks){
         // get closest enemy ground units within a radius of 13
-        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy, );
+        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy,
+            [](const sc2::Unit& u){
+                return !u.is_flying;
+            }
+        );
 
         switch(st->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
