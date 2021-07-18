@@ -211,7 +211,7 @@ void CombatCommander::marineOnStep(){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat(":) when it all seems like it's wrong :) just sing along to Elton John :)");
+                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy");
             }
             
             // attack closest enemy expansion
@@ -244,7 +244,8 @@ void CombatCommander::marineOnStep(){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
                 for(auto& e : enemy)
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && !e->is_flying){
+                    // need to make sure the enemy in question is visible in some way
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
                         closest = e;
                         distance = sc2::DistanceSquared2D(e->pos, m->pos);
                     }
