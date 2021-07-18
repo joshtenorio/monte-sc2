@@ -162,11 +162,10 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 
     if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
         // 1. get a list of n closest workers to pull
-        sc2::Units workers = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
+        sc2::Units workers = API::getClosestNUnits(unit_->pos, 7, 9, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
 
         // 2. get a list of nearby idle army
         //sc2::Units armyPool = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
-        // TODO: for getClosestNUnits, add an overload where we can get multiple unit types
         sc2::Units armyPool = API::getClosestNUnits(unit_->pos, 50, 36, sc2::Unit::Alliance::Self);
         sc2::Units idleArmy;
         for(auto& a : armyPool)
@@ -212,6 +211,7 @@ void CombatCommander::marineOnStep(){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
+                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy");
             }
             
             // attack closest enemy expansion
@@ -244,7 +244,8 @@ void CombatCommander::marineOnStep(){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
                 for(auto& e : enemy)
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && !e->is_flying){
+                    // need to make sure the enemy in question is visible in some way
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
                         closest = e;
                         distance = sc2::DistanceSquared2D(e->pos, m->pos);
                     }
@@ -305,8 +306,12 @@ void CombatCommander::siegeTankOnStep(){
     sc2::Units siegeTanks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
 
     for(auto& st : siegeTanks){
-        // get closest units within a radius of 13
-        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy);
+        // get closest enemy ground units within a radius of 13
+        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy,
+            [](const sc2::Unit& u){
+                return !u.is_flying;
+            }
+        );
 
         switch(st->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{

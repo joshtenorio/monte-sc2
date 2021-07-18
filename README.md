@@ -15,6 +15,10 @@ Monte currently supports the following features:
 ## Building
 ### Windows
 ```bat
+:: Clone the project.
+$ git clone --recursive git@github.com:joshtenorio/monte-bot.git
+$ cd monte-bot
+
 :: Create build directory.
 $ mkdir build
 $ cd build
@@ -34,6 +38,9 @@ $ bin\Debug\Monte.exe Maps/EverDream506.SC2Map
 
 ### Linux
 ```bash
+# Clone the project.
+$ git clone --recursive git@github.com:joshtenorio/monte-bot.git && cd monte-bot
+
 # Create build directory.
 $ mkdir build && cd build
 
@@ -51,7 +58,7 @@ $ ./bin/Monte "/Users/josht/.../EverDream506.SC2Map"
 ```
 
 ## Thanks
-- ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot).
+- ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot)
 - the procedure for finding expansions is from [MulleMech](https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp)
 
-Both of the above projects are licensed under the MIT License.
+Both of the above projects use the MIT license.

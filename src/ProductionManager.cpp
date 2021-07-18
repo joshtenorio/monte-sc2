@@ -429,8 +429,11 @@ bool ProductionManager::TryBuildSupplyDepot(){
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) +
                         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS));
     int numBarracks = (int) API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+    int numFactories = (int) API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY);
     int cycle = 1 + numTownhalls;
-    if(numTownhalls > 1) cycle += numBarracks;
+    if(numTownhalls > 2) cycle += (numFactories * 2);
+    if(numTownhalls > 1)
+        cycle += numBarracks;
     // cycle: how much supply cushion we want, this is numTownhalls (+ numBarracks if we have two expansions)
 
     // if not supply capped or we are at max supply, dont build supply depot
