@@ -136,6 +136,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
             if(order.ability_id == ability_type_for_structure) // checks if structure is already being built
                 num++;
         }
+        if(num >= maxConcurrent) return false;
 
         bool isReserved = false;
         for(auto& t : reservedWorkers)
@@ -144,10 +145,9 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
                 break;
             }
                 
-        
         if(isReserved) continue;
 
-        if(num >= maxConcurrent) return false;
+        
 
         // identify SCV to build structure
         if(unit->unit_type == unit_type && gInterface->wm->isFree(gInterface->wm->getWorker(unit)))
