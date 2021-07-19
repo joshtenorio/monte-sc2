@@ -23,9 +23,22 @@ void BuildingPlacer::OnGameStart(){
 
 void BuildingPlacer::initialize(){
     // reserve expansion location tiles
+
 }
 
 void BuildingPlacer::OnStep(){
+
+    if(gInterface->observation->GetGameLoop() == 60){
+        // reserve expansion locations
+        for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+            Expansion* e = gInterface->map->getNthExpansion(n);
+            if(e == nullptr) continue;
+
+            sc2::Point2D base = e->baseLocation;
+            reserveTiles(base, 2.5); // radius of a town hall is 2.5
+        }
+    }
+
     // TODO: comment this out when building for ladder
     if(gInterface->observation->GetGameLoop() % 400 == 0)
         printDebug();

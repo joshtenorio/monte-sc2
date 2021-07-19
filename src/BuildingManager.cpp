@@ -7,6 +7,8 @@ void BuildingManager::OnGameStart(){
 void BuildingManager::OnStep(){
     bp.OnStep();
 
+    
+
     // debug
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         logger.infoInit().withInt(inProgressBuildings.size()).withStr("in progress buildings").write();
