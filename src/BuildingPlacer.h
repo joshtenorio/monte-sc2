@@ -13,12 +13,15 @@ typedef sc2::Point2DI Tile;
 } // end namespace Monte
 
 // purpose is solely to find a suitable location for building a structure
+// TODO: should this inherit manager?
 class BuildingPlacer {
     public:
     BuildingPlacer() { logger = Logger("BuildingPlacer"); };
 
-    // initialize reserved tiles here (set everything to false)
+    // initialize reserved tiles here (set everything to false unless if tile is unbuildable)
     void OnGameStart();
+
+    void OnStep();
     
     // TODO: this runs after Mapper initializes, so we can reserve expansion tiles
     void initialize();
@@ -31,8 +34,10 @@ class BuildingPlacer {
 
     void reserveTiles(sc2::Point2D center, float radius);
     void freeTiles(sc2::Point2D center, float radius);
+    bool checkConflict(sc2::Point2D center, float radius);
 
     protected:
+    void validateTiles(); // TODO: run this periodically in OnStep
     sc2::Point2D findBarracksLocation();        // will place barracks at the main ramp if no barracks exist
     const sc2::Unit* findRefineryLocation(Expansion* e);
     sc2::Point2D findSupplyDepotLocation();     // will place supply depots at main ramp if <2 depots exist
@@ -40,6 +45,8 @@ class BuildingPlacer {
 
     // TODO: remove this, buildlingplacer doesn't deal with addons anymore
     const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near = nullptr);
+
+    void printDebug();
 
     Logger logger;
 

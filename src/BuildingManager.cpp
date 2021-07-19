@@ -5,6 +5,7 @@ void BuildingManager::OnGameStart(){
 }
 
 void BuildingManager::OnStep(){
+    bp.OnStep();
 
     // debug
     if(gInterface->observation->GetGameLoop() % 400 == 0){
