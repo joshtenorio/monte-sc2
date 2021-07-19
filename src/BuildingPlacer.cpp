@@ -1,5 +1,13 @@
 #include "BuildingPlacer.h"
 
+void BuildingPlacer::OnGameStart(){
+
+}
+
+void BuildingPlacer::initialize(){
+
+}
+
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
 
     std::vector<sc2::QueryInterface::PlacementQuery> queries;

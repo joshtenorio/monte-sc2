@@ -55,6 +55,8 @@ void ProductionManager::OnStep(){
 }
 
 void ProductionManager::OnGameStart(){
+    bm.OnGameStart();
+    
     strategy->initialize();
     config = strategy->getConfig();
 }

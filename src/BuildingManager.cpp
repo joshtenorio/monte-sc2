@@ -1,5 +1,9 @@
 #include "BuildingManager.h"
 
+void BuildingManager::OnGameStart(){
+    bp.OnGameStart();
+}
+
 void BuildingManager::OnStep(){
 
     // debug

@@ -7,19 +7,30 @@
 #define POINT2D_NULL sc2::Point2D(-1, -1)
 #define POINT3D_NULL sc2::Point3D(-1, -1, -1)
 
+// typedefing integer points to a more friendly name
+namespace Monte {
+typedef sc2::Point2DI Tile;
+} // end namespace Monte
+
 // purpose is solely to find a suitable location for building a structure
 class BuildingPlacer {
     public:
     BuildingPlacer() { logger = Logger("BuildingPlacer"); };
-    
-    // TODO: do we need to initialize reserved tiles list here?
+
+    // initialize reserved tiles here (set everything to false)
     void OnGameStart();
+    
+    // TODO: this runs after Mapper initializes, so we can reserve expansion tiles
+    void initialize();
 
     // find a location for building near around with open space within freeRadius
     sc2::Point2D findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius = 4);
 
     // build building on a unit (such as gas geyser for refinery, or barracks for addon) nearest to near
     const sc2::Unit* findUnit(sc2::ABILITY_ID building, const sc2::Point3D* near);
+
+    void reserveTiles(sc2::Point2D center, float radius);
+    void freeTiles(sc2::Point2D center, float radius);
 
     protected:
     sc2::Point2D findBarracksLocation();        // will place barracks at the main ramp if no barracks exist
@@ -31,5 +42,8 @@ class BuildingPlacer {
     const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near = nullptr);
 
     Logger logger;
+
+    // this is a 2D vector of bools as opposed to a 1D vector of tiles so that it is easier to reserve/free tiles
+    std::vector< std::vector<bool> > reservedTiles;
 
 };

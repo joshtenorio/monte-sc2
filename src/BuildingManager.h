@@ -13,6 +13,8 @@ typedef std::pair<sc2::Tag, Worker*> Construction;
 class BuildingManager : public Manager {
     public:
     BuildingManager() { logger = Logger("BuildingManager"); };
+
+    void OnGameStart();
     void OnStep();
 
     // used for if a worker assigned to a job or building under construction is killed
