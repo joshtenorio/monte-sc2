@@ -34,6 +34,9 @@ namespace API {
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, std::vector<sc2::UNIT_TYPEID> unitTypes);
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::Filter filter);
 
+    // get a building's radius by its ability id
+    float getStructureRadiusByAbility(sc2::ABILITY_ID ability);
+
     // convert a build ABILITY_ID to UNIT_TYPEID, e.g. BUILD SUPPLY DEPOT -> SUPPLY DEPOT
     sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability); // note: won't return refinery rich if it is a rich geyser
     sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit); // TODO: add more cases

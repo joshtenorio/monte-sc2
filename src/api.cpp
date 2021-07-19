@@ -71,6 +71,32 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
     return output;
 }
 
+float getStructureRadiusByAbility(sc2::ABILITY_ID ability){
+    switch(ability){
+        case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
+            return 2.5;
+            break;
+        case sc2::ABILITY_ID::BUILD_ARMORY:
+        case sc2::ABILITY_ID::BUILD_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_BUNKER:
+        case sc2::ABILITY_ID::BUILD_ENGINEERINGBAY:
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+        case sc2::ABILITY_ID::BUILD_FUSIONCORE:
+        case sc2::ABILITY_ID::BUILD_GHOSTACADEMY:
+        case sc2::ABILITY_ID::BUILD_REFINERY:
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+            return 1.5;
+            break;
+        case sc2::ABILITY_ID::BUILD_MISSILETURRET:
+        case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
+            return 1;
+            break;
+        case sc2::ABILITY_ID::BUILD_SENSORTOWER:
+            return 0.5;
+            break;
+    }
+}
+
 
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){
