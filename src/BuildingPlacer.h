@@ -6,10 +6,14 @@
 
 #define POINT2D_NULL sc2::Point2D(-1, -1)
 #define POINT3D_NULL sc2::Point3D(-1, -1, -1)
-// purpose is solely to find a suitable location for building something
+
+// purpose is solely to find a suitable location for building a structure
 class BuildingPlacer {
     public:
     BuildingPlacer() { logger = Logger("BuildingPlacer"); };
+    
+    // TODO: do we need to initialize reserved tiles list here?
+    void OnGameStart();
 
     // find a location for building near around with open space within freeRadius
     sc2::Point2D findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius = 4);
@@ -22,7 +26,10 @@ class BuildingPlacer {
     const sc2::Unit* findRefineryLocation(Expansion* e);
     sc2::Point2D findSupplyDepotLocation();     // will place supply depots at main ramp if <2 depots exist
     sc2::Point2D findCommandCenterLocation();
+
+    // TODO: remove this, buildlingplacer doesn't deal with addons anymore
     const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near = nullptr);
+
     Logger logger;
 
 };

@@ -36,7 +36,10 @@ void Debug::debugSphereOut(const sc2::Point3D& p, float r, sc2::Color color){
 }
 
 void Debug::debugDrawTile(const sc2::Point3D& point, const sc2::Color& color){
-
+    debugBoxOut(
+        {point.x + 0.1f, point.y + 0.1f, point.z},
+        {point.x + 0.8f, point.y + 0.8f, point.z},
+        color);
 }
 
 
