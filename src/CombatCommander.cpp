@@ -211,7 +211,7 @@ void CombatCommander::marineOnStep(){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy");
+                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
             }
             
             // attack closest enemy expansion
