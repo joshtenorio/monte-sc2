@@ -151,7 +151,30 @@ void BuildingPlacer::reserveTiles(sc2::Point2D center, float radius){
 }
 
 void BuildingPlacer::freeTiles(sc2::Point2D center, float radius){
+    int xMin = center.x - radius, xMax = center.x + radius;
+    int yMin = center.y - radius, yMax = center.y + radius;
 
+    for(int x = xMin; x < xMax; x++){
+        for(int y = yMin; y < yMax; y++){
+            reservedTiles[x][y] = false;
+        }
+    }
+}
+
+bool BuildingPlacer::checkConflict(sc2::Point2D center, float radius){
+    int xMin = center.x - radius, xMax = center.x + radius;
+    int yMin = center.y - radius, yMax = center.y + radius;
+
+    for(int x = xMin; x < xMax; x++){
+        for(int y = yMin; y < yMax; y++){
+            if(reservedTiles[x][y]) return true;
+        }
+    }
+    return false;
+}
+
+void BuildingPlacer::validateTiles(){
+    // make sure reserved tiles are correct
 }
 
 
