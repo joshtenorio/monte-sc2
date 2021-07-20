@@ -22,6 +22,9 @@ typedef struct PlacementTreeNode_s_t {
     sc2::Point2D location;
 
     char status = PTNODE_TERMINAL;
+    char branchStatus;
+    int numChildren;
+    short level;
 
     // pointers to children nodes in the tree
     PTNode* n, *s, *e, *w;
