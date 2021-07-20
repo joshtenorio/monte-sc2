@@ -64,8 +64,10 @@ void BuildingPlacer::OnStep(){
     }
 
     // TODO: comment this out when building for ladder
+    /*
     if(gInterface->observation->GetGameLoop() % 400 == 0)
         printDebug();
+        */
 }
 
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){

@@ -213,6 +213,7 @@ void CombatCommander::marineOnStep(){
                         sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
                         {
                         closestEnemyExpo = gInterface->map->getNthExpansion(n);
+                        break;
                     }
                 } // end for expansions
                 if(closestEnemyExpo != nullptr){
@@ -227,7 +228,7 @@ void CombatCommander::marineOnStep(){
                         ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
                 }
-            }
+            } // end if !reachedEnemyMain && m->orders.empty()
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
