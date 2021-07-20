@@ -22,6 +22,14 @@ void ScoutManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 
+    if(gInterface->observation->GetGameLoop() % 400 == 0){
+        int n = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
+        logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
+    }
+        
+
 }
 
 void ScoutManager::OnUnitDestroyed(const sc2::Unit* unit_){

@@ -13,6 +13,7 @@ namespace Monte {
 typedef struct Vector2D_s_t {
     Vector2D_s_t() {};
     Vector2D_s_t(float dx_, float dy_) { dx = dx_; dy = dy_; };
+    Vector2D_s_t(sc2::Point2D i, sc2::Point2D f) { dx = f.x - i.x; dy = f.y - i.y; };
     float dx, dy;
 
     virtual float getMagnitude();
@@ -69,6 +70,7 @@ typedef struct Vector2D_s_t {
     }
 } Vector2D;
 
+// TODO: create constructors for Monte::Vector3D
 typedef struct Vector3D_s_t : public Vector2D_s_t {
     float dz;
 

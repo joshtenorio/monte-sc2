@@ -63,12 +63,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             if(gInterface->map->getNthExpansion(2) != nullptr)
                 third = gInterface->map->getNthExpansion(2)->baseLocation;
             else return;
-            float dx = third.x - natural.x, dy = third.y - natural.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 2;
-            dy *= 2;
-            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+
+            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, third), 2);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         break;
         }
@@ -78,16 +74,12 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             sc2::Point3D enemyMineralMidpoint;
             Expansion* e = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
             if(e == nullptr) return;
+
             enemyMineralMidpoint = e->mineralMidpoint;
-            float dx = enemyMineralMidpoint.x - enemyMain.x, dy = enemyMineralMidpoint.y - enemyMain.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 7;
-            dy *= 7;
-            sc2::Point2D targetFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, enemyMineralMidpoint.y + dy);
+            sc2::Point2D targetFlightPoint = Monte::getPoint2D(enemyMineralMidpoint, Monte::Vector2D(enemyMain, enemyMineralMidpoint), 7);
             
             // then get the intermediate flight point
-            sc2::Point2D intermediateFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, unit_->pos.y);
+            sc2::Point2D intermediateFlightPoint = sc2::Point2D(targetFlightPoint.x, unit_->pos.y);
 
             // validate the flight points (ie make sure they are within map bounds)
             // if they are not valid, adjust them so they fit within map bounds
@@ -139,12 +131,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             if(gInterface->map->getNthExpansion(1) != nullptr)
                 natural = gInterface->map->getNthExpansion(1)->baseLocation;
             else return;
-            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 3;
-            dy *= 3;
-            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+
+            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 3);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
                 
         break;
@@ -211,7 +199,7 @@ void CombatCommander::marineOnStep(){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy");
+                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
             }
             
             // attack closest enemy expansion
@@ -225,6 +213,7 @@ void CombatCommander::marineOnStep(){
                         sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
                         {
                         closestEnemyExpo = gInterface->map->getNthExpansion(n);
+                        break;
                     }
                 } // end for expansions
                 if(closestEnemyExpo != nullptr){
@@ -239,21 +228,31 @@ void CombatCommander::marineOnStep(){
                         ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
                 }
-            }
+            } // end if !reachedEnemyMain && m->orders.empty()
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
+
                 for(auto& e : enemy)
-                    // need to make sure the enemy in question is visible in some way
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
+                    // prioritise an enemy that is not flying
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (!e->is_flying)){
                         closest = e;
                         distance = sc2::DistanceSquared2D(e->pos, m->pos);
                     }
-                    if(closest != nullptr)
-                        gInterface->actions->UnitCommand(
-                            m,
-                            sc2::ABILITY_ID::ATTACK_ATTACK,
-                            closest->pos);
+
+                if(closest == nullptr)
+                    for(auto& e : enemy)
+                        // if we cant find a ground target then just target any visible enemy
+                        if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
+                            closest = e;
+                            distance = sc2::DistanceSquared2D(e->pos, m->pos);
+                        }
+
+                if(closest != nullptr)
+                    gInterface->actions->UnitCommand(
+                        m,
+                        sc2::ABILITY_ID::ATTACK_ATTACK,
+                        closest->pos);
             } // end else if
                 
                 
@@ -315,9 +314,6 @@ void CombatCommander::siegeTankOnStep(){
 
         switch(st->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
-                gInterface->debug->debugSphereOut(st->pos, 11);
-                gInterface->debug->debugSphereOut(st->pos, 6, sc2::Colors::Green);
-                gInterface->debug->sendDebug();
                 // if nearby is empty, attack move towards the marine who is closest to enemy main
                 if(nearby.empty()){
                     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
@@ -347,8 +343,6 @@ void CombatCommander::siegeTankOnStep(){
                 break;
             } // end case sc2::UNIT_TYPEID::TERRAN_SIEGETANK
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:{
-                gInterface->debug->debugSphereOut(st->pos, 13, sc2::Colors::Red);
-                gInterface->debug->sendDebug();
                 if(nearby.empty()){
                     gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_UNSIEGE);
                 }
