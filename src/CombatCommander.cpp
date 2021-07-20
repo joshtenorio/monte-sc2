@@ -315,9 +315,6 @@ void CombatCommander::siegeTankOnStep(){
 
         switch(st->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
-                gInterface->debug->debugSphereOut(st->pos, 11);
-                gInterface->debug->debugSphereOut(st->pos, 6, sc2::Colors::Green);
-                gInterface->debug->sendDebug();
                 // if nearby is empty, attack move towards the marine who is closest to enemy main
                 if(nearby.empty()){
                     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
@@ -347,8 +344,6 @@ void CombatCommander::siegeTankOnStep(){
                 break;
             } // end case sc2::UNIT_TYPEID::TERRAN_SIEGETANK
             case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:{
-                gInterface->debug->debugSphereOut(st->pos, 13, sc2::Colors::Red);
-                gInterface->debug->sendDebug();
                 if(nearby.empty()){
                     gInterface->actions->UnitCommand(st, sc2::ABILITY_ID::MORPH_UNSIEGE);
                 }

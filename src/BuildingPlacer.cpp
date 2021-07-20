@@ -1,5 +1,73 @@
 #include "BuildingPlacer.h"
 
+void BuildingPlacer::OnGameStart(){
+    int mapHeight = gInterface->observation->GetGameInfo().height;
+    int mapWidth = gInterface->observation->GetGameInfo().width;
+    logger.infoInit().withStr("map height:").withInt(mapHeight).withStr("max point:").withPoint(gInterface->observation->GetGameInfo().playable_max).write();
+
+    reservedTiles.resize(mapWidth);
+    for(auto& r : reservedTiles){
+        r.resize(mapHeight);
+    }
+
+    for(int i = 0; i < mapWidth; i++){
+        for(int j = 0; j < mapHeight; j++){
+            if(gInterface->observation->IsPlacable(sc2::Point2D(i, j)))
+                reservedTiles[i][j] = false;
+            else
+                reservedTiles[i][j] = true;
+        }
+    }
+
+}
+
+void BuildingPlacer::initialize(){
+    // reserve expansion location tiles
+    // NOTE: this is done in OnStep now
+    // TODO: remove this
+
+}
+
+void BuildingPlacer::OnStep(){
+
+    if(gInterface->observation->GetGameLoop() == 60){
+        // reserve expansion locations
+        for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+            Expansion* e = gInterface->map->getNthExpansion(n);
+            if(e == nullptr) continue;
+
+            sc2::Point2D base = e->baseLocation;
+            reserveTiles(base, 2.5); // radius of a town hall is 2.5
+        }
+
+        // reserve the tiles for bunker
+        sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+        if(
+            gInterface->observation->GetGameInfo().map_name == "Blackburn AIE" &&
+            gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1) != nullptr
+            )
+            enemyMain = gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1)->baseLocation;
+            
+        sc2::Point2D natural;
+        if(gInterface->map->getNthExpansion(1) != nullptr)
+            natural = gInterface->map->getNthExpansion(1)->baseLocation;
+
+        float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
+        dx /= sqrt(dx*dx + dy*dy);
+        dy /= sqrt(dx*dx + dy*dy);
+        dx *= 5;
+        dy *= 5;
+        float xLoc = floorf(natural.x + dx) + 0.5;
+        float yLoc = floorf(natural.y + dy) + 0.5;
+
+        reserveTiles(sc2::Point2D(xLoc, yLoc), 1.5);
+    }
+
+    // TODO: comment this out when building for ladder
+    if(gInterface->observation->GetGameLoop() % 400 == 0)
+        printDebug();
+}
+
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
 
     std::vector<sc2::QueryInterface::PlacementQuery> queries;
@@ -13,6 +81,12 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 return findBarracksLocation();
         case sc2::ABILITY_ID::BUILD_FACTORY:
         case sc2::ABILITY_ID::BUILD_STARPORT:
+
+            // if proposed location conflicts with a reserved tile, 
+            if(checkConflict(loc, 1.5) || checkConflict(sc2::Point2D(loc.x + 2.5, loc.y - 0.5), 1)){
+                return POINT2D_NULL;
+            }
+
             queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, loc);
             queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(loc.x + 2.5, loc.y - 0.5));
             results = gInterface->query->Placement(queries);
@@ -53,15 +127,21 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 dy /= sqrt(dx*dx + dy*dy);
                 dx *= 5;
                 dy *= 5;
-                return sc2::Point2D(natural.x + dx, natural.y + dy);
+
+                float xLoc = floorf(natural.x + dx) + 0.5;
+                float yLoc = floorf(natural.y + dy) + 0.5;
+                return sc2::Point2D(xLoc, yLoc);
             }
             else goto useDefault;
         default:
         useDefault:
             // TODO: make this behavior better (ie actually utilise freeRadius)
 
-            // currently, get a random location to build building within a 20x20 region where the scv is at the center
-            return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
+            // if there are no conflicts, get a random location to build building within a 20x20 region where the scv is at the center
+            if(!checkConflict(sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f), API::getStructureRadiusByAbility(building)))
+                return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
+            else
+                return POINT2D_NULL;
 
 
             break;
@@ -106,6 +186,45 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
 }
 
 
+void BuildingPlacer::reserveTiles(sc2::Point2D center, float radius){
+    int xMin = center.x - radius, xMax = center.x + radius;
+    int yMin = center.y - radius, yMax = center.y + radius;
+
+    for(int x = xMin; x < xMax; x++){
+        for(int y = yMin; y < yMax; y++){
+            reservedTiles[x][y] = true;
+        }
+    }
+}
+
+void BuildingPlacer::freeTiles(sc2::Point2D center, float radius){
+    int xMin = center.x - radius, xMax = center.x + radius;
+    int yMin = center.y - radius, yMax = center.y + radius;
+
+    for(int x = xMin; x < xMax; x++){
+        for(int y = yMin; y < yMax; y++){
+            reservedTiles[x][y] = false;
+        }
+    }
+}
+
+bool BuildingPlacer::checkConflict(sc2::Point2D center, float radius){
+    int xMin = center.x - radius, xMax = center.x + radius;
+    int yMin = center.y - radius, yMax = center.y + radius;
+
+    for(int x = xMin; x < xMax; x++){
+        for(int y = yMin; y < yMax; y++){
+            if(reservedTiles[x][y]) return true;
+        }
+    }
+    return false;
+}
+
+void BuildingPlacer::validateTiles(){
+    // make sure reserved tiles are correct
+}
+
+
 sc2::Point2D BuildingPlacer::findBarracksLocation(){
     return gInterface->map->getStartingExpansion().ramp.barracksWithAddonPos;
 }
@@ -139,14 +258,10 @@ const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
     if(geysers.empty()) return nullptr;
 
     if(e->numFriendlyRefineries == 0){
-        gInterface->debug->debugSphereOut(geysers.front()->pos, 1.5);
-        gInterface->debug->sendDebug();
         return e->gasGeysers.front();
     }
         
     else if(e->numFriendlyRefineries == 1){
-        gInterface->debug->debugSphereOut(geysers.back()->pos, 1.5);
-        gInterface->debug->sendDebug();
         return e->gasGeysers.back();
     }
         
@@ -216,4 +331,16 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         default:
             return nullptr;
     }
+}
+
+void BuildingPlacer::printDebug(){
+    for(int x = 0; x < reservedTiles.size(); x++){
+        for(int y = 0; y < reservedTiles[x].size(); y++){
+            if(reservedTiles[x][y])
+                gInterface->debug->debugDrawTile(sc2::Point3D(x, y, gInterface->observation->TerrainHeight(sc2::Point2D(x,y))), sc2::Colors::Red);
+            else
+                gInterface->debug->debugDrawTile(sc2::Point3D(x, y, gInterface->observation->TerrainHeight(sc2::Point2D(x,y))), sc2::Colors::Green);
+        }
+    }
+    gInterface->debug->sendDebug();
 }
