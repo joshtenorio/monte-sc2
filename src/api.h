@@ -12,6 +12,7 @@
 #include <sc2api/sc2_unit_filters.h>
 #include <vector>
 #include <memory>
+#include "VectorMath.h"
 #include "WorkerManager.h"
 #include "Mapper.h"
 #include "Debug.h"

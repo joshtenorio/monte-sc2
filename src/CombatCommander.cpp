@@ -63,12 +63,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             if(gInterface->map->getNthExpansion(2) != nullptr)
                 third = gInterface->map->getNthExpansion(2)->baseLocation;
             else return;
-            float dx = third.x - natural.x, dy = third.y - natural.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 2;
-            dy *= 2;
-            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+
+            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, third), 2);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         break;
         }
@@ -78,16 +74,12 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             sc2::Point3D enemyMineralMidpoint;
             Expansion* e = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
             if(e == nullptr) return;
+
             enemyMineralMidpoint = e->mineralMidpoint;
-            float dx = enemyMineralMidpoint.x - enemyMain.x, dy = enemyMineralMidpoint.y - enemyMain.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 7;
-            dy *= 7;
-            sc2::Point2D targetFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, enemyMineralMidpoint.y + dy);
+            sc2::Point2D targetFlightPoint = Monte::getPoint2D(enemyMineralMidpoint, Monte::Vector2D(enemyMain, enemyMineralMidpoint), 7);
             
             // then get the intermediate flight point
-            sc2::Point2D intermediateFlightPoint = sc2::Point2D(enemyMineralMidpoint.x + dx, unit_->pos.y);
+            sc2::Point2D intermediateFlightPoint = sc2::Point2D(targetFlightPoint.x, unit_->pos.y);
 
             // validate the flight points (ie make sure they are within map bounds)
             // if they are not valid, adjust them so they fit within map bounds
