@@ -34,6 +34,8 @@ class BuildingPlacer {
 
     void reserveTiles(sc2::Point2D center, float radius);
     void freeTiles(sc2::Point2D center, float radius);
+
+    // returns true if there is a conflicting tile
     bool checkConflict(sc2::Point2D center, float radius);
 
     protected:
