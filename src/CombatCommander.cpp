@@ -131,12 +131,8 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             if(gInterface->map->getNthExpansion(1) != nullptr)
                 natural = gInterface->map->getNthExpansion(1)->baseLocation;
             else return;
-            float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-            dx /= sqrt(dx*dx + dy*dy);
-            dy /= sqrt(dx*dx + dy*dy);
-            dx *= 3;
-            dy *= 3;
-            sc2::Point2D rally = sc2::Point2D(natural.x + dx, natural.y + dy);
+
+            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 3);
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
                 
         break;
