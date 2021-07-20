@@ -231,17 +231,27 @@ void CombatCommander::marineOnStep(){
             else if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
+
                 for(auto& e : enemy)
-                    // need to make sure the enemy in question is visible in some way
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
+                    // prioritise an enemy that is not flying
+                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (!e->is_flying)){
                         closest = e;
                         distance = sc2::DistanceSquared2D(e->pos, m->pos);
                     }
-                    if(closest != nullptr)
-                        gInterface->actions->UnitCommand(
-                            m,
-                            sc2::ABILITY_ID::ATTACK_ATTACK,
-                            closest->pos);
+
+                if(closest == nullptr)
+                    for(auto& e : enemy)
+                        // if we cant find a ground target then just target any visible enemy
+                        if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
+                            closest = e;
+                            distance = sc2::DistanceSquared2D(e->pos, m->pos);
+                        }
+
+                if(closest != nullptr)
+                    gInterface->actions->UnitCommand(
+                        m,
+                        sc2::ABILITY_ID::ATTACK_ATTACK,
+                        closest->pos);
             } // end else if
                 
                 
