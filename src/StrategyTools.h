@@ -143,6 +143,12 @@ typedef struct ProductionConfig_s_t {
 typedef struct CombatConfig_s_t {
     CombatConfig_s_t() {};
 
+    char combatState; // define whether or not we should be always attacking
+    int bioWaveSize;
+    int maxTanks;
+    int maxMedivacs;
+
+
     void operator = (const CombatConfig_s_t& cc){
         // hehe
     }
