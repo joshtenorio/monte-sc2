@@ -21,6 +21,9 @@
 #define PRODUCTION_UNUSED sc2::ABILITY_ID::TRAIN_ARCHON
 #define PRODUCTION_NOMAX -1
 
+#define COMBAT_AGGRESSIVE   0
+#define COMBAT_BIDE         1
+
 typedef struct MetaType_s_t {
     MetaType_s_t() {};
     MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}
@@ -143,8 +146,10 @@ typedef struct ProductionConfig_s_t {
 typedef struct CombatConfig_s_t {
     CombatConfig_s_t() {};
 
-    char combatState; // define whether or not we should be always attacking
-    int bioWaveSize;
+    char combatState = COMBAT_BIDE; // define whether or not we should be always attacking or wait for waves
+    int bioWaveSize; // should this be the barracks multiplier instead?
+
+    // TODO: this should be a std::map instead where they key is the unit type and the value is the maximum number
     int maxTanks;
     int maxMedivacs;
 
