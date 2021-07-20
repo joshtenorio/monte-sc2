@@ -139,3 +139,11 @@ typedef struct ProductionConfig_s_t {
         starportDefaultAddon = pc.starportDefaultAddon;
     }
 } ProductionConfig;
+
+typedef struct CombatConfig_s_t {
+    CombatConfig_s_t() {};
+
+    void operator = (const CombatConfig_s_t& cc){
+        // hehe
+    }
+} CombatConfig;

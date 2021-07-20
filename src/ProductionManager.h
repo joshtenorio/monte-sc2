@@ -44,7 +44,7 @@ class ProductionManager : public Manager {
     void castBuildingAbility(Step s);
 
     bool TryBuildSupplyDepot();
-    bool TryBuildBarracks();
+    bool TryBuildBarracks(); // TODO: add trybuildstarport, factory etc
     bool tryBuildRefinery();
     bool tryBuildCommandCenter();
     bool tryBuildArmory();

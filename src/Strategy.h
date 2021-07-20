@@ -44,7 +44,8 @@ class Strategy{
     protected:
     std::vector<Step> buildOrder;
 
-    // this should be adjusted in initialize()
-    ProductionConfig config;
+    // these should be adjusted in initialize()
+    ProductionConfig config; // TODO: change this name to prodConfig or pConfig or something
+    CombatConfig combatConfig; // cConfig ?
 
 };
