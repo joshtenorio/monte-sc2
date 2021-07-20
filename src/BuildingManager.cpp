@@ -7,8 +7,6 @@ void BuildingManager::OnGameStart(){
 void BuildingManager::OnStep(){
     bp.OnStep();
 
-    
-
     // debug
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         logger.infoInit().withInt(inProgressBuildings.size()).withStr("in progress buildings").write();
@@ -54,6 +52,11 @@ void BuildingManager::OnStep(){
 }
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
+    
+    // if it is a structure we need to free the tiles
+    if(API::isStructure(unit_->unit_type.ToType()))
+        bp.freeTiles(unit_->pos, API::getStructureRadiusByAbility(API::unitTypeIDToAbilityID(unit_->unit_type.ToType())));
+
     // if its an in-prog building that died, release the worker and remove Construction from list
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
        // the building died, so release the worker and remove Construction
@@ -125,7 +128,20 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
     for(auto itr = reservedWorkers.begin(); itr != reservedWorkers.end(); ){
         if((*itr) == w->tag)  itr = reservedWorkers.erase(itr);
         else ++itr;
-    }    
+    }
+
+    // reserve the tiles
+    // we use the API function as opposed to building->radius because the mentioned radius is a little bit bigger than the radius we actually want
+    // TODO: once we validate we have resources to build a structure in ProductionManager, this needs to move to buildingPlacer
+    bp.reserveTiles(building_->pos, API::getStructureRadiusByAbility(API::unitTypeIDToAbilityID(building_->unit_type.ToType())));
+    
+    // if it is an army production building we need to reserve space for the addon as well
+    if(
+        building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
+        building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
+        building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORT
+    )
+        bp.reserveTiles(sc2::Point2D(building_->pos.x + 2.5, building_->pos.y - 0.5), 1);
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){

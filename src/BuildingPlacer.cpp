@@ -105,8 +105,6 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // TODO: make this behavior better (ie actually utilise freeRadius)
 
             // currently, get a random location to build building within a 20x20 region where the scv is at the center
-            reserveTiles(sc2::Point2D((int) ((around.x + rx * 10.0f) + 0.5), (int) ((around.y + ry * 10.0f) + 0.5)), 1);
-            // TODO: need an api function, where we can get the radius for an ability's structure
             return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
 
 
