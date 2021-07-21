@@ -11,6 +11,7 @@
 #include "WorkerManager.h"
 #include "ProductionManager.h"
 #include "CombatCommander.h"
+#include "InformationManager.h"
 #include "Mapper.h"
 #include "Logger.h"
 #include "Debug.h"
@@ -30,6 +31,7 @@ private:
     WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
     ProductionManager pm;
     CombatCommander cc;
+    InformationManager im;
 
     Monte::Debug debug;
     Logger logger;

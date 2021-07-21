@@ -45,6 +45,8 @@ class ProductionManager : public Manager {
 
     bool TryBuildSupplyDepot();
     bool TryBuildBarracks(); // TODO: add trybuildstarport, factory etc
+    bool tryBuildFactory();
+    bool tryBuildStarport();
     bool tryBuildRefinery();
     bool tryBuildCommandCenter();
     bool tryBuildArmory();

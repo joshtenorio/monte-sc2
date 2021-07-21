@@ -3,7 +3,7 @@
 void InformationManager::OnStep(){
     checkForWorkerRush();
 
-    // update expansions
+    // update expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 }

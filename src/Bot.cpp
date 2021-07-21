@@ -10,6 +10,7 @@ Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
     cc = CombatCommander();
+    im = InformationManager();
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
@@ -82,7 +83,8 @@ void Bot::OnStep() {
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
         map.initialize();
-        
+
+    im.OnStep();
     pm.OnStep();
     wm.OnStep();
     cc.OnStep();

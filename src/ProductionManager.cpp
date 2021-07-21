@@ -370,6 +370,12 @@ void ProductionManager::buildStructure(Step s){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             TryBuildBarracks();
             break;
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+            tryBuildFactory();
+            break;
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+            tryBuildStarport();
+            break;
         case sc2::ABILITY_ID::BUILD_REFINERY:
             tryBuildRefinery();
             break;
@@ -452,8 +458,18 @@ bool ProductionManager::TryBuildSupplyDepot(){
 bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 8 barracks already
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
+        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
     return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+}
+
+bool ProductionManager::tryBuildFactory(){
+    if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) >= config.maxFactories) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
+}
+
+bool ProductionManager::tryBuildStarport(){
+    if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_STARPORT) >= config.maxStarports) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
 }
 
 bool ProductionManager::tryBuildRefinery(){
