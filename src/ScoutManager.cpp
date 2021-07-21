@@ -18,10 +18,6 @@ void ScoutManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 625 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
 
-    // update expansions
-    if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
-        updateExpoOwnership();
-
     if(gInterface->observation->GetGameLoop() % 400 == 0){
         int n = 0;
         for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
@@ -130,12 +126,3 @@ bool ScoutManager::removeScout(sc2::Tag tag){
     return false;
 }
 
-void ScoutManager::updateExpoOwnership(){
-    sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
-    for(auto& th : enemyTownHalls){
-        Expansion* closest = gInterface->map->getClosestExpansion(th->pos);
-        if(closest == nullptr) return;
-        else
-            closest->ownership = OWNER_ENEMY;
-    }
-}
