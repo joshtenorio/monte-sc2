@@ -52,15 +52,11 @@ void BuildingPlacer::OnStep(){
         if(gInterface->map->getNthExpansion(1) != nullptr)
             natural = gInterface->map->getNthExpansion(1)->baseLocation;
 
-        float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-        dx /= sqrt(dx*dx + dy*dy);
-        dy /= sqrt(dx*dx + dy*dy);
-        dx *= 5;
-        dy *= 5;
-        float xLoc = floorf(natural.x + dx) + 0.5;
-        float yLoc = floorf(natural.y + dy) + 0.5;
+        sc2::Point2D bunkerLoc = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 5);
+        bunkerLoc.x = floorf(bunkerLoc.x) + 0.5;
+        bunkerLoc.y = floorf(bunkerLoc.y) + 0.5;
 
-        reserveTiles(sc2::Point2D(xLoc, yLoc), 1.5);
+        reserveTiles(bunkerLoc, 1.5);
 
     } // end if game loop == 60
 
@@ -214,7 +210,11 @@ bool BuildingPlacer::checkConflict(sc2::Point2D center, float radius){
 
     for(int x = xMin; x < xMax; x++){
         for(int y = yMin; y < yMax; y++){
-            if(reservedTiles[x][y]) return true;
+            if(reservedTiles[x][y]){
+                logger.warningInit().withStr("trying to build a structure with radius").withFloat(radius).withStr("at").withPoint(center);
+                logger.withStr("but space already reserved").write();
+                return true;
+            }
         }
     }
     return false;
