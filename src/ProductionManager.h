@@ -53,6 +53,7 @@ class ProductionManager : public Manager {
     bool tryBuildEngineeringBay();
     bool tryBuildBunker();
     bool tryBuildAddon();
+    bool tryBuildMissileTurret();
 
     bool tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n);
 

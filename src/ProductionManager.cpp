@@ -522,6 +522,16 @@ bool ProductionManager::tryBuildAddon(){
     return true;
 }
 
+bool ProductionManager::tryBuildMissileTurret(){
+    // only build missile turret if information manager says so
+    if(!config.buildTurrets) return false;
+
+    // iterate through owned expansions and pick the first one that doesnt have a turret
+    // then build a turret at the midpoint from base location and mineral midpoint (experiment with this)
+    
+    return true; // temp
+}
+
 // trains at most n units
 bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
     sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);

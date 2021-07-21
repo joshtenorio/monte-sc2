@@ -33,5 +33,10 @@ void InformationManager::checkForWorkerRush(){
 
     // if we count more than 3 workers, activate worker rush defense code (ie set workerRushDetected to true)
     
+}
+
+void InformationManager::checkForEnemyCloak(){
+    // if we find a dangerous cloaked enemy (e.g. not an observer), set requireDetectors to true
+    // also we should send a chat message and temporarily a Tag as well
 
 }
