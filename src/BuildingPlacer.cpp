@@ -61,7 +61,10 @@ void BuildingPlacer::OnStep(){
         float yLoc = floorf(natural.y + dy) + 0.5;
 
         reserveTiles(sc2::Point2D(xLoc, yLoc), 1.5);
-    }
+
+    } // end if game loop == 60
+
+
 
     // TODO: comment this out when building for ladder
     /*
@@ -98,8 +101,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                     return POINT2D_NULL;
                 }
             
-            //gInterface->debug->debugSphereOut(sc2::Point3D(loc.x + 2.5, loc.y - 0.5, around.z), 1);
-            //gInterface->debug->sendDebug();
+
             return loc;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
@@ -124,15 +126,11 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 if(gInterface->map->getNthExpansion(1) != nullptr)
                     natural = gInterface->map->getNthExpansion(1)->baseLocation;
                 else goto useDefault;
-                float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-                dx /= sqrt(dx*dx + dy*dy);
-                dy /= sqrt(dx*dx + dy*dy);
-                dx *= 5;
-                dy *= 5;
 
-                float xLoc = floorf(natural.x + dx) + 0.5;
-                float yLoc = floorf(natural.y + dy) + 0.5;
-                return sc2::Point2D(xLoc, yLoc);
+                sc2::Point2D bunkerLoc = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 5);
+                bunkerLoc.x = floorf(bunkerLoc.x) + 0.5;
+                bunkerLoc.y = floorf(bunkerLoc.y) + 0.5;
+                return bunkerLoc;
             }
             else goto useDefault;
         default:
@@ -140,8 +138,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // TODO: make this behavior better (ie actually utilise freeRadius)
 
             // if there are no conflicts, get a random location to build building within a 20x20 region where the scv is at the center
-            if(!checkConflict(sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f), API::getStructureRadiusByAbility(building)))
-                return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
+            if(!checkConflict(loc, API::getStructureRadiusByAbility(building)))
+                return loc;
             else
                 return POINT2D_NULL;
 
