@@ -48,7 +48,7 @@ sc2::Point2D Squad::getCenter(){
     return center;
 }
 
-std::vector<Monte::Unit>& Squad::getUnits(){
+std::vector<Monte::GameObject>& Squad::getUnits(){
     return units;
 }
 

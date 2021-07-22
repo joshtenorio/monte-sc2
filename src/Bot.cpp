@@ -77,7 +77,6 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
     }
 }
 
-
 void Bot::OnStep() {
 
     // initialize mapper (find expansions and ramps)
@@ -114,6 +113,7 @@ void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 
 void Bot::OnUnitCreated(const Unit* unit_){
     logger.infoInit().withUnit(unit_).withStr("was created").write();
+
     
     cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){

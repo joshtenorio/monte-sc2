@@ -4,22 +4,15 @@ namespace Monte{
 
 
 sc2::Point3D GameObject::getPos(){
-    sc2::Unit unit = getUnit();
-    return unit.pos;
+    return getUnit()->pos;
 }
 
 sc2::Tag GameObject::getTag(){
     return tag;
 }
 
-//const sc2::Unit* GameObject::getUnit(){
-
-//}
-
-sc2::Unit GameObject::getUnit(){ // TODO: need to test this
-    sc2::Unit unit;
-    unit.tag = tag;
-    return unit;
+const sc2::Unit* GameObject::getUnit(){
+    return gInterface->observation->GetUnit(tag);
 }
 
 char GameObject::getState(){

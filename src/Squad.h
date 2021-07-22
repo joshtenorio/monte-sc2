@@ -2,6 +2,7 @@
 
 #include "api.h"
 #include "micro/MicroManager.h"
+#include "GameObject.h"
 
 class Squad {
     public:
@@ -26,7 +27,7 @@ class Squad {
     char getState();
 
     sc2::Point2D getCenter();
-    std::vector<Monte::Unit>& getUnits();
+    std::vector<Monte::GameObject>& getUnits();
     
     protected:
     void calculateCenter();
@@ -38,6 +39,6 @@ class Squad {
     char state; // TODO: this necessary? possibly so that micromanager knows what type of squad it is and what squad is currently doing
     short id;
 
-    std::vector<Monte::Unit> units;
+    std::vector<Monte::GameObject> units;
 
 };

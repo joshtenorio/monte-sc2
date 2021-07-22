@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sc2api/sc2_unit.h>
+#include "api.h"
 
 #define UNIT_INIT 0
 
@@ -13,8 +14,7 @@ class GameObject {
 
     sc2::Point3D getPos();
     sc2::Tag getTag();
-    //const sc2::Unit* getUnit();
-    sc2::Unit getUnit(); // TODO: need to test this
+    const sc2::Unit* getUnit();
     char getState();
 
     bool operator == (const GameObject& go) const{
