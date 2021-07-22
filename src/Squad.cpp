@@ -1,7 +1,61 @@
 #include "Squad.h"
 
-void Squad::OnStep(){
-    // validate state
+void Squad::absorb(Squad& other){
+
+}
+
+void Squad::addUnit(sc2::Tag tag){
+
+}
+
+void Squad::addUnits(std::vector<sc2::Tag> tags){
+
+}
+
+void Squad::removeUnit(sc2::Tag tag){
+
+}
+
+void Squad::disband(){
+
+}
+
+void Squad::setTarget(sc2::Point2D newTarget, bool attack){
     
-    // then do state action
+}
+
+sc2::Point2D Squad::getTarget(){
+    return target;
+}
+
+void Squad::setSquadId(short id_){
+    id = id_;
+}
+
+short Squad::getSquadId(){
+    return id;
+}
+
+void Squad::setState(char state_){
+    state = state_;
+}
+
+char Squad::getState(){
+    return state;
+}
+
+sc2::Point2D Squad::getCenter(){
+    return center;
+}
+
+std::vector<Monte::Unit>& Squad::getUnits(){
+    return units;
+}
+
+void Squad::calculateCenter(){
+    float x = 0, y = 0;
+    for(auto& u : units){
+        // get unit* from tag
+    }
+    center = sc2::Point2D(x/units.size(), y/units.size());
 }

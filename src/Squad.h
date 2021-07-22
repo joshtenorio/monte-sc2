@@ -8,7 +8,7 @@ class Squad {
     Squad() {};
     Squad(short id_) : id(id_) {};
 
-    void OnStep();
+    virtual void OnStep() = 0;
 
     void absorb(Squad& other); // make sure to disband the other squad when finished
     void addUnit(sc2::Tag tag);
@@ -16,18 +16,21 @@ class Squad {
     void removeUnit(sc2::Tag tag);
     void disband(); // just delete/clear vector
 
-    void setTarget(sc2::Point2D, bool attack); // TODO: do we need more parameters?
+    void setTarget(sc2::Point2D newTarget, bool attack); // TODO: do we need more parameters?
     sc2::Point2D getTarget();
     
     void setSquadId(short id_);
     short getSquadId();
 
+    void setState(char state_);
+    char getState();
+
     sc2::Point2D getCenter();
-    std::vector<Monte::Unit> getUnits();
+    std::vector<Monte::Unit>& getUnits();
     
     protected:
     void calculateCenter();
-    void validateState();
+    virtual void validateState() = 0;
 
     sc2::Point2D center;
     sc2::Point2D target;

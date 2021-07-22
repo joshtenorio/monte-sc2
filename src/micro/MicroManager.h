@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vector>
-#include<sc2api/sc2_unit.h>
+#include <sc2api/sc2_unit.h>
+
+#define UNIT_STATE_INIT 0
 
 namespace Monte {
     // first: tag ; second: state
