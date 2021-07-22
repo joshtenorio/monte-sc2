@@ -3,18 +3,24 @@
 #include <sc2api/sc2_unit.h>
 #include "api.h"
 
-#define UNIT_INIT 0
+// TODO: make these enums instead of defines
+// so that we can easily make states for specific units without making a file for them specifically
+// shrug
+
+#define GAMEOBJ_NULL    -1
+#define GAMEOBJ_INIT    0
 
 namespace Monte {
 
 class GameObject {
     public:
     GameObject() {};
-    GameObject(sc2::Tag tag_) { tag = tag_; };
+    GameObject(sc2::Tag tag_) { tag = tag_; state = GAMEOBJ_INIT; };
 
     sc2::Point3D getPos();
-    sc2::Tag getTag();
     const sc2::Unit* getUnit();
+
+    sc2::Tag getTag();
     char getState();
 
     bool operator == (const GameObject& go) const{

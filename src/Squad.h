@@ -19,6 +19,9 @@ class Squad {
 
     void setTarget(sc2::Point2D newTarget, bool attack); // TODO: do we need more parameters?
     sc2::Point2D getTarget();
+
+    void setAMove(bool attack);
+    bool getAMoveStatus();
     
     void setSquadId(short id_);
     short getSquadId();
@@ -35,6 +38,8 @@ class Squad {
 
     sc2::Point2D center;
     sc2::Point2D target;
+    
+    bool aMoveToTarget;
 
     char state; // TODO: this necessary? possibly so that micromanager knows what type of squad it is and what squad is currently doing
     short id;
