@@ -9,11 +9,12 @@ class GameObject {
     public:
 
     enum State {
-        Null = -1,
-        Init = 0,
-        Move = 1,
-        Attack = 2,
-        Retreat = 3
+        Null = -1,      // null state
+        Init = 0,       // when a gameobject is created
+        Pause = 1,      // gameobject is staying idle
+        Move = 2,       // gameobject is moving towards a point
+        Attack = 3,     // gameobject is a-moving towards a point
+        Retreat = 4     // gameobject is attempting to get out and stay out of enemy range while staying close
     };
 
     GameObject() {};
@@ -23,6 +24,8 @@ class GameObject {
     const sc2::Unit* getUnit();
 
     sc2::Tag getTag();
+    
+    void setState(State state);
     State getState();
 
     bool operator == (const GameObject& go) const{

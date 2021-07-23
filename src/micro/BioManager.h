@@ -9,4 +9,7 @@ class BioManager : public MicroManager {
 
     void doStateAction(Monte::GameObject& unit, char squadState);
     char validateState(Monte::GameObject& unit, char squadState);
+
+    protected:
+    void manageStim();
 };

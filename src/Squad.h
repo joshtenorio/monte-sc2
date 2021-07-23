@@ -6,6 +6,15 @@
 
 class Squad {
     public:
+
+    enum State {
+        Null = -1,      // null state
+        Init = 0,       // when a squad is created
+        Pause = 1,      // squad is ordered to stay idle
+        Move = 2,       // squad is ordered to move to a point
+        Attack = 3      // squad is ordered to attack move to a point
+    };
+
     Squad() { bm = BioManager(); };
     Squad(short id_) : id(id_) { bm = BioManager(); };
 
@@ -26,8 +35,8 @@ class Squad {
     void setSquadId(short id_);
     short getSquadId();
 
-    void setState(char state_);
-    char getState();
+    void setState(State state_);
+    State getState();
 
     sc2::Point2D getCenter();
     std::vector<Monte::GameObject>& getUnits();
@@ -41,7 +50,7 @@ class Squad {
     
     bool aMoveToTarget;
 
-    char state; // TODO: brrr make a State enum, need to decide if to make it here or in child classes
+    State state; // TODO: brrr make a State enum, need to decide if to make it here or in child classes
     short id;
 
     std::vector<Monte::GameObject> units;

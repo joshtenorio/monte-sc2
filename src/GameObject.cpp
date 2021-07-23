@@ -15,6 +15,11 @@ const sc2::Unit* GameObject::getUnit(){
     return gInterface->observation->GetUnit(tag);
 }
 
+void GameObject::setState(State newState){
+    state = newState;
+}
+
+
 GameObject::State GameObject::getState(){
     return state;
 }

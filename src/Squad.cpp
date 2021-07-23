@@ -58,11 +58,11 @@ short Squad::getSquadId(){
     return id;
 }
 
-void Squad::setState(char state_){
+void Squad::setState(State state_){
     state = state_;
 }
 
-char Squad::getState(){
+Squad::State Squad::getState(){
     return state;
 }
 
