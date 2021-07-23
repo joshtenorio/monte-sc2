@@ -16,12 +16,7 @@ void CombatCommander::OnStep(){
     sm.OnStep();
 
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
-    for(auto& m : marines){
-        manageStim(m);
-    }
     
-    // handle marines
-    marineOnStep();
 
     // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
@@ -30,7 +25,6 @@ void CombatCommander::OnStep(){
     } // end if gameloop % 12 == 0
 
     
-
     // if we have a bunker, put marines in it
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     if(!bunkers.empty())
@@ -188,77 +182,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
     sm.OnUnitEnterVision(unit_);
 }
 
-void CombatCommander::marineOnStep(){
-    int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
 
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
-        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-        sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
-        //std::cout << "sending a wave of marines\n";
-        for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
-                reachedEnemyMain = true;
-                gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
-            }
-            
-            // attack closest enemy expansion
-            if(!reachedEnemyMain && m->orders.empty()){
-                // TODO: in mapper make a "closest <owner> expo" function
-                Expansion* closestEnemyExpo = nullptr;
-                for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
-                    // check if it is an enemy expansion and we are not at that base
-                    if(
-                        gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY &&
-                        sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
-                        {
-                        closestEnemyExpo = gInterface->map->getNthExpansion(n);
-                        break;
-                    }
-                } // end for expansions
-                if(closestEnemyExpo != nullptr){
-                    gInterface->actions->UnitCommand(
-                            m,
-                            ABILITY_ID::ATTACK_ATTACK,
-                            closestEnemyExpo->baseLocation);
-                }
-                else{
-                    gInterface->actions->UnitCommand(
-                        m,
-                        ABILITY_ID::ATTACK_ATTACK,
-                        gInterface->observation->GetGameInfo().enemy_start_locations.front());
-                }
-            } // end if !reachedEnemyMain && m->orders.empty()
-            else if(!enemy.empty() && m->orders.empty()){
-                const sc2::Unit* closest = nullptr;
-                float distance = std::numeric_limits<float>::max();
-
-                for(auto& e : enemy)
-                    // prioritise an enemy that is not flying
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (!e->is_flying)){
-                        closest = e;
-                        distance = sc2::DistanceSquared2D(e->pos, m->pos);
-                    }
-
-                if(closest == nullptr)
-                    for(auto& e : enemy)
-                        // if we cant find a ground target then just target any visible enemy
-                        if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
-                            closest = e;
-                            distance = sc2::DistanceSquared2D(e->pos, m->pos);
-                        }
-
-                if(closest != nullptr)
-                    gInterface->actions->UnitCommand(
-                        m,
-                        sc2::ABILITY_ID::ATTACK_ATTACK,
-                        closest->pos);
-            } // end else if
-                
-                
-        } // end for loop
-    } // end if idle bio > wave amount
-}
 
 void CombatCommander::medivacOnStep(){
     sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
