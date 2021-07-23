@@ -358,31 +358,3 @@ void CombatCommander::siegeTankOnStep(){
 
     } // end marine loop
 }
-
-
-void CombatCommander::manageStim(const sc2::Unit* unit){
-    
-    if(unit == nullptr) return;
-    std::vector<sc2::BuffID> buffs = unit->buffs;
-    for(auto& b : buffs)
-        if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
-            return;
-        }
-    
-    // if we have a decent amount of health left and there are enemies nearby
-    if(
-        unit->health/unit->health_max >= 0.6 &&
-        !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
-
-        switch(unit->unit_type.ToType()){
-            case sc2::UNIT_TYPEID::TERRAN_MARINE:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
-                break;
-            case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
-                break;
-            default:
-                return;
-        }
-    }
-}

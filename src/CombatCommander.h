@@ -24,8 +24,6 @@ class CombatCommander : public Manager {
     void medivacOnStep();
     void siegeTankOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
-
-    void manageStim(const sc2::Unit* unit);
     
 
     protected:
