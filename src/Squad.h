@@ -1,13 +1,13 @@
 #pragma once
 
 #include "api.h"
-#include "micro/MicroManager.h"
+#include "micro/BioManager.h"
 #include "GameObject.h"
 
 class Squad {
     public:
-    Squad() {};
-    Squad(short id_) : id(id_) {};
+    Squad() { bm = BioManager(); };
+    Squad(short id_) : id(id_) { bm = BioManager(); };
 
     virtual void OnStep() = 0;
 
@@ -41,9 +41,11 @@ class Squad {
     
     bool aMoveToTarget;
 
-    char state; // TODO: this necessary? possibly so that micromanager knows what type of squad it is and what squad is currently doing
+    char state; // TODO: brrr make a State enum, need to decide if to make it here or in child classes
     short id;
 
     std::vector<Monte::GameObject> units;
+
+    BioManager bm;
 
 };

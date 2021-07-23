@@ -3,8 +3,6 @@
 #include <sc2api/sc2_unit.h>
 #include "GameObject.h"
 
-#define UNIT_STATE_INIT 0
-
 class MicroManager {
     public:
     MicroManager() {};
