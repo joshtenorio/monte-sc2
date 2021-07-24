@@ -21,9 +21,12 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
+    
     API::OnGameStart();
+    im.OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
+
     gInterface->matchID = logger.createOutputPrefix();
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
     logger.infoInit().withStr("bot version: " + version).write();

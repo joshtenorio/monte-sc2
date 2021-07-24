@@ -1,18 +1,39 @@
 #include "InformationManager.h"
 
+InformationManager::InformationManager(){
+    logger = Logger("InformationManager");
+    
+}
+
+void InformationManager::OnGameStart(){
+    std::vector<sc2::PlayerInfo> players = gInterface->observation->GetGameInfo().player_info;
+    for(auto& p : players)
+        if(p.player_name != "Monte"){
+            enemyRace = p.race_requested;
+            break;
+        }
+}
+
 void InformationManager::OnStep(){
     checkForWorkerRush();
+    checkForMassAir();
 
     // update expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 }
 
-ProductionConfig InformationManager::updateProductionConfig(ProductionConfig currentPConfig){
-    return currentPConfig; //tmp
+ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
+    
+    if(requireAntiAir){
+        currentPConfig.buildTurrets = true;
+    }
+
+
+    return currentPConfig; // TODO: since we pass in the reference to the current config, do we need this?
 }
 
-CombatConfig InformationManager::updateCombatConfig(CombatConfig currentCConfig){
+CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig){
     return currentCConfig; //tmp
 }
 
@@ -41,6 +62,13 @@ void InformationManager::checkForEnemyCloak(){
 
 }
 
-void checkForMassAir(){
+void InformationManager::checkForMassAir(){
     // check for mutacount >= 8, or spire, etc
+    // TODO: also check for broodlords, 
+    mutaCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_MUTALISK)).size();
+    
+    if(mutaCount >= 8 && !requireAntiAir){
+        requireAntiAir = true;
+        logger.tag("require_anti_air");
+    }
 }

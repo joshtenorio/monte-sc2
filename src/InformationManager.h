@@ -5,13 +5,14 @@
 
 class InformationManager : public Manager {
     public:
-    InformationManager() { logger = Logger("InformationManager"); };
+    InformationManager();
 
     // TODO: if any of the instance variables are changed, send a chat message + logger, and perhaps create a tag
+    void OnGameStart();
     void OnStep();
 
-    ProductionConfig updateProductionConfig(ProductionConfig currentPConfig);
-    CombatConfig updateCombatConfig(CombatConfig currentCConfig);
+    ProductionConfig updateProductionConfig(ProductionConfig& currentPConfig);
+    CombatConfig updateCombatConfig(CombatConfig& currentCConfig);
 
     protected:
 
@@ -19,6 +20,8 @@ class InformationManager : public Manager {
     void checkForWorkerRush();
     void checkForEnemyCloak();
     void checkForMassAir();
+
+    sc2::Race enemyRace;
 
     // here, create instance variables that represent important information
     // if we are able to detect an all in, we should build a pf instead of orbital at the natural
@@ -34,5 +37,8 @@ class InformationManager : public Manager {
     bool workerRushDetected = false;
 
     bool enemyHeavyEcon = false; // if this is true, set combatstate to aggressive - test against bluntmacro, miningmachine
+
+    private:
+    int mutaCount = 0;
 
 };
