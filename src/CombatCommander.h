@@ -11,8 +11,8 @@
 class CombatCommander : public Manager {
     public:
     // constructors
-    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
-    // TODO: add a constructor with strategy
+    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); mainSquad = AttackSquad(); };
+    // TODO: add a constructor with strategy, bc we need CombatConfig from strategy
 
     void OnGameStart();
     void OnStep();
@@ -21,11 +21,8 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
-
-    
-
     protected:
     ScoutManager sm;
 
-    AttackSquad attackSquad; // there should only be one attack squad
+    AttackSquad mainSquad; // there should only be one attack squad
 };
