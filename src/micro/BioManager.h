@@ -12,7 +12,7 @@ class BioManager : public MicroManager {
     void doStateAction(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target);
 
     // update GameObject state if required
-    void validateState(Monte::GameObject& unit, Squad::State squadState);
+    void validateState(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target);
 
     protected:
     void manageStim(Monte::GameObject& unit, Squad::State squadState);

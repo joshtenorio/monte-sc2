@@ -14,7 +14,7 @@ void BioManager::doStateAction(Monte::GameObject& unit, Squad::State squadState,
     }
 }
 
-void BioManager::validateState(Monte::GameObject& unit, Squad::State squadState){
+void BioManager::validateState(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
         case Squad::Pause:
             break;

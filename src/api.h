@@ -18,8 +18,7 @@
 #include "Debug.h"
 #include "Strategy.h"
 
-using namespace sc2;
-
+using namespace sc2; // TODO: remove this
 
 namespace API {
 
