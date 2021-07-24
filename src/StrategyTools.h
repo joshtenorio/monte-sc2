@@ -104,7 +104,7 @@ typedef struct ProductionConfig_s_t {
     bool pullWorkers = true;
 
     // if we need missile turrets
-    bool buildTurrets = true; //FIXME: change it back to false when we are done testing
+    bool buildTurrets = false;
 
     // defines what we produce by default
     sc2::ABILITY_ID barracksOutput = PRODUCTION_UNUSED;

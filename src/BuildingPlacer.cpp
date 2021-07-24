@@ -63,10 +63,10 @@ void BuildingPlacer::OnStep(){
 
 
     // TODO: comment this out when building for ladder
-    /*
-    if(gInterface->observation->GetGameLoop() % 400 == 0)
-        printDebug();
-        */
+    
+    //if(gInterface->observation->GetGameLoop() % 400 == 0)
+    //    printDebug();
+        
 }
 
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
@@ -84,10 +84,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 if(e->ownership == OWNER_SELF) // build a missile turret at an expansion if we own it and it doesnt have a missile turret already
                     if(API::getClosestNUnits(e->baseLocation, 2, 10, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_MISSILETURRET).empty()){
                         Monte::Vector2D direction = Monte::Vector2D(e->baseLocation, e->mineralMidpoint);
-                        sc2::Point2D output = Monte::getPoint2D(e->baseLocation, direction, 4);
-                        gInterface->debug->debugSphereOut(sc2::Point3D(output.x, output.y, gInterface->observation->TerrainHeight(output)), 1);
-                        gInterface->debug->sendDebug();
-                        return output;
+                        sc2::Point2D init = Monte::getPoint2D(e->baseLocation, direction, 4);
+                        return sc2::Point2D(init.x + rx * 4.0f, init.y + ry * 4.0f);
                     }
             }
             return POINT2D_NULL;
