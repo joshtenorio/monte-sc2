@@ -6,6 +6,7 @@
 #include "api.h"
 #include "Manager.h"
 #include "ScoutManager.h"
+#include "AttackSquad.h"
 
 class CombatCommander : public Manager {
     public:
@@ -20,16 +21,11 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
-    void medivacOnStep();
-    void siegeTankOnStep();
-    void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
+
     
 
     protected:
     ScoutManager sm;
 
-    // used for marine control
-    bool reachedEnemyMain;
-    std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
-    std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
+    AttackSquad attackSquad; // there should only be one attack squad
 };
