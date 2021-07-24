@@ -40,3 +40,7 @@ void InformationManager::checkForEnemyCloak(){
     // also we should send a chat message and temporarily a Tag as well
 
 }
+
+void checkForMassAir(){
+    // check for mutacount >= 8, or spire, etc
+}

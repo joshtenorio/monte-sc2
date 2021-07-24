@@ -18,6 +18,7 @@ class InformationManager : public Manager {
     void updateExpoOwnership();
     void checkForWorkerRush();
     void checkForEnemyCloak();
+    void checkForMassAir();
 
     // here, create instance variables that represent important information
     // if we are able to detect an all in, we should build a pf instead of orbital at the natural
