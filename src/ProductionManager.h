@@ -27,6 +27,8 @@ class ProductionManager : public Manager {
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
     void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
+    ProductionConfig& getProductionConfig();
+
     protected:
     void handleBuildOrder();
     void handleBuildOrderDeadlock();

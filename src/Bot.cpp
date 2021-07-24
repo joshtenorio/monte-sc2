@@ -21,7 +21,7 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
-    
+
     API::OnGameStart();
     im.OnGameStart();
     pm.OnGameStart();
@@ -95,6 +95,8 @@ void Bot::OnStep() {
     pm.OnStep();
     wm.OnStep();
     cc.OnStep();
+
+    im.updateProductionConfig(pm.getProductionConfig());
 
     // raise supply depots if enemy is nearby
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));

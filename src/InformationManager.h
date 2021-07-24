@@ -40,5 +40,6 @@ class InformationManager : public Manager {
 
     private:
     int mutaCount = 0;
+    bool spireExists = false;
 
 };

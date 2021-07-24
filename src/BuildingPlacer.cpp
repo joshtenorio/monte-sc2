@@ -76,6 +76,22 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
     float rx = sc2::GetRandomScalar(), ry = sc2::GetRandomScalar();
     sc2::Point2D loc = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
     switch(building){
+        case sc2::ABILITY_ID::BUILD_MISSILETURRET:
+            for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+                Expansion* e = gInterface->map->getNthExpansion(n);
+                if(e == nullptr) continue;
+
+                if(e->ownership == OWNER_SELF) // build a missile turret at an expansion if we own it and it doesnt have a missile turret already
+                    if(API::getClosestNUnits(e->baseLocation, 2, 10, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_MISSILETURRET).empty()){
+                        Monte::Vector2D direction = Monte::Vector2D(e->baseLocation, e->mineralMidpoint);
+                        sc2::Point2D output = Monte::getPoint2D(e->baseLocation, direction, 4);
+                        gInterface->debug->debugSphereOut(sc2::Point3D(output.x, output.y, gInterface->observation->TerrainHeight(output)), 1);
+                        gInterface->debug->sendDebug();
+                        return output;
+                    }
+            }
+            return POINT2D_NULL;
+            break;
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
@@ -211,8 +227,8 @@ bool BuildingPlacer::checkConflict(sc2::Point2D center, float radius){
     for(int x = xMin; x < xMax; x++){
         for(int y = yMin; y < yMax; y++){
             if(reservedTiles[x][y]){
-                logger.warningInit().withStr("trying to build a structure with radius").withFloat(radius).withStr("at").withPoint(center);
-                logger.withStr("but space already reserved").write();
+                //logger.warningInit().withStr("trying to build a structure with radius").withFloat(radius).withStr("at").withPoint(center);
+                //logger.withStr("but space already reserved").write();
                 return true;
             }
         }

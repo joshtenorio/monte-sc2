@@ -16,7 +16,9 @@ void InformationManager::OnGameStart(){
 
 void InformationManager::OnStep(){
     checkForWorkerRush();
-    checkForMassAir();
+
+    if(gInterface->observation->GetGameLoop() % 30 == 0)
+        checkForMassAir();
 
     // update expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
@@ -64,10 +66,13 @@ void InformationManager::checkForEnemyCloak(){
 
 void InformationManager::checkForMassAir(){
     // check for mutacount >= 8, or spire, etc
-    // TODO: also check for broodlords, 
+    // TODO: also check for broodlords, etc
     mutaCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_MUTALISK)).size();
+
+    if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
+        spireExists = true;
     
-    if(mutaCount >= 8 && !requireAntiAir){
+    if((mutaCount >= 8 && !requireAntiAir) || spireExists){ // TODO: muta threshold probably needs tuning
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
