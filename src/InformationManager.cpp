@@ -66,13 +66,15 @@ void InformationManager::checkForEnemyCloak(){
 
 void InformationManager::checkForMassAir(){
     // check for mutacount >= 8, or spire, etc
-    // TODO: also check for broodlords, etc
+    // TODO: also check for broodlords, banshees, etc
+
+    // this is concurrent mutaCount, not all of the mutas we have seen so far
     mutaCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_MUTALISK)).size();
 
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
     
-    if((mutaCount >= 8 && !requireAntiAir) || spireExists){ // TODO: muta threshold probably needs tuning
+    if((mutaCount >= 4 && !requireAntiAir) || spireExists){ // TODO: muta threshold probably needs tuning
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
