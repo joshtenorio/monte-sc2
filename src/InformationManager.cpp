@@ -29,6 +29,8 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
     
     if(requireAntiAir){
         currentPConfig.buildTurrets = true;
+        currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
+        currentPConfig.maxStarports = 3;
     }
 
 
