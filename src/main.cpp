@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     // coordinator.SetFullScreen(true);
 
     // NOTE: Uncomment to play at normal speed.
-    // coordinator.SetRealtime(true);
+    coordinator.SetRealtime(true);
 
     // Disables ability to control your bot during game.
     // Recommended for competitions.
@@ -113,14 +113,15 @@ int main(int argc, char* argv[])
     EmptyBot empty;
     coordinator.SetParticipants(
         {
-            CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
+            CreateParticipant(sc2::Race::Zerg, &empty, "Empty"),
+            CreateParticipant(sc2::Race::Terran, &bot, "Monte")
             /*
             CreateComputer(
                 sc2::Race::Zerg,
                 sc2::Difficulty::VeryHard,
                 sc2::AIBuild::Macro
                 )*/
-            CreateParticipant(sc2::Race::Zerg, &empty, "Empty")
+            
         });
 
     coordinator.LaunchStarcraft();

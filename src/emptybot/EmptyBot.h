@@ -4,5 +4,9 @@
 
 class EmptyBot : public sc2::Agent {
     public:
-    EmptyBot();
+    EmptyBot() {};
+
+    void OnGameStart() {};   
+    void OnStep() {};
+    void OnGameEnd() {};
 };
