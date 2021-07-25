@@ -79,7 +79,7 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
             sc2::Point2D targetFlightPoint = Monte::getPoint2D(enemyMineralMidpoint, Monte::Vector2D(enemyMain, enemyMineralMidpoint), 7);
             
             // then get the intermediate flight point
-            sc2::Point2D intermediateFlightPoint = sc2::Point2D(targetFlightPoint.x, unit_->pos.y);
+            sc2::Point2D intermediateFlightPoint = sc2::Point2D(unit_->pos.x, targetFlightPoint.y);
 
             // validate the flight points (ie make sure they are within map bounds)
             // if they are not valid, adjust them so they fit within map bounds
@@ -306,7 +306,7 @@ void CombatCommander::siegeTankOnStep(){
 
     for(auto& st : siegeTanks){
         // get closest enemy ground units within a radius of 13
-        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 13, sc2::Unit::Alliance::Enemy,
+        sc2::Units nearby = API::getClosestNUnits(st->pos, 25, 12, sc2::Unit::Alliance::Enemy,
             [](const sc2::Unit& u){
                 return !u.is_flying;
             }

@@ -27,6 +27,8 @@ class ProductionManager : public Manager {
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
     void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
+    ProductionConfig& getProductionConfig();
+
     protected:
     void handleBuildOrder();
     void handleBuildOrderDeadlock();
@@ -44,13 +46,16 @@ class ProductionManager : public Manager {
     void castBuildingAbility(Step s);
 
     bool TryBuildSupplyDepot();
-    bool TryBuildBarracks();
+    bool TryBuildBarracks(); // TODO: add trybuildstarport, factory etc
+    bool tryBuildFactory();
+    bool tryBuildStarport();
     bool tryBuildRefinery();
     bool tryBuildCommandCenter();
     bool tryBuildArmory();
     bool tryBuildEngineeringBay();
     bool tryBuildBunker();
     bool tryBuildAddon();
+    bool tryBuildMissileTurret();
 
     bool tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n);
 

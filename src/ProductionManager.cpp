@@ -16,6 +16,9 @@ void ProductionManager::OnStep(){
     // handle mules
     callMules();
 
+    // try building missile turrets regardless of build order is finished or not
+    tryBuildMissileTurret();
+
     // build stuff in the build order
     handleBuildOrder();
 
@@ -128,6 +131,10 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
         gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
         
 
+}
+
+ProductionConfig& ProductionManager::getProductionConfig(){
+    return config;
 }
 
 void ProductionManager::handleBuildOrder(){
@@ -370,6 +377,12 @@ void ProductionManager::buildStructure(Step s){
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             TryBuildBarracks();
             break;
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+            tryBuildFactory();
+            break;
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+            tryBuildStarport();
+            break;
         case sc2::ABILITY_ID::BUILD_REFINERY:
             tryBuildRefinery();
             break;
@@ -452,8 +465,18 @@ bool ProductionManager::TryBuildSupplyDepot(){
 bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 8 barracks already
     if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= 8) return false;
+        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
     return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+}
+
+bool ProductionManager::tryBuildFactory(){
+    if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) >= config.maxFactories) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
+}
+
+bool ProductionManager::tryBuildStarport(){
+    if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_STARPORT) >= config.maxStarports) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
 }
 
 bool ProductionManager::tryBuildRefinery(){
@@ -504,6 +527,14 @@ bool ProductionManager::tryBuildAddon(){
     }
 
     return true;
+}
+
+bool ProductionManager::tryBuildMissileTurret(){
+    // only build missile turret if information manager says so
+    if(!config.buildTurrets) return false;
+
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
+            
 }
 
 // trains at most n units

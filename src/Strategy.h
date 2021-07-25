@@ -5,6 +5,10 @@
 #include "api.h"
 #include "StrategyTools.h"
 
+#define STRAT_TYPE_STANDARD 0
+#define STRAT_TYPE_PROXY    1
+#define STRAT_TYPE_ALLIN    2
+
 class Strategy{
     public:
     Strategy() {};
@@ -38,13 +42,16 @@ class Strategy{
     // misc functions
     bool isEmpty();
     int getBuildOrderSize();
-    ProductionConfig getConfig();
+    ProductionConfig getConfig(); // TODO: rename this
+    CombatConfig getCombatConfig();
     int getType(sc2::ABILITY_ID ability); // gets the metaType for an ability
 
     protected:
     std::vector<Step> buildOrder;
 
-    // this should be adjusted in initialize()
-    ProductionConfig config;
+    // these should be adjusted in initialize() //
+    char strategyType;
+    ProductionConfig config; // TODO: change this name to prodConfig or pConfig or something
+    CombatConfig combatConfig; // cConfig ?
 
 };

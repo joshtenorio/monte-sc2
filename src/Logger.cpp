@@ -70,6 +70,21 @@ void Logger::write(std::string fileName, bool error){
     file.close();
 }
 
+void Logger::chat(std::string str){
+    gInterface->actions->SendChat(str);
+}
+
+void Logger::chat(bool toStdout){
+    chat(output);
+    if(toStdout)
+        write();
+}
+
+
+void Logger::tag(std::string str){
+    gInterface->actions->SendChat("Tag: " + str);
+}
+
 int Logger::createOutputPrefix(){
     // read match count
     std::ifstream fileReader;

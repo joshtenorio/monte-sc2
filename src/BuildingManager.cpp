@@ -141,7 +141,7 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
         building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
         building_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORT
     )
-        bp.reserveTiles(sc2::Point2D(building_->pos.x + 2.5, building_->pos.y - 0.5), 1);
+        bp.reserveTiles(sc2::Point2D(building_->pos.x + 2.5, building_->pos.y - 0.5), 1); // radius for supply depot is 1
 }
 
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){

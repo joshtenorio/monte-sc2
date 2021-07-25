@@ -52,22 +52,21 @@ void BuildingPlacer::OnStep(){
         if(gInterface->map->getNthExpansion(1) != nullptr)
             natural = gInterface->map->getNthExpansion(1)->baseLocation;
 
-        float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-        dx /= sqrt(dx*dx + dy*dy);
-        dy /= sqrt(dx*dx + dy*dy);
-        dx *= 5;
-        dy *= 5;
-        float xLoc = floorf(natural.x + dx) + 0.5;
-        float yLoc = floorf(natural.y + dy) + 0.5;
+        sc2::Point2D bunkerLoc = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 5);
+        bunkerLoc.x = floorf(bunkerLoc.x) + 0.5;
+        bunkerLoc.y = floorf(bunkerLoc.y) + 0.5;
 
-        reserveTiles(sc2::Point2D(xLoc, yLoc), 1.5);
-    }
+        reserveTiles(bunkerLoc, 1.5);
+
+    } // end if game loop == 60
+
+
 
     // TODO: comment this out when building for ladder
-    /*
-    if(gInterface->observation->GetGameLoop() % 400 == 0)
-        printDebug();
-        */
+    
+    //if(gInterface->observation->GetGameLoop() % 400 == 0)
+    //    printDebug();
+        
 }
 
 sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D around, float freeRadius){
@@ -77,6 +76,20 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
     float rx = sc2::GetRandomScalar(), ry = sc2::GetRandomScalar();
     sc2::Point2D loc = sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
     switch(building){
+        case sc2::ABILITY_ID::BUILD_MISSILETURRET:
+            for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+                Expansion* e = gInterface->map->getNthExpansion(n);
+                if(e == nullptr) continue;
+
+                if(e->ownership == OWNER_SELF) // build a missile turret at an expansion if we own it and it doesnt have a missile turret already
+                    if(API::getClosestNUnits(e->baseLocation, 2, 10, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_MISSILETURRET).empty()){
+                        Monte::Vector2D direction = Monte::Vector2D(e->baseLocation, e->mineralMidpoint);
+                        sc2::Point2D init = Monte::getPoint2D(e->baseLocation, direction, 4);
+                        return sc2::Point2D(init.x + rx * 4.0f, init.y + ry * 4.0f);
+                    }
+            }
+            return POINT2D_NULL;
+            break;
         case sc2::ABILITY_ID::BUILD_BARRACKS:
             // if barracks count == 0, build at ramp
             if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING) == 0)
@@ -98,8 +111,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                     return POINT2D_NULL;
                 }
             
-            //gInterface->debug->debugSphereOut(sc2::Point3D(loc.x + 2.5, loc.y - 0.5, around.z), 1);
-            //gInterface->debug->sendDebug();
+
             return loc;
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
@@ -124,15 +136,11 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 if(gInterface->map->getNthExpansion(1) != nullptr)
                     natural = gInterface->map->getNthExpansion(1)->baseLocation;
                 else goto useDefault;
-                float dx = enemyMain.x - natural.x, dy = enemyMain.y - natural.y;
-                dx /= sqrt(dx*dx + dy*dy);
-                dy /= sqrt(dx*dx + dy*dy);
-                dx *= 5;
-                dy *= 5;
 
-                float xLoc = floorf(natural.x + dx) + 0.5;
-                float yLoc = floorf(natural.y + dy) + 0.5;
-                return sc2::Point2D(xLoc, yLoc);
+                sc2::Point2D bunkerLoc = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 5);
+                bunkerLoc.x = floorf(bunkerLoc.x) + 0.5;
+                bunkerLoc.y = floorf(bunkerLoc.y) + 0.5;
+                return bunkerLoc;
             }
             else goto useDefault;
         default:
@@ -140,8 +148,8 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
             // TODO: make this behavior better (ie actually utilise freeRadius)
 
             // if there are no conflicts, get a random location to build building within a 20x20 region where the scv is at the center
-            if(!checkConflict(sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f), API::getStructureRadiusByAbility(building)))
-                return sc2::Point2D(around.x + rx * 10.0f, around.y + ry * 10.0f);
+            if(!checkConflict(loc, API::getStructureRadiusByAbility(building)))
+                return loc;
             else
                 return POINT2D_NULL;
 
@@ -216,7 +224,11 @@ bool BuildingPlacer::checkConflict(sc2::Point2D center, float radius){
 
     for(int x = xMin; x < xMax; x++){
         for(int y = yMin; y < yMax; y++){
-            if(reservedTiles[x][y]) return true;
+            if(reservedTiles[x][y]){
+                //logger.warningInit().withStr("trying to build a structure with radius").withFloat(radius).withStr("at").withPoint(center);
+                //logger.withStr("but space already reserved").write();
+                return true;
+            }
         }
     }
     return false;
