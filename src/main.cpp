@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 
 #else
 
-#include "emptybot/EmptyBot.h"
+//#include "emptybot/EmptyBot.h"
 
 int main(int argc, char* argv[])
 {
@@ -110,17 +110,17 @@ int main(int argc, char* argv[])
     // coordinator.SetRawAffectsSelection(true);
 
     Bot bot;
-    EmptyBot empty;
+    //EmptyBot empty;
     coordinator.SetParticipants(
         {
-            CreateParticipant(sc2::Race::Zerg, &empty, "Empty"),
-            CreateParticipant(sc2::Race::Terran, &bot, "Monte")
-            /*
+            //CreateParticipant(sc2::Race::Zerg, &empty, "Empty"),
+            CreateParticipant(sc2::Race::Terran, &bot, "Monte"),
+            
             CreateComputer(
                 sc2::Race::Zerg,
                 sc2::Difficulty::VeryHard,
                 sc2::AIBuild::Macro
-                )*/
+                )
             
         });
 
