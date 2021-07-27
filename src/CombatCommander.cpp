@@ -153,7 +153,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         sc2::Units workers;
         int structureCount = API::countUnitType([](const sc2::Unit& u){
                 return API::isStructure(u.unit_type.ToType());
-            });
+            }); // FIXME: get a PROPER way of detecting worker rushes because this aint it (ie look for abnormal amount of workers in the early game)
         if(structureCount < 5) // if we have less than 5 structures we are either definitely losing or facing a worker rush, so pull a lot of workers
             workers = API::getClosestNUnits(unit_->pos, 12, 16, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
         else // else just pull a reasonable amount
