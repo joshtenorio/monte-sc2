@@ -155,7 +155,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
                 return API::isStructure(u.unit_type.ToType());
             });
         if(structureCount < 5) // if we have less than 5 structures we are either definitely losing or facing a worker rush, so pull a lot of workers
-            workers = API::getClosestNUnits(unit_->pos, 24, 24, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
+            workers = API::getClosestNUnits(unit_->pos, 15, 16, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
         else // else just pull a reasonable amount
             workers = API::getClosestNUnits(unit_->pos, 7, 9, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
 
