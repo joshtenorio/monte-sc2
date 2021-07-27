@@ -76,7 +76,7 @@ void InformationManager::checkForMassAir(){
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
     
-    if((mutaCount >= 4 && !requireAntiAir) || spireExists){ // TODO: muta threshold probably needs tuning
+    if((mutaCount >= 4 && !requireAntiAir) || (spireExists && !requireAntiAir)){ // TODO: muta threshold probably needs tuning
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
