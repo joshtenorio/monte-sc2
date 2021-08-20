@@ -2,7 +2,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_8_2"; // update this everytime we upload
+std::string version = "v0_8_3"; // update this everytime we upload
 
 // TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
@@ -41,7 +41,7 @@ void Bot::OnGameStart(){
 
 void Bot::OnBuildingConstructionComplete(const Unit* building_){
     logger.infoInit().withUnit(building_).withStr("constructed").write();
-    logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
+    //logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
