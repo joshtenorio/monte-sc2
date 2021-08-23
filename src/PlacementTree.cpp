@@ -76,7 +76,7 @@ void PlacementTree::expand(std::vector< std::vector< bool >>& reservedTileMap, i
                     itr = newDirection;
                 else return;
             }
-        }
+        } // end if itr->status != PTNODE_TERMINAL
         
 
     } // end while createdNodes < newNodes
