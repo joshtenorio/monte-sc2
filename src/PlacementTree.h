@@ -10,9 +10,12 @@
 #include <vector>
 
 // TODO: since this is used in a Monte namespace, perhaps this should be enum instead
-#define PTNODE_FREE     0 // the node's location is open and available
-#define PTNODE_TAKEN    1 // the node's location is used
+#define PTNODE_FREE      0 // the node's location is open and available
+#define PTNODE_TAKEN     1 // the node's location is used
 #define PTNODE_TERMINAL  2 // the node's location is invalid
+
+#define PTBRANCH_TERMINAL 0 // the branch has been fully explored
+#define PTBRANCH_OPEN     1 // the branch is not yet fully explored
 
 namespace Monte {
 
@@ -22,9 +25,9 @@ typedef struct PlacementTreeNode_s_t {
     sc2::Point2D location;
 
     char status = PTNODE_TERMINAL;
-    char branchStatus;
-    int numChildren;
-    short level;
+    char branchStatus = PTBRANCH_TERMINAL;
+    int numChildren = 0;
+    short level = 0;
 
     // pointers to children nodes in the tree
     PTNode* n, *s, *e, *w;
