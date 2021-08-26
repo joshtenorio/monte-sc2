@@ -15,12 +15,13 @@ void InformationManager::OnGameStart(){
 }
 
 void InformationManager::OnStep(){
-    checkForWorkerRush();
+
+    checkForWorkerRush(); // only check this before 3 or 4 minutes
 
     if(gInterface->observation->GetGameLoop() % 30 == 0)
         checkForMassAir();
 
-    // update expansions well after mapper has initialized
+    // start updating expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 }
