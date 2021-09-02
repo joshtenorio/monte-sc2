@@ -1,5 +1,5 @@
 # monte-bot
-[![forthebadge](https://forthebadge.com/images/badges/60-percent-of-the-time-works-every-time.svg)](https://forthebadge.com)
+
 ## About
 Monte is a StarCraft II Terran rule-based bot.
 Its architecture is based off of parts of CommandCenter I liked.
@@ -11,6 +11,8 @@ Monte currently supports the following features:
 - calling MULES
 - Rudimentary scouting to find enemy bases
 - Getting infantry weapon/armor upgrades
+
+![for the badge](./worker-rush-not-included.svg)
 
 ## Building
 ### Windows
