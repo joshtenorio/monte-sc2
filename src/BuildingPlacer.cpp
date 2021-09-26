@@ -30,6 +30,7 @@ void BuildingPlacer::initialize(){
 
 void BuildingPlacer::OnStep(){
 
+    // do tasks that rely on Mapper
     if(gInterface->observation->GetGameLoop() == 60){
         // reserve expansion locations
         for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
@@ -57,6 +58,10 @@ void BuildingPlacer::OnStep(){
         bunkerLoc.y = floorf(bunkerLoc.y) + 0.5;
 
         reserveTiles(bunkerLoc, 1.5);
+        
+        // generate root for initial army building placement tree
+        root = gInterface->map->getStartingExpansion().ramp.barracksWithAddonPos;
+        Monte::PlacementTree::addToCache(root);
 
     } // end if game loop == 60
 
@@ -96,23 +101,7 @@ sc2::Point2D BuildingPlacer::findLocation(sc2::ABILITY_ID building, sc2::Point3D
                 return findBarracksLocation();
         case sc2::ABILITY_ID::BUILD_FACTORY:
         case sc2::ABILITY_ID::BUILD_STARPORT:
-
-            // if proposed location conflicts with a reserved tile, 
-            if(checkConflict(loc, 1.5) || checkConflict(sc2::Point2D(loc.x + 2.5, loc.y - 0.5), 1)){
-                return POINT2D_NULL;
-            }
-
-            queries.emplace_back(sc2::ABILITY_ID::BUILD_BARRACKS, loc);
-            queries.emplace_back(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, sc2::Point2D(loc.x + 2.5, loc.y - 0.5));
-            results = gInterface->query->Placement(queries);
-            for(auto r : results)
-                if(!r){
-                    //logger.errorInit().withPoint(loc).withStr("not valid location for army building").write("buildingplacer.txt", true);
-                    return POINT2D_NULL;
-                }
-            
-
-            return loc;
+            return findArmyBuildingLocation(around);
             break;
         case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
             // if depot count < 2, build at ramp
@@ -290,6 +279,28 @@ sc2::Point2D BuildingPlacer::findCommandCenterLocation(){
         return nextExpansion->baseLocation;
     else
         return sc2::Point2D(gInterface->observation->GetStartLocation().x, gInterface->observation->GetStartLocation().y);
+}
+
+sc2::Point2D BuildingPlacer::findArmyBuildingLocation(sc2::Point3D around){
+    sc2::Point2D output = Monte::PlacementTree::findPlacement(root, reservedTiles, 5, PT_DIR_NULL, 2, 2, true);
+
+    // if output is null or the tree is full, find a new root until happy
+    // also retry a maximum of 3 times per step
+    int iterations = 0;
+    while ((output == PT_TREE_FULL || output == PT_NODE_NULL) && iterations < 3){
+
+        // clear cache
+        Monte::PlacementTree::clearCache();
+
+        // generate new root
+        float rx = sc2::GetRandomScalar(), ry = sc2::GetRandomScalar();
+        root = sc2::Point2D(around.x + rx*10.0, around.y + rx*10.0);
+        output = Monte::PlacementTree::findPlacement(root, reservedTiles, 2, PT_DIR_NULL, 2, 2, true);
+        logger.warningInit().withStr("Placement Tree is full/null, trying again with new root").write();
+        iterations++;
+    }
+
+    return output;
 }
 
 const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near){

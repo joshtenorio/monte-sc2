@@ -15,12 +15,14 @@ void InformationManager::OnGameStart(){
 }
 
 void InformationManager::OnStep(){
-    checkForWorkerRush();
+
+    if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 4000)
+        checkForWorkerRush(); // only check this before 3 or 4 minutes
 
     if(gInterface->observation->GetGameLoop() % 30 == 0)
         checkForMassAir();
 
-    // update expansions well after mapper has initialized
+    // start updating expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
 }
@@ -53,11 +55,26 @@ void InformationManager::updateExpoOwnership(){
 
 void InformationManager::checkForWorkerRush(){
     // if we have 4 or more completed buildings, don't check for worker rush
+    int structureCount = API::countUnitType([](const sc2::Unit& u){
+                return (API::isStructure(u.unit_type.ToType()) && u.build_progress == 1.0);
+            });
+    if(structureCount >= 4) return;
 
     // pick a location to search for enemy workers from -> ideally a worker closest to nat or the supply depot at the ramp
+    sc2::Point2D nat = gInterface->map->getNthExpansion(2)->baseLocation;
+    Worker* w = gInterface->wm->getClosestWorker(nat);
+    int numEnemies = 0;
+    if(w != nullptr)
+        if(w->getUnit() != nullptr)
+            numEnemies = API::getClosestNUnits(w->getUnit()->pos, 12, 8, sc2::Unit::Alliance::Enemy).size();
+    else return;
 
     // if we count more than 3 workers, activate worker rush defense code (ie set workerRushDetected to true)
-    
+    if(numEnemies > 3){
+        workerRushDetected = true;
+        logger.tag("worker rush detected");
+    }
+    // TODO: should we add an else to make it false?
 }
 
 void InformationManager::checkForEnemyCloak(){
