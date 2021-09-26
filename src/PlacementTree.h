@@ -36,6 +36,7 @@ namespace Monte {
 class PlacementTree {
     public:
     /*  precondition: root is the center of the building (ie, (4,4) or (4.5,4.5) )
+        precondition: d>0
         parentDir is the direction of this node's parent
     */
     static sc2::Point2D findPlacement(sc2::Point2D root, std::vector< std::vector< bool >>& reservedTileMap, int depth, char parentDir,

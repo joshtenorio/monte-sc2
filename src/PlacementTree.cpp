@@ -6,8 +6,8 @@ namespace Monte {
 sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::vector< bool >>& reservedTileMap,
                                         int depth, char parentDir, int xMargin, int yMargin, bool isArmyBuilding){
     
-    // stopping condition
-    if(depth == 0 || !isValidPlacement(root, reservedTileMap, isArmyBuilding)){
+    // stopping condition: d=0 v (!V(r) ^ !C(r)); V(r) root is valid; C(r) root is in cache
+    if(depth == 0 || (!isValidPlacement(root, reservedTileMap, isArmyBuilding) && isFreeLocation(root))){
         // if we are in original function call and location is invalid, return tree full
         if(parentDir == PT_DIR_NULL) return PT_TREE_FULL;
         
@@ -15,22 +15,20 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
         return (isValidPlacement(root, reservedTileMap, isArmyBuilding) ? root : PT_NODE_NULL);
     }
         
-    
-    std::vector<sc2::Point2D> locations; // n_max = 5; root + 3-4 possible children
-    locations.resize(5);
-    locations.emplace_back(root);
+    // generate child locations
     sc2::Point2D nChild = sc2::Point2D(root.x, root.y+yMargin+(2*1.5));
     sc2::Point2D sChild = sc2::Point2D(root.x, root.y-yMargin-(2*1.5));
     sc2::Point2D eChild = sc2::Point2D(root.x+xMargin+(2*1.5)+2, root.y);
     sc2::Point2D wChild = sc2::Point2D(root.x-xMargin-(2*1.5)-2, root.y);
-    if(!isArmyBuilding){ // TODO: double check this math
+    if(!isArmyBuilding){
         eChild.x -= 2;
         wChild.x += 2;
     }
-
+    
+    std::vector<sc2::Point2D> locations; // n_max = 5; root + 3-4 possible children
+    locations.emplace_back(root);
     switch(parentDir){
-    // FIXME: double check these directions
-        case PT_DIR_NULL: // get 4 children
+        case PT_DIR_NULL: // get all 4 children
         locations.emplace_back(findPlacement(sChild, reservedTileMap, depth-1, PT_DIR_NORTH, xMargin, yMargin, isArmyBuilding));
         locations.emplace_back(findPlacement(nChild, reservedTileMap, depth-1, PT_DIR_SOUTH, xMargin, yMargin, isArmyBuilding));
         locations.emplace_back(findPlacement(wChild, reservedTileMap, depth-1, PT_DIR_EAST, xMargin, yMargin, isArmyBuilding));
@@ -58,11 +56,11 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
         break;
     }
 
+    // find closest free location
     sc2::Point2D output = PT_NODE_NULL;
     float distToRoot = std::numeric_limits<float>::max();
-    // find closest free location
     for(auto& l : locations){
-        if(l == PT_NODE_NULL) continue;
+        if(l == PT_NODE_NULL || l == PT_TREE_FULL) continue;
 
         float dist = sc2::DistanceSquared2D(root, l);
         if(dist < distToRoot && isFreeLocation(l)) output = l;
