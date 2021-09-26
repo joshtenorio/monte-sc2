@@ -270,7 +270,9 @@ sc2::Point2D BuildingPlacer::findArmyBuildingLocation(sc2::Point3D around){
     sc2::Point2D output = Monte::PlacementTree::findPlacement(root, reservedTiles, 5, PT_DIR_NULL, 2, 2, true);
 
     // if output is null or the tree is full, find a new root until happy
-    while (output == PT_TREE_FULL || output == PT_NODE_NULL){
+    // also retry a maximum of 3 times per step
+    int iterations = 0;
+    while ((output == PT_TREE_FULL || output == PT_NODE_NULL) && iterations < 3){
 
         // clear cache
         Monte::PlacementTree::clearCache();
@@ -278,8 +280,9 @@ sc2::Point2D BuildingPlacer::findArmyBuildingLocation(sc2::Point3D around){
         // generate new root
         float rx = sc2::GetRandomScalar(), ry = sc2::GetRandomScalar();
         root = sc2::Point2D(around.x + rx*10.0, around.y + rx*10.0);
-        output = Monte::PlacementTree::findPlacement(root, reservedTiles, 5, PT_DIR_NULL, 2, 2, true);
+        output = Monte::PlacementTree::findPlacement(root, reservedTiles, 2, PT_DIR_NULL, 2, 2, true);
         logger.warningInit().withStr("Placement Tree is full/null, trying again with new root").write();
+        iterations++;
     }
 
     return output;

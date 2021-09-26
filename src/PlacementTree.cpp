@@ -9,12 +9,18 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
     
     // stopping condition: d=0 v (!V(r) ^ !C(r)); V(r) root is valid; C(r) root is in cache
     if(depth == 0 || (!isValidPlacement(root, reservedTileMap, isArmyBuilding) && isFreeLocation(root))){
-        std::cout << "in stopping condition; d=" << depth << parentDir << std::endl;
         // if we are in original function call and location is invalid, return tree full
         if(parentDir == PT_DIR_NULL) return PT_TREE_FULL;
         
         // else 
         return (isValidPlacement(root, reservedTileMap, isArmyBuilding) ? root : PT_NODE_NULL);
+    }
+
+    // if we are at the root of tree and cache.size == 0,
+    // this means we haven't placed anything in the tree yet, so just return root
+    // doing so optimises when we are looking for a new root, we won't have to search the entire tree
+    if(parentDir == PT_DIR_NULL && cache.size() == 0 && isValidPlacement(root, reservedTileMap, isArmyBuilding)){
+        return root;
     }
         
     // generate child locations
@@ -64,7 +70,7 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
     for(auto& l : locations){
         if(l == PT_NODE_NULL || l == PT_TREE_FULL) continue;
 
-        float dist = sc2::Distance2D(root, l);
+        float dist = sc2::DistanceSquared2D(root, l);
         if(dist < distToRoot && isFreeLocation(l)){
             output = l;
             distToRoot = dist;
@@ -80,7 +86,6 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
     if(parentDir == PT_DIR_NULL)
         cache.emplace_back(output);
 
-    std::cout << "distance to root: " << distToRoot << "\tcache size: " << cache.size() << std::endl;
     return output;
 }
 
