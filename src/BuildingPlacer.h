@@ -3,6 +3,7 @@
 #include <sc2api/sc2_common.h>
 #include "api.h"
 #include "Logger.h"
+#include "PlacementTree.h"
 
 #define POINT2D_NULL sc2::Point2D(-1, -1)
 #define POINT3D_NULL sc2::Point3D(-1, -1, -1)
@@ -44,12 +45,14 @@ class BuildingPlacer {
     const sc2::Unit* findRefineryLocation(Expansion* e);
     sc2::Point2D findSupplyDepotLocation();     // will place supply depots at main ramp if <2 depots exist
     sc2::Point2D findCommandCenterLocation();
+    sc2::Point2D findArmyBuildingLocation(sc2::Point3D around);
 
     // TODO: remove this, buildlingplacer doesn't deal with addons anymore
     const sc2::Unit* findUnitForAddon(sc2::ABILITY_ID building, const sc2::Point3D* near = nullptr);
 
     void printDebug();
 
+    sc2::Point2D root; // root used for army building placement trees
     Logger logger;
 
     // this is a 2D vector of bools as opposed to a 1D vector of tiles so that it is easier to reserve/free tiles

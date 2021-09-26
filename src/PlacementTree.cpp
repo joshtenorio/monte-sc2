@@ -2,12 +2,14 @@
 #include "PlacementTree.h"
 
 namespace Monte {
-
+// instantiate vector
+std::vector<sc2::Point2D> PlacementTree::cache;
 sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::vector< bool >>& reservedTileMap,
                                         int depth, char parentDir, int xMargin, int yMargin, bool isArmyBuilding){
     
     // stopping condition: d=0 v (!V(r) ^ !C(r)); V(r) root is valid; C(r) root is in cache
     if(depth == 0 || (!isValidPlacement(root, reservedTileMap, isArmyBuilding) && isFreeLocation(root))){
+        std::cout << "in stopping condition; d=" << depth << parentDir << std::endl;
         // if we are in original function call and location is invalid, return tree full
         if(parentDir == PT_DIR_NULL) return PT_TREE_FULL;
         
@@ -62,8 +64,11 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
     for(auto& l : locations){
         if(l == PT_NODE_NULL || l == PT_TREE_FULL) continue;
 
-        float dist = sc2::DistanceSquared2D(root, l);
-        if(dist < distToRoot && isFreeLocation(l)) output = l;
+        float dist = sc2::Distance2D(root, l);
+        if(dist < distToRoot && isFreeLocation(l)){
+            output = l;
+            distToRoot = dist;
+        }
     }
 
     // if node is null or we somehow get pt_tree_full, return tree full
@@ -74,11 +79,17 @@ sc2::Point2D PlacementTree::findPlacement(sc2::Point2D root, std::vector< std::v
     // add location to cache, if in original function call
     if(parentDir == PT_DIR_NULL)
         cache.emplace_back(output);
+
+    std::cout << "distance to root: " << distToRoot << "\tcache size: " << cache.size() << std::endl;
     return output;
 }
 
 void PlacementTree::clearCache(){
     cache.clear();
+}
+
+void PlacementTree::addToCache(sc2::Point2D loc){
+    cache.emplace_back(loc);
 }
 
 bool PlacementTree::isValidPlacement(sc2::Point2D location, std::vector< std::vector< bool >>& reservedTileMap, bool isArmyBuilding){

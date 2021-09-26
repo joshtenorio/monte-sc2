@@ -43,6 +43,7 @@ class PlacementTree {
                                 int xMargin, int yMargin, bool isArmyBuilding);
 
     static void clearCache(); // clear cache when tree is full
+    static void addToCache(sc2::Point2D loc); // buildingplacer needs to manually add barracks ramp pos to cache
 
     private:
 
