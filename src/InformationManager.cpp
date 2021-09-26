@@ -16,7 +16,8 @@ void InformationManager::OnGameStart(){
 
 void InformationManager::OnStep(){
 
-    checkForWorkerRush(); // only check this before 3 or 4 minutes
+    if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 4000)
+        checkForWorkerRush(); // only check this before 3 or 4 minutes
 
     if(gInterface->observation->GetGameLoop() % 30 == 0)
         checkForMassAir();
@@ -71,6 +72,7 @@ void InformationManager::checkForWorkerRush(){
     // if we count more than 3 workers, activate worker rush defense code (ie set workerRushDetected to true)
     if(numEnemies > 3){
         workerRushDetected = true;
+        logger.tag("worker rush detected");
     }
     // TODO: should we add an else to make it false?
 }
