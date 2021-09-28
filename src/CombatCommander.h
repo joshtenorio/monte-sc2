@@ -7,6 +7,22 @@
 #include "Manager.h"
 #include "ScoutManager.h"
 
+namespace Monte {
+    enum TankState {
+        Null = -1,
+        Unsieged,
+        Sieging,
+        Sieged,
+        Unsieging
+    };
+
+    typedef struct Tank_s_t {
+        Tank_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::TankState::Null; };
+        sc2::Tag tag;
+        Monte::TankState state;
+    } Tank;
+} // end namespace Monte
+
 class CombatCommander : public Manager {
     public:
     // constructors
@@ -26,10 +42,13 @@ class CombatCommander : public Manager {
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
     void manageStim(const sc2::Unit* unit);
+    void handleChangelings();
     
 
     protected:
     ScoutManager sm;
+
+    std::vector<Monte::Tank> tanks;
 
     // used for marine control
     bool reachedEnemyMain;
