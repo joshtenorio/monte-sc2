@@ -7,8 +7,8 @@ Its architecture is based off of parts of CommandCenter I liked.
 Monte currently supports the following features:
 - Supports building for the [SC2 AI Arena ladder](https://aiarena.net/)
 - Building addons
-- worker distribution, including long-distance mining
-- calling MULES
+- Basic worker distribution, including long-distance mining
+- Calling MULES
 - Rudimentary scouting to find enemy bases
 - Getting infantry weapon/armor upgrades
 
