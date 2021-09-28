@@ -328,7 +328,7 @@ void CombatCommander::siegeTankOnStep(){
 
         }
         else if(st.state == Monte::TankState::Null){
-            
+
         }
     } // end siege tank loop
 }
@@ -362,5 +362,30 @@ void CombatCommander::manageStim(const sc2::Unit* unit){
 }
 
 void CombatCommander::handleChangelings(){
+    // TODO: move this to somehwere where we only do this once
+    std::vector<sc2::UNIT_TYPEID> changelings;
+    changelings.emplace_back(sc2::UNIT_TYPEID::ZERG_CHANGELINGMARINE);
+    changelings.emplace_back(sc2::UNIT_TYPEID::ZERG_CHANGELINGMARINESHIELD);
 
+    sc2::Units friendlyMarines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    if(friendlyMarines.empty()) return;
+
+    // TODO: move the "figure out what enemy race is" code into InformationManager initialize
+    std::vector<sc2::PlayerInfo> info = gInterface->observation->GetGameInfo().player_info;
+    for(auto p : info)
+        if(p.race_requested == sc2::Race::Zerg || p.race_actual == sc2::Race::Zerg){ // FIXME: simplify this at some point please
+            sc2::Units enemyChangelings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnits(changelings));
+            if(enemyChangelings.empty()) return;
+
+            for(auto& c : enemyChangelings){
+                const sc2::Unit* closestMarine = friendlyMarines.front();
+                for(auto& m : friendlyMarines){
+                    if(sc2::DistanceSquared2D(c->pos, m->pos) < sc2::DistanceSquared2D(c->pos, closestMarine->pos))
+                        closestMarine = m;
+                }
+                
+                // kill changeling with closest marine
+                gInterface->actions->UnitCommand(closestMarine, sc2::ABILITY_ID::ATTACK_ATTACK, c);
+            } // end for c : changelings
+        } // end if race == zerg
 }
