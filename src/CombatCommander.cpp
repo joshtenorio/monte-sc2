@@ -186,7 +186,10 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         sc2::Point2D enemyCenter = sc2::Point2D(x/numEnemies, y/numEnemies);
 
         // 4. have idle army attack, and have some workers repair and some workers attack
+        // pulling workers for attacking/repairing is disabled after worker rush window
         gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+
+        if(gInterface->observation->GetGameLoop() > 3000) return;
         if(API::isStructure(unit_->unit_type.ToType()))
             for(int n = 0; n < workers.size(); n++){
                 if(n % 3 == 0){
@@ -197,6 +200,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
             }
         else
             gInterface->actions->UnitCommand(workers, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
+        
     }
 }
 
@@ -321,14 +325,37 @@ void CombatCommander::siegeTankOnStep(){
 
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
     for(auto& st : tanks){
-        if(st.state == Monte::TankState::Unsieged){
+        const sc2::Unit* t = gInterface->observation->GetUnit(st.tag);
+        if(t == nullptr) continue;
 
+        // TODO: change this to switch statement
+        if(st.state == Monte::TankState::Unsieged){
+            sc2::Units closest = API::getClosestNUnits(t->pos, 100, 16, sc2::Unit::Alliance::Enemy);
+            bool morph = false;
+            // first check if we are in range of an enemy structure r=13
+            // second, check if we are in range of an enemy unit r=16
+            if(morph){
+                // only morph if we have support ?
+            }
         }
         else if(st.state == Monte::TankState::Sieged){
-
+            sc2::Units nearbyTanks = API::getClosestNUnits(t->pos, 99, 10, sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
         }
-        else if(st.state == Monte::TankState::Null){
-
+        else if(st.state == Monte::TankState::Sieging){
+            gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::MORPH_SIEGEMODE);
+            if(t->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED)
+                st.state = Monte::TankState::Sieged;
+        }
+        else if(st.state == Monte::TankState::Unsieging){
+            gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            if(t->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANK)
+                st.state = Monte::TankState::Unsieged;
+        }
+        else{ //st.state is null
+            if(t->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANK)
+                st.state = Monte::TankState::Unsieged;
+            else if(t->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED)
+                st.state = Monte::TankState::Sieged;
         }
     } // end siege tank loop
 }

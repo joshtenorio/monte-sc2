@@ -16,7 +16,7 @@ void InformationManager::OnGameStart(){
 
 void InformationManager::OnStep(){
 
-    if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 4000)
+    if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 3000)
         checkForWorkerRush(); // only check this before 3 or 4 minutes
 
     if(gInterface->observation->GetGameLoop() % 30 == 0)
