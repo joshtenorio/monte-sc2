@@ -21,6 +21,28 @@ namespace Monte {
         sc2::Tag tag;
         Monte::TankState state;
     } Tank;
+
+    enum BioState {
+        Null = -1,
+        Defending,
+        Kiting,
+        Attacking
+    };
+
+    enum StimState {
+        Null = -1,
+        Unstimmed, // change state to eligibleStim if we have health and enemies are nearby
+        EligibleStim, // give marine order to stim, then change state to Stimmed
+        Stimmed // change state to unstimmed once unit is not buffed anymore
+    };
+
+    typedef struct Bio_s_t {
+        Bio_s_t(sc2::Tag tag_) {tag = tag_; state = Monte::BioState::Null; stimStatus = Monte::StimState::Null; };
+        sc2::Tag tag;
+        Monte::BioState state;
+        Monte::StimState stimStatus;
+
+    } Bio;
 } // end namespace Monte
 
 class CombatCommander : public Manager {
@@ -41,7 +63,6 @@ class CombatCommander : public Manager {
     void siegeTankOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
-    void manageStim(const sc2::Unit* unit);
     void handleChangelings();
     
 

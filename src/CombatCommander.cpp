@@ -19,11 +19,6 @@ void CombatCommander::OnStep(){
     if(gInterface->observation->GetGameLoop() % 24 == 0){
         handleChangelings();
     } // end if gameloop % 24 == 0
-
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
-    for(auto& m : marines){
-        manageStim(m);
-    }
     
     // handle marines after loop = 100 because we rely on mapper.initialize()
     if(gInterface->observation->GetGameLoop() > 100)
@@ -210,94 +205,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 }
 
 void CombatCommander::marineOnStep(){
-    int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
-    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
-
-    // send a wave if we have a decent amount of bio
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
-        
-        sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
-        //std::cout << "sending a wave of marines\n";
-        for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
-                reachedEnemyMain = true;
-                gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
-            }
-            
-            // attack closest enemy expansion
-            if(!reachedEnemyMain && m->orders.empty()){
-                // TODO: in mapper make a "closest <owner> expo" function
-                Expansion* closestEnemyExpo = nullptr;
-                for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
-                    // check if it is an enemy expansion and we are not at that base
-                    if(
-                        gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY &&
-                        sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
-                        {
-                        closestEnemyExpo = gInterface->map->getNthExpansion(n);
-                        break;
-                    }
-                } // end for expansions
-                if(closestEnemyExpo != nullptr){
-                    gInterface->actions->UnitCommand(
-                            m,
-                            ABILITY_ID::ATTACK_ATTACK,
-                            closestEnemyExpo->baseLocation);
-                }
-                else{
-                    gInterface->actions->UnitCommand(
-                        m,
-                        ABILITY_ID::ATTACK_ATTACK,
-                        gInterface->observation->GetGameInfo().enemy_start_locations.front());
-                }
-            } // end if !reachedEnemyMain && m->orders.empty()
-            else if(!enemy.empty() && m->orders.empty()){
-                const sc2::Unit* closest = nullptr;
-                float distance = std::numeric_limits<float>::max();
-
-                for(auto& e : enemy)
-                    // prioritise an enemy that is not flying
-                    if(sc2::DistanceSquared2D(e->pos, m->pos) < distance && (!e->is_flying)){
-                        closest = e;
-                        distance = sc2::DistanceSquared2D(e->pos, m->pos);
-                    }
-
-                if(closest == nullptr)
-                    for(auto& e : enemy)
-                        // if we cant find a ground target then just target any visible enemy
-                        if(sc2::DistanceSquared2D(e->pos, m->pos) < distance &&
-                            (e->cloak == sc2::Unit::CloakState::CloakedDetected || e->cloak == sc2::Unit::CloakState::NotCloaked)){
-                            closest = e;
-                            distance = sc2::DistanceSquared2D(e->pos, m->pos);
-                        }
-
-                if(closest != nullptr)
-                    gInterface->actions->UnitCommand(
-                        m,
-                        sc2::ABILITY_ID::ATTACK_ATTACK,
-                        closest->pos);
-            } // end else if
-                
-                
-        } // end for loop
-    } // end if idle bio > wave amount
-    else{
-        // have bio idle at the latest allied expansion, up to third
-        sc2::Point2D expansion = sc2::Point2D(-1,-1);
-        for(int i = 0; i < 3; i++){
-            Expansion* e = gInterface->map->getNthExpansion(i);
-            if(e == nullptr) continue;
-            if(e->ownership == OWNER_SELF)
-                expansion = e->baseLocation;
-        }
-        if(expansion.x != -1){
-            sc2::Point2D rally = Monte::getPoint2D(expansion, Monte::Vector2D(expansion, gInterface->observation->GetGameInfo().enemy_start_locations.front()), 3);
-            for(auto& m : marines)
-                if(sc2::Distance2D(m->pos, rally) > 6 && m->orders.empty())
-                    gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-        }
-    }
+    
 }
 
 void CombatCommander::medivacOnStep(){
@@ -448,33 +356,6 @@ void CombatCommander::siegeTankOnStep(){
     } // end siege tank loop
 }
 
-
-void CombatCommander::manageStim(const sc2::Unit* unit){
-    
-    if(unit == nullptr) return;
-    std::vector<sc2::BuffID> buffs = unit->buffs;
-    for(auto& b : buffs)
-        if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
-            return;
-        }
-    
-    // if we have a decent amount of health left and there are enemies nearby
-    if(
-        unit->health/unit->health_max >= 0.6 &&
-        !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
-
-        switch(unit->unit_type.ToType()){
-            case sc2::UNIT_TYPEID::TERRAN_MARINE:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
-                break;
-            case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
-                break;
-            default:
-                return;
-        }
-    }
-}
 
 void CombatCommander::handleChangelings(){
     // TODO: move this to somehwere where we only do this once
