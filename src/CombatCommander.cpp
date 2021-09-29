@@ -211,6 +211,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 void CombatCommander::marineOnStep(){
     int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
 
+    // send a wave if we have a decent amount of bio
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
         sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
@@ -279,6 +280,10 @@ void CombatCommander::marineOnStep(){
                 
         } // end for loop
     } // end if idle bio > wave amount
+    else{
+        // have bio idle at the latest allied expansion, up to third
+        
+    }
 }
 
 void CombatCommander::medivacOnStep(){
@@ -336,10 +341,11 @@ void CombatCommander::siegeTankOnStep(){
                 });
         sc2::Units nearbyTanks = API::getClosestNUnits(t->pos, 99, 10, sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
         sc2::Units localSupport = API::getClosestNUnits(t->pos, 99, 16, sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+        bool morph = false;
 
         switch(st.state){
             case Monte::TankState::Unsieged:
-                bool morph = false;
+                morph = false;
                 // first check if we are in range of an enemy structure r=13
                 for(auto& e : closestEnemies){
                     if(API::isStructure(e->unit_type.ToType()) && sc2::Distance2D(t->pos, e->pos) <= 13){
@@ -376,7 +382,7 @@ void CombatCommander::siegeTankOnStep(){
                 }
             break;
             case Monte::TankState::Sieged:
-                bool morph = true;
+                morph = true;
             // stay sieged if:
             //  structure within r=13
             //  any unit within r=16
@@ -404,7 +410,6 @@ void CombatCommander::siegeTankOnStep(){
                 }
                 if(morph)
                     st.state = Monte::TankState::Unsieging;
-                
             break;
             case Monte::TankState::Sieging:
                 gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::MORPH_SIEGEMODE);
@@ -423,6 +428,7 @@ void CombatCommander::siegeTankOnStep(){
                     st.state = Monte::TankState::Sieged;
             break;
             default:
+            break;
         }
 
     } // end siege tank loop
