@@ -25,8 +25,9 @@ void CombatCommander::OnStep(){
         manageStim(m);
     }
     
-    // handle marines
-    marineOnStep();
+    // handle marines after loop = 100 because we rely on mapper.initialize()
+    if(gInterface->observation->GetGameLoop() > 100)
+        marineOnStep();
 
     // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
@@ -210,10 +211,11 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 
 void CombatCommander::marineOnStep(){
     int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
+    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
 
     // send a wave if we have a decent amount of bio
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
-        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        
         sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
@@ -282,7 +284,19 @@ void CombatCommander::marineOnStep(){
     } // end if idle bio > wave amount
     else{
         // have bio idle at the latest allied expansion, up to third
-        
+        sc2::Point2D expansion = sc2::Point2D(-1,-1);
+        for(int i = 0; i < 3; i++){
+            Expansion* e = gInterface->map->getNthExpansion(i);
+            if(e == nullptr) continue;
+            if(e->ownership == OWNER_SELF)
+                expansion = e->baseLocation;
+        }
+        if(expansion.x != -1){
+            sc2::Point2D rally = Monte::getPoint2D(expansion, Monte::Vector2D(expansion, gInterface->observation->GetGameInfo().enemy_start_locations.front()), 3);
+            for(auto& m : marines)
+                if(sc2::Distance2D(m->pos, rally) > 6 && m->orders.empty())
+                    gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
+        }
     }
 }
 
