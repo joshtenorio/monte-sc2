@@ -324,6 +324,8 @@ void CombatCommander::medivacOnStep(){
 void CombatCommander::siegeTankOnStep(){
 
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+
     for(auto& st : tanks){
         const sc2::Unit* t = gInterface->observation->GetUnit(st.tag);
         if(t == nullptr) continue;
@@ -333,6 +335,8 @@ void CombatCommander::siegeTankOnStep(){
                 return !u.is_flying;
                 });
         sc2::Units nearbyTanks = API::getClosestNUnits(t->pos, 99, 10, sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
+        sc2::Units localSupport = API::getClosestNUnits(t->pos, 99, 16, sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+
         switch(st.state){
             case Monte::TankState::Unsieged:
                 bool morph = false;
@@ -342,20 +346,65 @@ void CombatCommander::siegeTankOnStep(){
                         morph = true;
                         break;
                     }
-                    else{
+                    else if(!API::isStructure(e->unit_type.ToType())){
                         morph = true;
                         break;
                     }
                 }
                 if(morph){
-                    // TODO: should we siege only if we have support?
+                    // morph only if we have local support 
+                    // probably needs tuning
+                    if(localSupport.empty() && nearbyTanks.empty()) continue;
                     st.state = Monte::TankState::Sieging;
                 }
                 else{
-                    // no enemies nearby, so follow some marines or something
+                    // no enemies nearby, so follow marine closest to enemy main
+                    const sc2::Unit* closestMarine = nullptr;
+                    float d = std::numeric_limits<float>::max();
+                    for(auto& ma : marines){
+                        if(ma == nullptr) continue;
+                        if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
+                            closestMarine = ma;
+                            d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                        }
+                    } // end marine loop
+                    if(closestMarine != nullptr){
+                        float distToMarineSquared = sc2::DistanceSquared2D(closestMarine->pos, t->pos);
+                        if(distToMarineSquared > 36)
+                            gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
+                    }
                 }
             break;
             case Monte::TankState::Sieged:
+                bool morph = true;
+            // stay sieged if:
+            //  structure within r=13
+            //  any unit within r=16
+            for(auto& e : closestEnemies){
+                if(API::isStructure(e->unit_type.ToType()) && sc2::Distance2D(t->pos, e->pos) <= 13){
+                    morph = false;
+                    break;
+                }
+                else if(!API::isStructure(e->unit_type.ToType())){
+                    morph = false;
+                    break;
+                }
+            }
+            
+            // unsiege if:
+            //  no other nearby tank is unsieging (ie only one tank in a group can unsiege at a time)
+                for(auto& mt : tanks){
+                    const sc2::Unit* otherTank = gInterface->observation->GetUnit(mt.tag);
+                    if(otherTank == nullptr) continue;
+                    
+                    // a nearby tank is unsieging, so don't unsiege
+                    if(mt.state == Monte::TankState::Unsieging && DistanceSquared2D(t->pos, otherTank->pos) < 10){
+                        morph = false;
+                    }
+                }
+                if(morph)
+                    st.state = Monte::TankState::Unsieging;
+                
             break;
             case Monte::TankState::Sieging:
                 gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::MORPH_SIEGEMODE);
