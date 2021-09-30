@@ -2,7 +2,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_7_3"; // update this everytime we upload
+std::string version = "v0_10_0"; // update this everytime we upload
 
 // TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
@@ -21,16 +21,16 @@ Bot::Bot(){
 }
 
 void Bot::OnGameStart(){
+
     API::OnGameStart();
+    im.OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
+
     gInterface->matchID = logger.createOutputPrefix();
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
     logger.infoInit().withStr("bot version: " + version).write();
     logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
-    Actions()->SendChat("Tag: " + version);
-    Actions()->SendChat("Tag: matchid_" + std::to_string(gInterface->matchID));
-    Actions()->SendChat("glhf :)");
 
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
@@ -79,6 +79,13 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
 
 void Bot::OnStep() {
 
+    if(Observation()->GetGameLoop() == 0){
+        logger.tag(version);
+        logger.tag("matchid_" + std::to_string(gInterface->matchID));
+        std::string glhf = "glhf :)"; // TODO: need to add a chat overload that takes const char[] so we dont need to make a var for this
+        logger.chat(glhf);
+    }
+
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
         map.initialize();
@@ -88,10 +95,12 @@ void Bot::OnStep() {
     wm.OnStep();
     cc.OnStep();
 
+    im.updateProductionConfig(pm.getProductionConfig());
+
     // raise supply depots if enemy is nearby
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
-    if(Observation()->GetGameLoop() % 20 == 0)
+    if(Observation()->GetGameLoop() % 15 == 0)
         for (auto& d : depots){
             bool enemyNearby = false;
             for (auto& e : enemies){

@@ -34,6 +34,12 @@ int countReadyUnits(sc2::UNIT_TYPEID type){
     return c;
 }
 
+int countUnitType(sc2::Filter filter){
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, filter);
+    int c = 0;
+    return c;
+}
+
 
 sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType){
     sc2::Units pool;

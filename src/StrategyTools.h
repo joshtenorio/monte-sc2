@@ -100,8 +100,11 @@ typedef struct ProductionConfig_s_t {
     // if we should automatically morph a cc
     bool autoMorphCC = true;
 
-    // micro config // TODO: integrate strategy into combatcommander
+    // micro config // TODO: move to combatconfig
     bool pullWorkers = true;
+
+    // if we need missile turrets
+    bool buildTurrets = false;
 
     // defines what we produce by default
     sc2::ABILITY_ID barracksOutput = PRODUCTION_UNUSED;
@@ -129,6 +132,7 @@ typedef struct ProductionConfig_s_t {
         autoMorphCC = pc.autoMorphCC;
    
         pullWorkers = pc.pullWorkers;
+        buildTurrets = pc.buildTurrets;
 
         barracksOutput = pc.barracksOutput;
         barracksTechOutput = pc.barracksTechOutput;

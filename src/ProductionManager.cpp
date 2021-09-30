@@ -16,6 +16,9 @@ void ProductionManager::OnStep(){
     // handle mules
     callMules();
 
+    // try building missile turrets regardless of build order is finished or not
+    tryBuildMissileTurret();
+
     // build stuff in the build order
     handleBuildOrder();
 
@@ -128,6 +131,10 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
         gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
         
 
+}
+
+ProductionConfig& ProductionManager::getProductionConfig(){
+    return config;
 }
 
 void ProductionManager::handleBuildOrder(){
@@ -520,6 +527,14 @@ bool ProductionManager::tryBuildAddon(){
     }
 
     return true;
+}
+
+bool ProductionManager::tryBuildMissileTurret(){
+    // only build missile turret if information manager says so
+    if(!config.buildTurrets) return false;
+
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
+            
 }
 
 // trains at most n units
