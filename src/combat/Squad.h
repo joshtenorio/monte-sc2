@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "api.h"
 #include "micro/BioManager.h"
 #include "GameObject.h"
@@ -60,7 +61,10 @@ class Squad {
     State state;
     short id;
 
-    std::vector<Monte::GameObject> units;
+    // TODO: this should hold a pointer of the gameobject
+    // https://stackoverflow.com/questions/8777724/store-derived-class-objects-in-base-class-variables
+    // use std::vector<unique_ptr<Monte::GameObject>> and emplace_back
+    std::vector<std::unique_ptr<Monte::GameObject>> units;
 
     BioManager bm;
 

@@ -1,8 +1,32 @@
 #pragma once
 
 #include "api.h"
-#include "micro/MicroManager.h"
-#include "Squad.h"
+#include "combat/micro/MicroManager.h"
+#include "combat/Squad.h"
+
+namespace Monte {
+    enum BioState {
+        Null = -1,
+        Defending,
+        Kiting,
+        Attacking
+    };
+
+    enum StimState {
+        Null = -1,
+        Unstimmed, // change state to eligibleStim if we have health and enemies are nearby
+        EligibleStim, // give marine order to stim, then change state to Stimmed
+        Stimmed // change state to unstimmed once unit is not buffed anymore
+    };
+
+    struct Bio : public GameObject {
+        public:
+        Bio(sc2::Tag tag_) : GameObject(tag_) { state = BioState::Null; stim = StimState::Null; };
+        protected:
+        BioState state;
+        StimState stim;
+    };
+} // end namespace Monte
 
 class BioManager : public MicroManager {
     public:

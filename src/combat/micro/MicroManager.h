@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sc2api/sc2_unit.h>
-#include "GameObject.h"
+#include "combat/GameObject.h"
 
 class MicroManager {
     public:

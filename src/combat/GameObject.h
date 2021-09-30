@@ -5,7 +5,7 @@
 
 namespace Monte {
 
-class GameObject {
+struct GameObject {
     public:
     GameObject() {};
     GameObject(sc2::Tag tag_) { tag = tag_; };

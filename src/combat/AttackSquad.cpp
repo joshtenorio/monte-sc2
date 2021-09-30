@@ -5,6 +5,7 @@ void AttackSquad::OnStep(){
         bm.doStateAction(u, state, target);
         bm.validateState(u, state, target);
     }
+    validateState();
 }
 
 void AttackSquad::validateState(){

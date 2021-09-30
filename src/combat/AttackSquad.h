@@ -4,7 +4,14 @@
 
 class AttackSquad : public Squad {
     public:
-    AttackSquad() {}; // is the {} required?
+
+    enum State {
+        Init,
+        Bide,
+        Attack
+    };
+
+    AttackSquad() {};
 
     void OnStep();
 
