@@ -8,7 +8,7 @@
 #include "ScoutManager.h"
 
 namespace Monte {
-    enum TankState {
+    enum class TankState {
         Null = -1,
         Unsieged,
         Sieging,
@@ -22,14 +22,14 @@ namespace Monte {
         Monte::TankState state;
     } Tank;
 
-    enum BioState {
+    enum class BioState {
         Null = -1,
         Defending,
         Kiting,
         Attacking
     };
 
-    enum StimState {
+    enum class StimState {
         Null = -1,
         Unstimmed, // change state to eligibleStim if we have health and enemies are nearby
         EligibleStim, // give marine order to stim, then change state to Stimmed
