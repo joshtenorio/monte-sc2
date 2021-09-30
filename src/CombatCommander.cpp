@@ -33,7 +33,8 @@ void CombatCommander::OnStep(){
     
 
     // if we have a bunker, put marines in it
-    sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
     if(!bunkers.empty())
         for(auto& b : bunkers){
             // we have space in bunker so pick a marine to go in it
