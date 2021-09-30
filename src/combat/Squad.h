@@ -48,7 +48,7 @@ class Squad {
     State getState();
 
     sc2::Point2D getCenter();
-    std::vector<Monte::GameObject>& getUnits();
+    std::vector<std::unique_ptr<Monte::GameObject>>& getUnits();
     
     protected:
     ManagerType getManagerType(Monte::GameObject obj);
@@ -61,9 +61,7 @@ class Squad {
     State state;
     short id;
 
-    // TODO: this should hold a pointer of the gameobject
     // https://stackoverflow.com/questions/8777724/store-derived-class-objects-in-base-class-variables
-    // use std::vector<unique_ptr<Monte::GameObject>> and emplace_back
     std::vector<std::unique_ptr<Monte::GameObject>> units;
 
     BioManager bm;
