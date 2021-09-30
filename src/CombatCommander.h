@@ -6,7 +6,7 @@
 #include "api.h"
 #include "Manager.h"
 #include "ScoutManager.h"
-#include "AttackSquad.h"
+#include "combat/AttackSquad.h"
 
 namespace Monte {
     enum TankState {
