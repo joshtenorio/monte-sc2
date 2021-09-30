@@ -69,8 +69,8 @@ void InformationManager::checkForWorkerRush(){
             numEnemies = API::getClosestNUnits(w->getUnit()->pos, 12, 8, sc2::Unit::Alliance::Enemy).size();
     else return;
 
-    // if we count more than 3 workers, activate worker rush defense code (ie set workerRushDetected to true)
-    if(numEnemies > 3){
+    // if we count more than 3 enemies, activate worker rush defense code (ie set workerRushDetected to true)
+    if(numEnemies > 3 && !workerRushDetected){
         workerRushDetected = true;
         logger.tag("worker rush detected");
     }
