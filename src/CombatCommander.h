@@ -49,7 +49,7 @@ namespace Monte {
 class CombatCommander : public Manager {
     public:
     // constructors
-    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); mainSquad = AttackSquad(); };
+    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
     // TODO: add a constructor with strategy, bc we need CombatConfig from strategy
 
     void OnGameStart();
