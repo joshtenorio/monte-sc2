@@ -1,6 +1,6 @@
 #include "BioManager.h"
 
-void BioManager::doStateAction(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target){
+void BioManager::doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
         case Squad::Pause:
             break;
@@ -14,7 +14,7 @@ void BioManager::doStateAction(Monte::GameObject& unit, Squad::State squadState,
     }
 }
 
-void BioManager::validateState(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target){
+void BioManager::validateState(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
         case Squad::Pause:
             break;
@@ -28,9 +28,9 @@ void BioManager::validateState(Monte::GameObject& unit, Squad::State squadState,
     }
 }
 
-void BioManager::manageStim(Monte::GameObject& unit, Squad::State squadState){
+void BioManager::manageStim(Monte::GameObject* unit, Squad::State squadState){
 
-    const sc2::Unit* unitObj = unit.getUnit();
+    const sc2::Unit* unitObj = unit->getUnit();
     if(unitObj == nullptr) return;
 
     std::vector<sc2::BuffID> buffs = unitObj->buffs;

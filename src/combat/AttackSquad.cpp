@@ -2,8 +2,9 @@
 
 void AttackSquad::OnStep(){
     for(auto& u : units){
-        bm.doStateAction(u, state, target);
-        bm.validateState(u, state, target);
+        // TODO: add switch statement here so we use the right manager for the unit
+        bm.doStateAction(u.get(), state, target);
+        bm.validateState(u.get(), state, target);
     }
     validateState();
 }

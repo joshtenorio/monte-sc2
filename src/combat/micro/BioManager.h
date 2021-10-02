@@ -22,7 +22,6 @@ namespace Monte {
     struct Bio : public GameObject {
         public:
         Bio(sc2::Tag tag_) : GameObject(tag_) { state = BioState::Null; stim = StimState::Null; };
-        protected:
         BioState state;
         StimState stim;
     };
@@ -33,11 +32,11 @@ class BioManager : public MicroManager {
     BioManager() {};
 
     // give the GameObject an action based on its and its squad's states
-    void doStateAction(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target);
+    void doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target);
 
     // update GameObject state if required
-    void validateState(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target);
+    void validateState(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target);
 
     protected:
-    void manageStim(Monte::GameObject& unit, Squad::State squadState);
+    void manageStim(Monte::GameObject* unit, Squad::State squadState);
 };

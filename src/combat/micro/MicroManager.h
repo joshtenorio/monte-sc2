@@ -8,6 +8,6 @@ class MicroManager {
     MicroManager() {};
 
     // TODO: possibly need to pass more info about the squad state
-    virtual void doStateAction(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target) = 0;
-    virtual void validateState(Monte::GameObject& unit, Squad::State squadState, sc2::Point2D target) = 0;
+    virtual void doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target) = 0;
+    virtual void validateState(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target) = 0;
 };
