@@ -3,9 +3,13 @@
 void BioManager::doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
         case Squad::State::Move:
-            break;
+        break;
         case Squad::State::Attack:
-            break;
+            // kite if our health is low; otherwise attack
+        break;
+        case Squad::State::Defend:
+            // if unit is further than some radius from target (which is defense location) then move back towards defense location
+        break;
         case Squad::State::Null:
         case Squad::State::Init:
         default:
@@ -16,7 +20,8 @@ void BioManager::validateState(Monte::GameObject* unit, Squad::State squadState,
     switch(squadState){
         case Squad::State::Attack:
         case Squad::State::Move:
-            break;
+        break;
+        case Squad::State::Defend:
         case Squad::State::Null:
         case Squad::State::Init:
         default:
@@ -28,26 +33,4 @@ void BioManager::manageStim(Monte::GameObject* unit, Squad::State squadState){
     const sc2::Unit* unitObj = unit->getUnit();
     if(unitObj == nullptr) return;
 
-    std::vector<sc2::BuffID> buffs = unitObj->buffs;
-    for(auto& b : buffs)
-        if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
-            return;
-        }
-    
-    // if we have a decent amount of health left and there are enemies nearby
-    if(
-        unitObj->health/unitObj->health_max >= 0.6 &&
-        !API::getClosestNUnits(unitObj->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
-
-        switch(unitObj->unit_type.ToType()){
-            case sc2::UNIT_TYPEID::TERRAN_MARINE:
-                gInterface->actions->UnitCommand(unitObj, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
-                break;
-            case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-                gInterface->actions->UnitCommand(unitObj, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
-                break;
-            default:
-                return;
-        }
-    }
 }

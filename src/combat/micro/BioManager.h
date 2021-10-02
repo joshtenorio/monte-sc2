@@ -7,7 +7,7 @@
 namespace Monte {
     enum BioState {
         Null = -1,
-        Defending,
+        Idle,
         Kiting,
         Attacking
     };
