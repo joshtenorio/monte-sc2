@@ -2,28 +2,23 @@
 
 void BioManager::doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
-        case Squad::Pause:
+        case Squad::State::Move:
             break;
-        case Squad::Move:
+        case Squad::State::Attack:
             break;
-        case Squad::Attack:
-            break;
-        case Squad::Null:
-        case Squad::Init:
+        case Squad::State::Null:
+        case Squad::State::Init:
         default:
     }
 }
 
 void BioManager::validateState(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target){
     switch(squadState){
-        case Squad::Pause:
+        case Squad::State::Attack:
+        case Squad::State::Move:
             break;
-        case Squad::Move:
-            break;
-        case Squad::Attack:
-            break;
-        case Squad::Null:
-        case Squad::Init:
+        case Squad::State::Null:
+        case Squad::State::Init:
         default:
     }
 }

@@ -9,6 +9,15 @@ void AttackSquad::OnStep(){
     validateState();
 }
 
+// state transitions: compare local enemy supply to supply in our squad
 void AttackSquad::validateState(){
-    
+    int ourSupply = 0;
+    for(auto& u : units){
+        const sc2::Unit* unit = u.get()->getUnit();
+        if(unit == nullptr) continue;
+        sc2::UnitTypeData data = gInterface->observation->GetUnitTypeData()[unit->unit_type];
+        ourSupply += data.food_required;
+    }
+
+    // get enemy supply in a circle w/ r=20 and the center at squad center
 }

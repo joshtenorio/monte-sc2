@@ -57,6 +57,7 @@ Squad::State Squad::getState(){
 }
 
 sc2::Point2D Squad::getCenter(){
+    calculateCenter();
     return center;
 }
 
@@ -105,5 +106,7 @@ void Squad::calculateCenter(){
         x += u->getPos().x;
         y += u->getPos().y;
     }
-    center = sc2::Point2D(x/units.size(), y/units.size());
+    if(!units.empty())
+        center = sc2::Point2D(x/units.size(), y/units.size());
+    else center = sc2::Point2D(-1, -1); // since units is empty, set center to (-1,-1) to avoid division by zero
 }

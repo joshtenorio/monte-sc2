@@ -10,11 +10,11 @@ class Squad {
 
     enum State {
         Null = -1,      // null state
-        Init = 0,       // when a squad is created
-        Pause = 1,      // squad is ordered to stay idle (equivalent to not controlling army at all)
-        Move = 2,       // squad is ordered to move to a point
-        Attack = 3,     // squad is ordered to attack move to a point
-        Bide = 4       // squad should stay in place and out of range of enemy
+        Init,       // when a squad is created
+        Move,       // squad is ordered to move to a point
+        Attack,   // squad is ordered to attack move to a point
+        Bide,   // squad should stay in place and out of range of enemy
+        Defend,
     };
 
     enum ManagerType {
