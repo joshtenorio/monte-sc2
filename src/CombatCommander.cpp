@@ -460,7 +460,59 @@ void CombatCommander::siegeTankOnStep(){
 }
 
 void CombatCommander::reaperOnStep(){
+    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    for(auto& reaper : reapers){
+        const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
+        if(r == nullptr) continue;
 
+        // TODO: only get enemies that are units
+        // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
+        // that give more vision of surrounding location
+        sc2::Units nearbyEnemies = API::getClosestNUnits(r->pos, 99, 11, sc2::Unit::Alliance::Enemy);
+        switch(reaper.state){
+            case Monte::ReaperState::Init:
+            reaper.state = Monte::ReaperState::Move;
+            reaper.targetLocation = enemyMain;
+            break;
+            case Monte::ReaperState::Move:
+            if(reaper.targetLocation.x == -1){
+                logger.errorInit().withUnit(r).withStr("has invalid target location").write();
+                reaper.state = Monte::ReaperState::Null; // invalid target location
+                continue;
+            }
+            // do state action
+            gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+            // validate state
+            if(sc2::Distance2D(r->pos, reaper.targetLocation) <= 11){
+                reaper.state = Monte::ReaperState::Attack;
+            }
+            else{
+                for(auto& e : nearbyEnemies){
+                    if(e->is_building) continue;
+                    reaper.state = Monte::ReaperState::Attack;
+                    break;
+                }
+            }
+
+            break;
+            case Monte::ReaperState::Attack:
+            // do state action
+            // validate state
+            break;
+            case Monte::ReaperState::Kite:
+            // do state action
+            // validate state
+            break;
+            case Monte::ReaperState::Bide:
+            // do state action
+            // validate state
+            break;
+            case Monte::ReaperState::Null:
+            default:
+            reaper.state = Monte::ReaperState::Init;
+            break;
+        }
+    }
 }
 
 

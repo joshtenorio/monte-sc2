@@ -24,15 +24,18 @@ namespace Monte {
 
     enum class ReaperState {
         Null = -1,
+        Init,
         Attack,
         Kite,
+        Move,
         Bide
     };
 
     typedef struct Reaper_s_t{
-        Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Null; };
+        Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Init; };
         sc2::Tag tag;
         Monte::ReaperState state;
+        sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
     } Reaper;
 
 } // end namespace Monte

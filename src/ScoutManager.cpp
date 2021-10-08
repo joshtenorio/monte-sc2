@@ -3,7 +3,9 @@
 
 void ScoutManager::OnGameStart(){
     scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SCV);
-    scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_REAPER);
+
+    // removed reaper from scout types because we are micro-ing them now
+    //scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_REAPER);
 
     // initializing visitTable
     visitTable.reserve(17);
