@@ -22,27 +22,6 @@ namespace Monte {
         Monte::TankState state;
     } Tank;
 
-    enum class BioState {
-        Null = -1,
-        Defending,
-        Kiting,
-        Attacking
-    };
-
-    enum class StimState {
-        Null = -1,
-        Unstimmed, // change state to eligibleStim if we have health and enemies are nearby
-        EligibleStim, // give marine order to stim, then change state to Stimmed
-        Stimmed // change state to unstimmed once unit is not buffed anymore
-    };
-
-    typedef struct Bio_s_t {
-        Bio_s_t(sc2::Tag tag_) {tag = tag_; state = Monte::BioState::Null; stimStatus = Monte::StimState::Null; };
-        sc2::Tag tag;
-        Monte::BioState state;
-        Monte::StimState stimStatus;
-
-    } Bio;
 } // end namespace Monte
 
 class CombatCommander : public Manager {
