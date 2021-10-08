@@ -522,7 +522,7 @@ bool ProductionManager::tryBuildAddon(){
     sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
     for(auto& s : starports){
         if(s->add_on_tag != 0 || s->build_progress < 1.0 || !s->orders.empty()) continue;
-
+        logger.infoInit().withStr("we want to build starport addon !").write();
         gInterface->actions->UnitCommand(s, config.starportDefaultAddon);
     }
 

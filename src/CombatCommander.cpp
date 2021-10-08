@@ -21,8 +21,11 @@ void CombatCommander::OnStep(){
     } // end if gameloop % 24 == 0
     
     // handle marines after loop = 100 because we rely on mapper.initialize()
-    if(gInterface->observation->GetGameLoop() > 100)
+    if(gInterface->observation->GetGameLoop() > 100){
         marineOnStep();
+        reaperOnStep();
+    }
+        
 
     // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
@@ -140,6 +143,9 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
                 
         break;
         }
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        reapers.emplace_back(Monte::Reaper(unit_->tag));
+        break;
     }
     
 }
@@ -155,6 +161,15 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
             else ++itr;
         }
     } // end if unit is tank
+    else if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REAPER){
+        for(auto itr = reapers.begin(); itr != reapers.end(); ){
+            if(unit_->tag == (*itr).tag){
+                itr = reapers.erase(itr);
+                break;
+            }
+            else ++itr;
+        }
+    } // end if unit is reaper
 }
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
@@ -442,6 +457,10 @@ void CombatCommander::siegeTankOnStep(){
         }
 
     } // end siege tank loop
+}
+
+void CombatCommander::reaperOnStep(){
+
 }
 
 
