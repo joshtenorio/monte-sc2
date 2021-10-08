@@ -645,6 +645,17 @@ bool isFlying(const sc2::Unit& u){
     else return false;
 }
 
+bool isWorker(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case sc2::UNIT_TYPEID::TERRAN_SCV:
+        case sc2::UNIT_TYPEID::PROTOSS_PROBE:
+        case sc2::UNIT_TYPEID::ZERG_DRONE:
+        return true;
+        default:
+        return false;
+    }
+}
+
 
 } // end namespace
 std::unique_ptr<Interface> gInterface;

@@ -468,51 +468,113 @@ void CombatCommander::reaperOnStep(){
         // TODO: only get enemies that are units
         // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
         // that give more vision of surrounding location
-        sc2::Units nearbyEnemies = API::getClosestNUnits(r->pos, 99, 11, sc2::Unit::Alliance::Enemy);
+        sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 11, sc2::Unit::Alliance::Enemy);
+        sc2::Units localEnemyWorkers;
+        for(auto& e : localEnemies)
+            if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
+        
         switch(reaper.state){
             case Monte::ReaperState::Init:
-            reaper.state = Monte::ReaperState::Move;
-            reaper.targetLocation = enemyMain;
+                reaper.state = Monte::ReaperState::Move;
+                reaper.targetLocation = enemyMain;
             break;
             case Monte::ReaperState::Move:
-            if(reaper.targetLocation.x == -1){
-                logger.errorInit().withUnit(r).withStr("has invalid target location").write();
-                reaper.state = Monte::ReaperState::Null; // invalid target location
-                continue;
-            }
-            // do state action
-            gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
-            // validate state
-            if(sc2::Distance2D(r->pos, reaper.targetLocation) <= 11){
-                reaper.state = Monte::ReaperState::Attack;
-            }
-            else{
-                for(auto& e : nearbyEnemies){
-                    if(e->is_building) continue;
-                    reaper.state = Monte::ReaperState::Attack;
-                    break;
+                if(reaper.targetLocation.x == -1){
+                    logger.errorInit().withUnit(r).withStr("has invalid target location").write();
+                    reaper.state = Monte::ReaperState::Null; // invalid target location
+                    continue;
                 }
-            }
+                // do state action
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+                // validate state
+                if(sc2::Distance2D(r->pos, reaper.targetLocation) <= 11){
+                    reaper.state = Monte::ReaperState::Attack;
+                }
+                else{
+                    for(auto& e : localEnemies){
+                        if(e->is_building) continue;
+                        reaper.state = Monte::ReaperState::Attack;
+                        break;
+                    }
+                }
 
             break;
             case Monte::ReaperState::Attack:
-            // do state action
-            // validate state
+                // do state action
+                // prioritise lowest-hp worker; else closest worker; else closest enemy
+                const sc2::Unit* target = nullptr;
+                float targetHP = std::numeric_limits<float>::max();
+                if(!localEnemyWorkers.empty())
+                    for(auto& w : localEnemyWorkers)
+                        if(w->health < targetHP) target = w;
+                    if(target == nullptr){
+                        target = localEnemyWorkers.front();
+                        for(auto& w : localEnemyWorkers){
+                            if(sc2::DistanceSquared2D(w->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
+                                target = w;
+                        }
+                    }
+                else{ // no nearby workers, so target closest non-building enemy
+                    for(auto& e : localEnemies){
+                        if(e->is_building) continue;
+                            if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
+                                target = e;                    
+                    }
+                }
+                if(target != nullptr)
+                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                    // don't transition to kite state here, to ensure that we shoot target at least once
+                    
+                // validate state
+                if(r->health <= 20){ // bide if we are below 1/3 hp
+                    reaper.targetLocation = gInterface->map->getNthExpansion(1)->baseLocation;
+                    reaper.state = Monte::ReaperState::Bide;
+                }
+                else if(r->weapon_cooldown){
+                    reaper.state = Monte::ReaperState::Kite;
+                }
             break;
             case Monte::ReaperState::Kite:
-            // do state action
-            // validate state
+                // do state action
+                // skip doing action if no enemies are nearby
+                if(!localEnemies.empty()){
+                    const sc2::Unit* closestEnemy = localEnemies.front();
+                    for(auto& e : localEnemies)
+                        if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(closestEnemy->pos, r->pos))
+                            closestEnemy = e;
+                    
+                    if(closestEnemy != nullptr){
+                        // generate unit vector in opposite direction to closest enemy and move in that direction
+                        Monte::Vector2D v = Monte::Vector2D(closestEnemy->pos, r->pos);
+                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, Monte::getPoint2D(r->pos, v, 1.0));
+                    }
+                }
+
+                // validate state
+                if(r->health <= 20){ // bide if we are below 1/3 hp
+                    reaper.targetLocation = gInterface->map->getNthExpansion(1)->baseLocation;
+                    reaper.state = Monte::ReaperState::Bide;
+                }
+                else if(!r->weapon_cooldown){
+                    reaper.state = Monte::ReaperState::Attack;
+                }
             break;
-            case Monte::ReaperState::Bide:
-            // do state action
-            // validate state
+            case Monte::ReaperState::Bide: // TODO: bide at a nearby neutral expansion, not at our natural
+                // do state action
+                // TODO: use an influence map to avoid enemy weapon radii
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+                // validate state
+                if(r->health > 50){
+                    reaper.targetLocation = enemyMain;
+                    reaper.state = Monte::ReaperState::Move;
+                }
             break;
             case Monte::ReaperState::Null:
             default:
-            reaper.state = Monte::ReaperState::Init;
+                reaper.state = Monte::ReaperState::Init;
             break;
         }
-    }
+    } // for r : reapers
 }
 
 
