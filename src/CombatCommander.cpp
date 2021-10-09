@@ -470,6 +470,8 @@ void CombatCommander::reaperOnStep(){
         // that give more vision of surrounding location
         sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 11, sc2::Unit::Alliance::Enemy);
         sc2::Units localEnemyWorkers;
+        const sc2::Unit* target = nullptr;
+        float targetHP = std::numeric_limits<float>::max();
         for(auto& e : localEnemies)
             if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
         
@@ -502,8 +504,7 @@ void CombatCommander::reaperOnStep(){
             case Monte::ReaperState::Attack:
                 // do state action
                 // prioritise lowest-hp worker; else closest worker; else closest enemy
-                const sc2::Unit* target = nullptr;
-                float targetHP = std::numeric_limits<float>::max();
+                
                 if(!localEnemyWorkers.empty())
                     for(auto& w : localEnemyWorkers)
                         if(w->health < targetHP) target = w;
