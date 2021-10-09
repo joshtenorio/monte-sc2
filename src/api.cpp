@@ -292,7 +292,7 @@ std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability){
             break;
 
         case sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS:
-        case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
+        //case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
         case sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT:
             requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE);
             break;
@@ -304,7 +304,7 @@ std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability){
             requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB);
             break;
         
-        case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
+        //case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
         case sc2::ABILITY_ID::BUILD_NUKE:
         case sc2::ABILITY_ID::RESEARCH_PERSONALCLOAKING:
             requirements.emplace_back(sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY);
@@ -368,16 +368,16 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
             return sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL2;
         case sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL3:
             return sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL3;
-        case sc2::UPGRADE_ID::YAMATOCANNON:
-            return sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT;
+        //case sc2::UPGRADE_ID::YAMATOCANNON:
+        //    return sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT;
         case sc2::UPGRADE_ID::LIBERATORAGRANGEUPGRADE:
             return sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS;
-        case sc2::UPGRADE_ID::MEDIVACINCREASESPEEDBOOST:
-            return sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM;
+        //case sc2::UPGRADE_ID::MEDIVACINCREASESPEEDBOOST:
+        //    return sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM;
         case sc2::UPGRADE_ID::PERSONALCLOAKING:
             return sc2::ABILITY_ID::RESEARCH_PERSONALCLOAKING;
-        case sc2::UPGRADE_ID::ENHANCEDSHOCKWAVES:
-            return sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES;
+        //case sc2::UPGRADE_ID::ENHANCEDSHOCKWAVES:
+        //    return sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES;
         case sc2::UPGRADE_ID::STIMPACK:
             return sc2::ABILITY_ID::RESEARCH_STIMPACK;
         case sc2::UPGRADE_ID::PUNISHERGRENADES:
@@ -394,8 +394,8 @@ sc2::ABILITY_ID upgradeIDToAbilityID(sc2::UpgradeID upgrade){
             return sc2::ABILITY_ID::RESEARCH_SMARTSERVOS;
         case sc2::UPGRADE_ID::DRILLCLAWS:
             return sc2::ABILITY_ID::RESEARCH_DRILLINGCLAWS;
-        case sc2::UPGRADE_ID::INFERNALPREIGNITERS:
-            return sc2::ABILITY_ID::RESEARCH_INFERNALPREIGNITER;
+        //case sc2::UPGRADE_ID::INFERNALPREIGNITERS:
+        //    return sc2::ABILITY_ID::RESEARCH_INFERNALPREIGNITER;
         case sc2::UPGRADE_ID::CYCLONELOCKONDAMAGEUPGRADE:
             return sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE;
 
@@ -495,10 +495,10 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
             return sc2::UNIT_TYPEID::TERRAN_ARMORY;
         case sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT:
         case sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS:
-        case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
+        //case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
             return sc2::UNIT_TYPEID::TERRAN_FUSIONCORE;
         case sc2::ABILITY_ID::RESEARCH_PERSONALCLOAKING:
-        case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
+        //case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
             return sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY;
         case sc2::ABILITY_ID::RESEARCH_STIMPACK:
         case sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS:
@@ -643,6 +643,17 @@ bool isAddon(sc2::UNIT_TYPEID unit){
 bool isFlying(const sc2::Unit& u){
     if(u.is_flying) return true;
     else return false;
+}
+
+bool isWorker(sc2::UNIT_TYPEID unit){
+    switch(unit){
+        case sc2::UNIT_TYPEID::TERRAN_SCV:
+        case sc2::UNIT_TYPEID::PROTOSS_PROBE:
+        case sc2::UNIT_TYPEID::ZERG_DRONE:
+        return true;
+        default:
+        return false;
+    }
 }
 
 

@@ -19,15 +19,13 @@ void CombatCommander::OnStep(){
     if(gInterface->observation->GetGameLoop() % 24 == 0){
         handleChangelings();
     } // end if gameloop % 24 == 0
-
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnits(bio));
-    for(auto& m : marines){
-        manageStim(m);
-    }
     
     // handle marines after loop = 100 because we rely on mapper.initialize()
-    if(gInterface->observation->GetGameLoop() > 100)
+    if(gInterface->observation->GetGameLoop() > 100){
         marineOnStep();
+        reaperOnStep();
+    }
+        
 
     // handle medivacs and siege tanks every so often
     if(gInterface->observation->GetGameLoop() % 12 == 0){
@@ -38,7 +36,8 @@ void CombatCommander::OnStep(){
     
 
     // if we have a bunker, put marines in it
-    sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
     if(!bunkers.empty())
         for(auto& b : bunkers){
             // we have space in bunker so pick a marine to go in it
@@ -144,6 +143,9 @@ void CombatCommander::OnUnitCreated(const Unit* unit_){
                 
         break;
         }
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        reapers.emplace_back(Monte::Reaper(unit_->tag));
+        break;
     }
     
 }
@@ -159,6 +161,15 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
             else ++itr;
         }
     } // end if unit is tank
+    else if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REAPER){
+        for(auto itr = reapers.begin(); itr != reapers.end(); ){
+            if(unit_->tag == (*itr).tag){
+                itr = reapers.erase(itr);
+                break;
+            }
+            else ++itr;
+        }
+    } // end if unit is reaper
 }
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
@@ -210,7 +221,7 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 }
 
 void CombatCommander::marineOnStep(){
-    int numPerWave = 8 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 4;
+    int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
     sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
 
     // send a wave if we have a decent amount of bio
@@ -448,33 +459,134 @@ void CombatCommander::siegeTankOnStep(){
     } // end siege tank loop
 }
 
+void CombatCommander::reaperOnStep(){
+    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    for(auto& reaper : reapers){
+        const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
+        if(r == nullptr) continue;
 
-void CombatCommander::manageStim(const sc2::Unit* unit){
-    
-    if(unit == nullptr) return;
-    std::vector<sc2::BuffID> buffs = unit->buffs;
-    for(auto& b : buffs)
-        if(b.ToType() == sc2::BUFF_ID::STIMPACK || b.ToType() == sc2::BUFF_ID::STIMPACKMARAUDER){
-            return;
-        }
-    
-    // if we have a decent amount of health left and there are enemies nearby
-    if(
-        unit->health/unit->health_max >= 0.6 &&
-        !API::getClosestNUnits(unit->pos, 5, 8, sc2::Unit::Alliance::Enemy).empty()){
+        // TODO: only get enemies that are units
+        // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
+        // that give more vision of surrounding location
+        sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 9, sc2::Unit::Alliance::Enemy);
+        sc2::Units localEnemyWorkers;
+        const sc2::Unit* target = nullptr;
+        float targetHP = std::numeric_limits<float>::max();
+        for(auto& e : localEnemies)
+            if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
+        
+        switch(reaper.state){
+            case Monte::ReaperState::Init:
+                reaper.state = Monte::ReaperState::Move;
+                reaper.targetLocation = enemyMain;
+            break;
+            case Monte::ReaperState::Move:
+                if(reaper.targetLocation.x == -1){
+                    logger.errorInit().withUnit(r).withStr("has invalid target location").write();
+                    reaper.state = Monte::ReaperState::Null; // invalid target location
+                    continue;
+                }
+                // do state action
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+                // validate state
+                if(sc2::Distance2D(r->pos, reaper.targetLocation) <= 11){
+                    reaper.state = Monte::ReaperState::Attack;
+                }
+                else{
+                    for(auto& e : localEnemies){
+                        if(e->is_building) continue;
+                        reaper.state = Monte::ReaperState::Attack;
+                        break;
+                    }
+                }
 
-        switch(unit->unit_type.ToType()){
-            case sc2::UNIT_TYPEID::TERRAN_MARINE:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARINE);
-                break;
-            case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::EFFECT_STIM_MARAUDER);
-                break;
+            break;
+            case Monte::ReaperState::Attack:
+                // do state action
+                // prioritise lowest-hp worker; else closest worker; else closest enemy
+                if(!localEnemyWorkers.empty()){
+                    for(auto& w : localEnemyWorkers)
+                        if(w->health < targetHP) target = w;
+                    if(target == nullptr){
+                        target = localEnemyWorkers.front();
+                        for(auto& w : localEnemyWorkers){
+                            if(sc2::DistanceSquared2D(w->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
+                                target = w;
+                        }
+                    }
+                }
+                else if(!localEnemies.empty()){ // no nearby workers, so target closest non-building enemy
+                    target = localEnemies.front();
+                    for(auto& e : localEnemies){
+                        if(e->is_building) continue;
+                            if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
+                                target = e;                    
+                    }
+                }
+                if(target != nullptr){
+                    if(!target->is_flying && target->display_type == sc2::Unit::DisplayType::Visible){
+                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                    }
+                    // don't transition to kite state here, to ensure that we shoot target at least once
+                }
+
+                    
+                // validate state
+                if(r->health <= 20){ // bide if we are below 1/3 hp
+                    reaper.targetLocation = gInterface->map->getNthExpansion(1)->baseLocation;
+                    reaper.state = Monte::ReaperState::Bide;
+                }
+                else if(r->weapon_cooldown){
+                    reaper.state = Monte::ReaperState::Kite;
+                }
+                else if(localEnemies.empty()){
+                    reaper.targetLocation = enemyMain;
+                    reaper.state = Monte::ReaperState::Move;
+                }
+            break;
+            case Monte::ReaperState::Kite:
+                // do state action
+                // skip doing action if no enemies are nearby
+                if(!localEnemies.empty()){
+                    const sc2::Unit* closestEnemy = localEnemies.front();
+                    for(auto& e : localEnemies)
+                        if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(closestEnemy->pos, r->pos))
+                            closestEnemy = e;
+                    
+                    if(closestEnemy != nullptr){
+                        // generate unit vector in opposite direction to closest enemy and move in that direction
+                        Monte::Vector2D v = Monte::Vector2D(closestEnemy->pos, r->pos);
+                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, Monte::getPoint2D(r->pos, v, 1.0));
+                    }
+                }
+
+                // validate state
+                if(r->health <= 20){ // bide if we are below 1/3 hp
+                    reaper.targetLocation = gInterface->map->getNthExpansion(3)->baseLocation;
+                    reaper.state = Monte::ReaperState::Bide;
+                }
+                else if(!r->weapon_cooldown){
+                    reaper.state = Monte::ReaperState::Attack;
+                }
+            break;
+            case Monte::ReaperState::Bide: // TODO: bide at a nearby neutral expansion, not at our natural
+                // do state action
+                // TODO: use an influence map to avoid enemy weapon radii
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+                // validate state
+                if(r->health > 50){
+                    reaper.targetLocation = enemyMain;
+                    reaper.state = Monte::ReaperState::Move;
+                }
+            break;
+            case Monte::ReaperState::Null:
             default:
-                return;
+                reaper.state = Monte::ReaperState::Init;
+            break;
         }
-    }
+    } // for r : reapers
 }
+
 
 void CombatCommander::handleChangelings(){
     // TODO: move this to somehwere where we only do this once

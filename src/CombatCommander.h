@@ -8,7 +8,7 @@
 #include "ScoutManager.h"
 
 namespace Monte {
-    enum TankState {
+    enum class TankState {
         Null = -1,
         Unsieged,
         Sieging,
@@ -21,6 +21,23 @@ namespace Monte {
         sc2::Tag tag;
         Monte::TankState state;
     } Tank;
+
+    enum class ReaperState {
+        Null = -1,
+        Init,
+        Attack,
+        Kite,
+        Move,
+        Bide
+    };
+
+    typedef struct Reaper_s_t{
+        Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Init; };
+        sc2::Tag tag;
+        Monte::ReaperState state;
+        sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
+    } Reaper;
+
 } // end namespace Monte
 
 class CombatCommander : public Manager {
@@ -39,9 +56,9 @@ class CombatCommander : public Manager {
     void marineOnStep();
     void medivacOnStep();
     void siegeTankOnStep();
+    void reaperOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
-    void manageStim(const sc2::Unit* unit);
     void handleChangelings();
     
 
@@ -49,6 +66,7 @@ class CombatCommander : public Manager {
     ScoutManager sm;
 
     std::vector<Monte::Tank> tanks;
+    std::vector<Monte::Reaper> reapers;
 
     // used for marine control
     bool reachedEnemyMain;

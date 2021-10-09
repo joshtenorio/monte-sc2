@@ -50,6 +50,7 @@ namespace API {
     bool isTownHall(sc2::UNIT_TYPEID unit);
     bool isAddon(sc2::UNIT_TYPEID unit);
     bool isFlying(const sc2::Unit& u);
+    bool isWorker(sc2::UNIT_TYPEID unit);
 
     std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
 

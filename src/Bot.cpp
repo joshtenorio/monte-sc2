@@ -2,7 +2,7 @@
 using namespace sc2;
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_10_0"; // update this everytime we upload
+std::string version = "v0_11_0"; // update this everytime we upload
 
 // TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
@@ -101,7 +101,7 @@ void Bot::OnStep() {
     // raise supply depots if enemy is nearby
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
-    if(Observation()->GetGameLoop() % 20 == 0)
+    if(Observation()->GetGameLoop() % 15 == 0)
         for (auto& d : depots){
             bool enemyNearby = false;
             for (auto& e : enemies){
