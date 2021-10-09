@@ -25,31 +25,6 @@ void CombatCommander::OnStep(){
         marineOnStep();
         reaperOnStep();
     }
-
-    // debug reaper micro
-    // TODO: take this out when uploading for ladder
-    for(auto& r: reapers){
-        switch(r.state){
-            case Monte::ReaperState::Null:
-                logger.infoInit().withStr("reaper state: null").write();
-            break;
-            case Monte::ReaperState::Init:
-                logger.infoInit().withStr("reaper state: init").write();
-            break;
-            case Monte::ReaperState::Move:
-                logger.infoInit().withStr("reaper state: move").write();
-            break;
-            case Monte::ReaperState::Attack:
-                logger.infoInit().withStr("reaper state: attack").write();
-            break;
-            case Monte::ReaperState::Kite:
-                logger.infoInit().withStr("reaper state: kite").write();
-            break;
-            case Monte::ReaperState::Bide:
-                logger.infoInit().withStr("reaper state: bide").write();
-            break;
-        }
-    }
         
 
     // handle medivacs and siege tanks every so often
@@ -490,8 +465,6 @@ void CombatCommander::reaperOnStep(){
         const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
         if(r == nullptr) continue;
 
-        const sc2::Unit* target = nullptr;
-        float targetHP = std::numeric_limits<float>::max();
         // TODO: only get enemies that are units
         // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
         // that give more vision of surrounding location
@@ -529,17 +502,18 @@ void CombatCommander::reaperOnStep(){
             case Monte::ReaperState::Attack:
                 // do state action
                 // prioritise lowest-hp worker; else closest worker; else closest enemy
-                if(!localEnemyWorkers.empty()){
+                const sc2::Unit* target = nullptr;
+                float targetHP = std::numeric_limits<float>::max();
+                if(!localEnemyWorkers.empty())
                     for(auto& w : localEnemyWorkers)
                         if(w->health < targetHP) target = w;
-                    if(target == nullptr){ // else get closest worker
+                    if(target == nullptr){
                         target = localEnemyWorkers.front();
-                        for(auto& w : localEnemyWorkers)
+                        for(auto& w : localEnemyWorkers){
                             if(sc2::DistanceSquared2D(w->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
                                 target = w;
+                        }
                     }
-                } // end if local enemy workers not empty
-
                 else{ // no nearby workers, so target closest non-building enemy
                     for(auto& e : localEnemies){
                         if(e->is_building) continue;
@@ -547,16 +521,9 @@ void CombatCommander::reaperOnStep(){
                                 target = e;                    
                     }
                 }
-                if(target != nullptr){
-                    // TODO: check engaged target tag of our reaper
-                    if(target->display_type == sc2::Unit::DisplayType::Visible)
-                        logger.infoInit().withUnit(target).withStr("is visible").write();
-                    else if(target->display_type != sc2::Unit::DisplayType::Visible)
-                        logger.infoInit().withUnit(target).withStr("is NOT visible").write();
+                if(target != nullptr)
                     gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
                     // don't transition to kite state here, to ensure that we shoot target at least once
-                }
-                    
                     
                 // validate state
                 if(r->health <= 20){ // bide if we are below 1/3 hp
@@ -565,10 +532,6 @@ void CombatCommander::reaperOnStep(){
                 }
                 else if(r->weapon_cooldown){
                     reaper.state = Monte::ReaperState::Kite;
-                }
-                else if(localEnemies.empty()){
-                    reaper.targetLocation = enemyMain;
-                    reaper.state = Monte::ReaperState::Move;
                 }
             break;
             case Monte::ReaperState::Kite:
