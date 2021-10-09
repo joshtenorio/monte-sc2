@@ -468,7 +468,7 @@ void CombatCommander::reaperOnStep(){
         // TODO: only get enemies that are units
         // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
         // that give more vision of surrounding location
-        sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 11, sc2::Unit::Alliance::Enemy);
+        sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 9, sc2::Unit::Alliance::Enemy);
         sc2::Units localEnemyWorkers;
         const sc2::Unit* target = nullptr;
         float targetHP = std::numeric_limits<float>::max();
@@ -504,8 +504,7 @@ void CombatCommander::reaperOnStep(){
             case Monte::ReaperState::Attack:
                 // do state action
                 // prioritise lowest-hp worker; else closest worker; else closest enemy
-                
-                if(!localEnemyWorkers.empty())
+                if(!localEnemyWorkers.empty()){
                     for(auto& w : localEnemyWorkers)
                         if(w->health < targetHP) target = w;
                     if(target == nullptr){
@@ -515,16 +514,22 @@ void CombatCommander::reaperOnStep(){
                                 target = w;
                         }
                     }
-                else{ // no nearby workers, so target closest non-building enemy
+                }
+                else if(!localEnemies.empty()){ // no nearby workers, so target closest non-building enemy
+                    target = localEnemies.front();
                     for(auto& e : localEnemies){
                         if(e->is_building) continue;
                             if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
                                 target = e;                    
                     }
                 }
-                if(target != nullptr)
-                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                if(target != nullptr){
+                    if(!target->is_flying && target->display_type == sc2::Unit::DisplayType::Visible){
+                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                    }
                     // don't transition to kite state here, to ensure that we shoot target at least once
+                }
+
                     
                 // validate state
                 if(r->health <= 20){ // bide if we are below 1/3 hp
@@ -533,6 +538,10 @@ void CombatCommander::reaperOnStep(){
                 }
                 else if(r->weapon_cooldown){
                     reaper.state = Monte::ReaperState::Kite;
+                }
+                else if(localEnemies.empty()){
+                    reaper.targetLocation = enemyMain;
+                    reaper.state = Monte::ReaperState::Move;
                 }
             break;
             case Monte::ReaperState::Kite:
@@ -553,7 +562,7 @@ void CombatCommander::reaperOnStep(){
 
                 // validate state
                 if(r->health <= 20){ // bide if we are below 1/3 hp
-                    reaper.targetLocation = gInterface->map->getNthExpansion(1)->baseLocation;
+                    reaper.targetLocation = gInterface->map->getNthExpansion(3)->baseLocation;
                     reaper.state = Monte::ReaperState::Bide;
                 }
                 else if(!r->weapon_cooldown){
