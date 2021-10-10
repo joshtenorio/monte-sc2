@@ -6,6 +6,7 @@
 #include "api.h"
 #include "Manager.h"
 #include "ScoutManager.h"
+#include "InfluenceMap.h"
 
 namespace Monte {
     enum class TankState {

@@ -475,6 +475,17 @@ void CombatCommander::reaperOnStep(){
         for(auto& e : localEnemies)
             if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
         
+        // generate influence map
+        Monte::InfluenceMap map(r->pos, 11);
+        for(auto& e : localEnemies){
+            sc2::UnitTypeData unitData = gInterface->observation->GetUnitTypeData()[e->unit_type];
+            std::vector<sc2::Weapon> weapons = unitData.weapons;
+            for(auto& w : weapons){
+                if(w.type == sc2::Weapon::TargetType::Ground || w.type == sc2::Weapon::TargetType::Any)
+                    map.addSource(e->pos, w.damage_, w.range + e->radius); // true range of weapon is w.range + e->radius
+            } // end for w : weapons
+        } // end for e : localEnemies
+
         switch(reaper.state){
             case Monte::ReaperState::Init:
                 reaper.state = Monte::ReaperState::Move;
@@ -548,16 +559,8 @@ void CombatCommander::reaperOnStep(){
                 // do state action
                 // skip doing action if no enemies are nearby
                 if(!localEnemies.empty()){
-                    const sc2::Unit* closestEnemy = localEnemies.front();
-                    for(auto& e : localEnemies)
-                        if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(closestEnemy->pos, r->pos))
-                            closestEnemy = e;
-                    
-                    if(closestEnemy != nullptr){
-                        // generate unit vector in opposite direction to closest enemy and move in that direction
-                        Monte::Vector2D v = Monte::Vector2D(closestEnemy->pos, r->pos);
-                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, Monte::getPoint2D(r->pos, v, 1.0));
-                    }
+                    map.propagate();
+                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, map.getSafeWaypoint());
                 }
 
                 // validate state
@@ -571,10 +574,10 @@ void CombatCommander::reaperOnStep(){
             break;
             case Monte::ReaperState::Bide: // TODO: bide at a nearby neutral expansion, not at our natural
                 // do state action
-                // TODO: use an influence map to avoid enemy weapon radii
-                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, reaper.targetLocation);
+                map.update(r->pos);
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, map.getOptimalWaypoint(reaper.targetLocation));
                 // validate state
-                if(r->health > 50){
+                if(r->health > 40){
                     reaper.targetLocation = enemyMain;
                     reaper.state = Monte::ReaperState::Move;
                 }

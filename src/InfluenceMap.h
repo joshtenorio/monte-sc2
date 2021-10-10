@@ -1,6 +1,6 @@
 #pragma once
 
-#include <pair>
+#include <utility>
 #include <vector>
 #include <sc2api/sc2_common.h>
 #include "api.h"
@@ -30,12 +30,12 @@ namespace Monte {
     typedef struct InfluenceSource_s_t {
         InfluenceSource_s_t(sc2::Point2D center_, float score_, float radius_):
             center(center_), score(score_), maxRadius(radius_) {};
-        sc2::Point2DI center;
+        sc2::Point2D center;
         float score;
         float maxRadius;
     } InfluenceSource;
 
-    typedef std::pair<sc2::Point2DI, float> InfluenceTile;
+    typedef std::pair<sc2::Point2D, float> InfluenceTile;
 
     class InfluenceMap {
         public:
@@ -66,7 +66,7 @@ namespace Monte {
         sc2::Point2D getOptimalWaypoint(sc2::Point2D target);
 
         // given a target, find the safest waypoint regardless of whether or not it gets us closer to target
-        sc2::Point2D getSafeWaypoint(sc2::Point2D target);
+        sc2::Point2D getSafeWaypoint();
 
         // displays influence map
         // note: might not work if there are multiple units trying to print their own maps at the same time
@@ -75,7 +75,7 @@ namespace Monte {
         protected:
         std::vector<InfluenceSource> sources;
         std::vector<InfluenceTile> localRegion;
-        sc2::Point2DI center;
+        sc2::Point2D center;
         float maxRadius;
     };
 } // end namespace Monte
