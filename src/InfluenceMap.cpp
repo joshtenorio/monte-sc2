@@ -72,7 +72,27 @@ void InfluenceMap::update(sc2::Point2D newCenter){
 }
 
 sc2::Point2D InfluenceMap::getOptimalWaypoint(sc2::Point2D target){
-    return sc2::Point2D(0,0);
+    // 1. get all moore neighbors (should be 8 in total)
+    // 2. disregard neighbors, that if we were to move to we would be further from the target
+    std::vector<InfluenceTile> neighbors;
+    for(auto& t : localRegion){
+        // a tile is a neighbor if the squared distance to center is either 1 (in von neumann neighborhood only)
+        // or 2 (in moore neighborhood)
+        if(sc2::DistanceSquared2D(t.first, center) == 1 || sc2::DistanceSquared2D(t.first, center) == 2){
+            // only append if tile is closer to target than center is
+            if(sc2::DistanceSquared2D(target, t.first) < sc2::DistanceSquared2D(target, center))
+                neighbors.append(t);
+        }
+    }
+    // 3. get the neighbor with lowest score, and return its location
+    // this shouldn't be possible, but just in case something goes wrong
+    if(neighbors.empty())
+        return sc2::Point2D(0,0);
+    InfluenceTile waypoint = neighbors.front();
+    for(auto& n : neighbors){
+        if(n.second < waypoint.second) waypoint = n;
+    }
+    return waypoint.first;
 }
 
 sc2::Point2D InfluenceMap::getSafeWaypoint(sc2::Point2D target){
