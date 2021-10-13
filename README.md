@@ -1,5 +1,10 @@
 # monte-bot
-
+- [monte-bot](#monte-bot)
+    - [About](#about)
+    - [Building](#building)
+        - [Windows](#windows)
+        - [Linux](#linux)
+    - [Thanks](#thanks)
 ## About
 Monte is a StarCraft II Terran rule-based bot.
 Its architecture is based off of parts of CommandCenter I liked.
@@ -11,6 +16,8 @@ Monte currently supports the following features:
 - calling MULES
 - Rudimentary scouting to find enemy bases
 - Getting infantry weapon/armor upgrades
+
+More information can be found in the wiki (WIP).
 
 ## Building
 ### Windows
