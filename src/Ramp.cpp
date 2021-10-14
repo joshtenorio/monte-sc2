@@ -3,7 +3,6 @@
 
 void findRamp(Ramp* r, sc2::Point2D start){
     // get a list of points that are pathable but not buildable
-    // then, group together points that are close together to form a Ramp
     // (reference how we generate mineral lines for this)
     // then get the Ramp closest to start and generate barracks and supply depot positions from that
     std::vector<sc2::Point2D> rampPoints;
@@ -21,6 +20,8 @@ void findRamp(Ramp* r, sc2::Point2D start){
         }
     }
     gInterface->debug->sendDebug();
+
+    // group together 
 
 
 }
