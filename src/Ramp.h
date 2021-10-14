@@ -10,7 +10,7 @@
 typedef struct Ramp_s_t {
     Ramp_s_t() {}
     bool isMainRamp = false;
-    std::vector<sc2::Point2D> rampPoints; // points that are in the ramp
+    std::vector<sc2::Point2D> points; // points that are in the ramp
     std::vector<sc2::Point2D> supplyDepotPoints;
     sc2::Point2D barracksPos;
     sc2::Point2D barracksWithAddonPos; // probably the more useful one

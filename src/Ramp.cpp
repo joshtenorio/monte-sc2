@@ -1,10 +1,8 @@
 #include "api.h"
 #include "Ramp.h"
 
-void findRamp(Ramp* r, sc2::Point2D start){
+Ramp findRamp(sc2::Point2D start){
     // get a list of points that are pathable but not buildable
-    // (reference how we generate mineral lines for this)
-    // then get the Ramp closest to start and generate barracks and supply depot positions from that
     std::vector<sc2::Point2D> rampPoints;
     sc2::Point2D playableMin = gInterface->observation->GetGameInfo().playable_min;
     sc2::Point2D playableMax = gInterface->observation->GetGameInfo().playable_max;
@@ -16,12 +14,44 @@ void findRamp(Ramp* r, sc2::Point2D start){
                 sc2::Point3D p3d = sc2::Point3D(p.x, p.y, gInterface->observation->TerrainHeight(p));
                 gInterface->debug->debugDrawTile(p3d, sc2::Colors::Teal);
             }
-                
         }
     }
     gInterface->debug->sendDebug();
 
-    // group together 
+    // group together nearby ramp points to form a ramp
+    std::vector<Ramp> ramps;
+    while(!rampPoints.empty()){
+        std::queue<const sc2::Point2D> rampFrontier;
+        rampFrontier.push(rampPoints.front());
+        Ramp r;
+        r.points.emplace_back(rampPoints.front());
+        rampPoints.erase(rampPoints.begin());
+        while(!rampPoints.empty() && !rampFrontier.empty()){
+            sc2::Point2D r0 = rampFrontier.front();
+            sc2::Point2D closestPoint = rampPoints.front();
+            float distance = std::numeric_limits<float>::max();
+
+            // get closest ramp point to rampfronter.front
+            for(auto p : rampPoints){
+                if(sc2::DistanceSquared2D(p, r0) < distance){
+                    distance = sc2::DistanceSquared2D(p, r0);
+                    closestPoint = p;
+                }
+            }
+
+            if(distance >= 36){ // if point is too far away from ramp, disregard it
+                rampFrontier.pop();
+                continue;
+            }
+
+            rampFrontier.push(closestPoint);
+            r.points.emplace_back(closestPoint);
+
+            auto itr = std::find(rampPoints.begin(), rampPoints.end(), closestPoint);
+            if(itr != rampPoints.end()) rampPoints.erase(itr);
+        }
+        ramps.emplace_back(r);
+    } // while we still have ramp points to consider
 
 
 }
