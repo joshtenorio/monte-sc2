@@ -14,7 +14,8 @@ typedef struct Ramp_s_t {
     std::vector<sc2::Point2D> supplyDepotPoints;
     sc2::Point2D barracksPos;
     sc2::Point2D barracksWithAddonPos; // probably the more useful one
+    Monte::Vector2D direction; // points in the direction of the high ground
 
 } Ramp;
 
-void findRamp(Ramp* r, sc2::Point2D start);
+std::vector<Ramp> findRamps();

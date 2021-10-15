@@ -1,7 +1,7 @@
 #include "api.h"
 #include "Ramp.h"
 
-Ramp findRamp(sc2::Point2D start){
+std::vector<Ramp> findRamps(){
     // get a list of points that are pathable but not buildable
     std::vector<sc2::Point2D> rampPoints;
     sc2::Point2D playableMin = gInterface->observation->GetGameInfo().playable_min;

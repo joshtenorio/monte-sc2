@@ -15,7 +15,7 @@ void Mapper::initialize(){
 
     Ramp* r = &(startingExpansion.ramp);
     r->isMainRamp = true;
-    findRamp(r, startingExpansion.baseLocation);
+    ramps = findRamps();
 
     //validateGeysers();
 
