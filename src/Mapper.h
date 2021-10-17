@@ -90,7 +90,7 @@ class Mapper {
     void validateGeysers();
 
     static std::vector<Expansion> expansions;
-    static std::vector<Ramp> ramps;
+    std::vector<Ramp> ramps;
 
     Expansion startingExpansion; // TODO: could this be a pointer instead? i.e. yes it can
     Logger logger;

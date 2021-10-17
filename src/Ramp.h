@@ -4,7 +4,7 @@
 #include <queue>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_map_info.h>
-
+#include "VectorMath.h"
 
 
 typedef struct Ramp_s_t {

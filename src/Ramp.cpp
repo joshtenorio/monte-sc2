@@ -16,12 +16,12 @@ std::vector<Ramp> findRamps(){
             }
         }
     }
-    gInterface->debug->sendDebug();
+    
 
     // group together nearby ramp points to form a ramp
     std::vector<Ramp> ramps;
     while(!rampPoints.empty()){
-        std::queue<const sc2::Point2D> rampFrontier;
+        std::queue<sc2::Point2D> rampFrontier;
         rampFrontier.push(rampPoints.front());
         Ramp r;
         r.points.emplace_back(rampPoints.front());
@@ -53,5 +53,10 @@ std::vector<Ramp> findRamps(){
         ramps.emplace_back(r);
     } // while we still have ramp points to consider
 
-
+    for(auto &r: ramps){
+        sc2::Point3D p = sc2::Point3D(r.points.front().x, r.points.front().y, gInterface->observation->TerrainHeight(r.points.front()));
+        gInterface->debug->debugSphereOut(p, 8.0);
+    }
+    gInterface->debug->sendDebug();
+    return ramps;
 }

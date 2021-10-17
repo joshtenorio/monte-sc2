@@ -13,8 +13,8 @@ void Mapper::initialize(){
     // get starting location's expansion and define its ramp
     startingExpansion = *getClosestExpansion(gInterface->observation->GetStartLocation());
 
-    Ramp* r = &(startingExpansion.ramp);
-    r->isMainRamp = true;
+    //Ramp* r = &(startingExpansion.ramp);
+    //r->isMainRamp = true;
     ramps = findRamps();
 
     //validateGeysers();
