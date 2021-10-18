@@ -60,3 +60,7 @@ std::vector<Ramp> findRamps(){
     gInterface->debug->sendDebug();
     return ramps;
 }
+
+MainRamp generateMainRamp(Ramp r){
+    
+}
