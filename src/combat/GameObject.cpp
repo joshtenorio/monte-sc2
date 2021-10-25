@@ -4,6 +4,7 @@ namespace Monte{
 
 
 sc2::Point3D GameObject::getPos(){
+    if(getUnit() == nullptr) return sc2::Point3D(0, 0, 0);
     return getUnit()->pos;
 }
 
