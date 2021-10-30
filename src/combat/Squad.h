@@ -49,6 +49,8 @@ class Squad {
 
     sc2::Point2D getCenter();
     std::vector<std::unique_ptr<Monte::GameObject>>& getUnits();
+
+    void setConfig(CombatConfig& config_);
     
     protected:
     ManagerType getManagerType(Monte::GameObject obj);
@@ -57,6 +59,7 @@ class Squad {
 
     sc2::Point2D center;
     sc2::Point2D target;
+    CombatConfig config;
 
     State state;
     short id;

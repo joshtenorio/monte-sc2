@@ -32,7 +32,13 @@ class CombatCommander : public Manager {
     // constructors
     CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
     // TODO: add a constructor with strategy, bc we need CombatConfig from strategy
-    CombatCommander(Strategy* strategy_) { config = strategy_->getCombatConfig(); sm = ScoutManager(); logger = Logger("CombatCommander"); };
+    CombatCommander(Strategy* strategy_){
+        config = strategy_->getCombatConfig();
+        mainSquad = AttackSquad();
+        mainSquad.setConfig(config);
+        sm = ScoutManager();
+        logger = Logger("CombatCommander");
+    };
 
     void OnGameStart();
     void OnStep();
@@ -41,12 +47,11 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
-    void marineOnStep();
-    void medivacOnStep();
-    void siegeTankOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
     void handleChangelings();
+
+    CombatConfig& getCombatConfig();
     
 
     protected:
@@ -54,6 +59,7 @@ class CombatCommander : public Manager {
     CombatConfig config;
 
     std::vector<Monte::Tank> tanks;
+    AttackSquad mainSquad;
 
     // used for marine control
     bool reachedEnemyMain;

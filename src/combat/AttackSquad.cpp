@@ -39,7 +39,7 @@ void AttackSquad::validateState(){
                 }
             }
             // how confident we are that we can win w/ even or slightly less supply
-            int confidence = 5;
+            int confidence = 4;
 
             if(ourSupply + confidence < localEnemySupply)
                 state = Squad::State::Bide;

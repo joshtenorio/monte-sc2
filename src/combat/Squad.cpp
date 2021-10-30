@@ -65,6 +65,10 @@ std::vector<std::unique_ptr<Monte::GameObject>>& Squad::getUnits(){
     return units;
 }
 
+void Squad::setConfig(CombatConfig& config_){
+    config = config_;
+}
+
 Squad::ManagerType Squad::getManagerType(Monte::GameObject obj){
     const sc2::Unit* unit = obj.getUnit();
     if(unit == nullptr) return ManagerType::Null;
