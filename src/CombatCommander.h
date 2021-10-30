@@ -5,6 +5,7 @@
 #include <sc2api/sc2_agent.h>
 #include "api.h"
 #include "Manager.h"
+#include "Strategy.h"
 #include "ScoutManager.h"
 #include "combat/AttackSquad.h"
 
@@ -31,6 +32,7 @@ class CombatCommander : public Manager {
     // constructors
     CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
     // TODO: add a constructor with strategy, bc we need CombatConfig from strategy
+    CombatCommander(Strategy* strategy_) { config = strategy_->getCombatConfig(); sm = ScoutManager(); logger = Logger("CombatCommander"); };
 
     void OnGameStart();
     void OnStep();
@@ -49,6 +51,7 @@ class CombatCommander : public Manager {
 
     protected:
     ScoutManager sm;
+    CombatConfig config;
 
     std::vector<Monte::Tank> tanks;
 
