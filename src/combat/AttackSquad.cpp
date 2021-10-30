@@ -45,13 +45,29 @@ void AttackSquad::validateState(){
                 state = Squad::State::Bide;
         }
         break;
-        case Squad::State::Bide:
+        case Squad::State::Bide:{
+            int bioSupply = 0;
+            for(auto& u : units){
+                const sc2::Unit* unit = u.get()->getUnit();
+                if(unit == nullptr) continue;
+                else if(unit->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARINE || unit->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MARAUDER)
+                    bioSupply++;
+            }
+
+            int numBarracks = API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS);
+            if(bioSupply > config.minimumWave + config.bioMultiplier * numBarracks){
+                state = Squad::State::Attack;
+            }
+            // TODO: implement transition to defend state
+        }
         break;
         case Squad::State::Defend:
         break;
         case Squad::State::Move:
+        // TODO: is move state actually necessary ?
         break;
         case Squad::State::Init:
+        state = Squad::State::Bide;
         default:
 
     }
