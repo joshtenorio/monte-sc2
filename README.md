@@ -1,5 +1,10 @@
 # monte-bot
-
+- [monte-bot](#monte-bot)
+    - [About](#about)
+    - [Building](#building)
+        - [Windows](#windows)
+        - [Linux](#linux)
+    - [Thanks](#thanks)
 ## About
 Monte is a StarCraft II Terran rule-based bot.
 Its architecture is based off of parts of CommandCenter I liked.
@@ -13,6 +18,8 @@ Monte currently supports the following features:
 - Primitive Reaper micro
 
 ![for the badge](./worker-rush-not-included.svg)
+
+More information can be found in the wiki (WIP).
 
 ## Building
 ### Windows

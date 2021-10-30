@@ -29,9 +29,9 @@ void ProductionManager::OnStep(){
     
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+        tryBuildCommandCenter();
         TryBuildBarracks();
         tryBuildRefinery();
-        tryBuildCommandCenter();
         tryBuildArmory();
         tryBuildEngineeringBay();
         tryBuildAddon();

@@ -20,7 +20,7 @@ void ScoutManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 625 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
 
-    if(gInterface->observation->GetGameLoop() % 400 == 0){
+    if(gInterface->observation->GetGameLoop() % 400 == 0 && gInterface->observation->GetGameLoop() > 2){
         int n = 0;
         for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
             if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
