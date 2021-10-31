@@ -33,8 +33,6 @@ class BioManager : public MicroManager {
     BioManager() {};
 
     protected:
-    void manageStim(Monte::GameObject* unit, Squad::State squadState);
-
     void doSquadMove(Monte::GameObject* unit, sc2::Point2D target);
     void doSquadAttack(Monte::GameObject* unit, sc2::Point2D target);
     void doSquadDefend(Monte::GameObject* unit, sc2::Point2D target);
@@ -46,4 +44,6 @@ class BioManager : public MicroManager {
     void validateSquadDefend(Monte::GameObject* unit, sc2::Point2D target);
     void validateSquadNull(Monte::GameObject* unit, sc2::Point2D target);
     void validateSquadInit(Monte::GameObject* unit, sc2::Point2D target);
+
+    void manageStim(Monte::GameObject* unit, Squad::State squadState);
 };
