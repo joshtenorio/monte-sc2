@@ -514,37 +514,13 @@ void CombatCommander::reaperOnStep(){
             break;
             case Monte::ReaperState::Attack:
                 // do state action
-                // prioritise lowest-hp worker; else closest worker; else closest enemy
-                if(!localEnemyWorkers.empty()){
-                    for(auto& w : localEnemyWorkers)
-                        if(w->health < targetHP) target = w;
-                    if(target == nullptr){
-                        target = localEnemyWorkers.front();
-                        for(auto& w : localEnemyWorkers){
-                            if(sc2::DistanceSquared2D(w->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
-                                target = w;
-                        }
-                    }
-                }
-                else if(!localEnemies.empty()){ // no nearby workers, so target closest non-building enemy
-                    target = localEnemies.front();
-                    for(auto& e : localEnemies){
-                        if(e->is_building) continue;
-                            if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
-                                target = e;                    
-                    }
-                }
-                if(target != nullptr){
-                    if(!target->is_flying && target->display_type == sc2::Unit::DisplayType::Visible){
-                        gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
-                    }
-                    // don't transition to kite state here, to ensure that we shoot target at least once
-                }
+
 
                     
                 // validate state
                 if(r->health <= 20){ // bide if we are below 1/3 hp
-                    reaper.targetLocation = gInterface->map->getNthExpansion(1)->baseLocation;
+                    sc2::Point2D centerMap = sc2::Point2D(gInterface->observation->GetGameInfo().playable_max.x/2, gInterface->observation->GetGameInfo().playable_max.y/2);
+                    reaper.targetLocation = centerMap; // bide at center of map
                     reaper.state = Monte::ReaperState::Bide;
                 }
                 else if(r->weapon_cooldown){
