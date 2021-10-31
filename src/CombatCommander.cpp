@@ -524,9 +524,12 @@ void CombatCommander::reaperOnStep(){
                 if(localEnemies.size() == localEnemyWorkers.size() && !localEnemies.empty()){
                     // TODO: find lowest hp worker in weapon range, else just get closest worker
                     attackCase = 1;
-                    target = nullptr;
+                    target = nullptr; // TODO this is probably redundant lol
                     for(auto& e : localEnemyWorkers){
-                        if(e->health < targetHP && sc2::DistanceSquared2D(e, r) <= 25) target = e;
+                        if(e->health < targetHP && sc2::DistanceSquared2D(e->pos, r->pos) <= 25){
+                            target = e;
+                            targetHP = e->health;
+                        }
                     }
                     if(target == nullptr){ // all the workers have same hp so just get closest
                         target = localEnemyWorkers.front();
@@ -536,7 +539,7 @@ void CombatCommander::reaperOnStep(){
                         }
                     }
                     gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
-                }
+                } // end case 1
                 else{
                     // either one of case 2 or 3
                     // if we can find an enemy combatant in weapon range, it is case 3
@@ -544,15 +547,54 @@ void CombatCommander::reaperOnStep(){
                     for(auto& e : localEnemies){
                         if(sc2::DistanceSquared2D(e->pos, r->pos) <= 25 && !API::isWorker(e->unit_type.ToType())){
                             // case 3
-                            // TODO: case 3 functionality
+                            // prioritise lowest hp enemy in weapon range
+                            for(auto& e : localEnemies){
+                                if(!API::isWorker(e->unit_type.ToType()) && sc2::DistanceSquared2D(e->pos, r->pos) < 25 && e->health < targetHP){
+                                    target = e;
+                                    targetHP = e->health;
+                                }
+                            }
+                            // else just closest enemy in weapon range
+                            if(target == nullptr)
+                                target = localEnemies.front();
+                                for(auto& e : localEnemies){
+                                    if(!API::isWorker(e->unit_type.ToType()) && sc2::DistanceSquared2D(e->pos, r->pos) < 25)
+                                        target = e;
+                                }
+                            if(target != nullptr)
+                                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
                             attackCase = 3;
                             break;
                         }
                     }
                     if(attackCase != 3){
                         attackCase = 2;
-                        // TODO case 2 functionality
-                    }
+                        // prioritise lowest health worker in weapon range
+                        for(auto& e : localEnemyWorkers){
+                            if(e->health < targetHP && sc2::DistanceSquared2D(e->pos, r->pos) <= 25){
+                                target = e;
+                                targetHP = e->health;
+                            }
+                        }
+                        // else, closest worker in weapon range
+                        if(target == nullptr && !localEnemyWorkers.empty()){
+                            target = localEnemyWorkers.front();
+                            for(auto& e : localEnemyWorkers){
+                                if(sc2::DistanceSquared2D(e->pos, r->pos) <= sc2::DistanceSquared2D(target->pos, r->pos))
+                                    target = e;
+                            }
+                        }
+                        // else, just get closest enemy
+                        else if(target == nullptr && !localEnemies.empty()){
+                            target = localEnemies.front();
+                            for(auto& e : localEnemies){
+                                if(sc2::DistanceSquared2D(e->pos, r->pos) <= sc2::DistanceSquared2D(target->pos, r->pos))
+                                    target = e;
+                            }
+                        }
+                        if(target != nullptr)
+                            gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                    } // end case 2
 
                 } // end case 2/3
                 
