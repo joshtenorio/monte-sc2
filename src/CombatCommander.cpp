@@ -23,6 +23,8 @@ void CombatCommander::OnStep(){
 void CombatCommander::OnUnitCreated(const Unit* unit_){
     if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
 
+    // TODO: don't add first 4 marines to attacksquad, they go into bunker
+
     switch(unit_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
             // first, generate target flight point

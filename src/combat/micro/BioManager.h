@@ -16,7 +16,8 @@ namespace Monte {
         Null = -1,
         Unstimmed, // change state to eligibleStim if we have health and enemies are nearby
         EligibleStim, // give marine order to stim, then change state to Stimmed
-        Stimmed // change state to unstimmed once unit is not buffed anymore
+        Stimming,
+        Stimmed, // change state to unstimmed once unit is not buffed anymore
     };
 
     struct Bio : public GameObject {
