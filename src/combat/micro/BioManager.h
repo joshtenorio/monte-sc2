@@ -32,12 +32,6 @@ class BioManager : public MicroManager {
     public:
     BioManager() {};
 
-    // give the GameObject an action based on its and its squad's states
-    void doStateAction(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target);
-
-    // update GameObject state if required
-    void validateState(Monte::GameObject* unit, Squad::State squadState, sc2::Point2D target);
-
     protected:
     void manageStim(Monte::GameObject* unit, Squad::State squadState);
 
@@ -46,4 +40,10 @@ class BioManager : public MicroManager {
     void doSquadDefend(Monte::GameObject* unit, sc2::Point2D target);
     void doSquadNull(Monte::GameObject* unit, sc2::Point2D target);
     void doSquadInit(Monte::GameObject* unit, sc2::Point2D target);
+
+    void validateSquadMove(Monte::GameObject* unit, sc2::Point2D target);
+    void validateSquadAttack(Monte::GameObject* unit, sc2::Point2D target);
+    void validateSquadDefend(Monte::GameObject* unit, sc2::Point2D target);
+    void validateSquadNull(Monte::GameObject* unit, sc2::Point2D target);
+    void validateSquadInit(Monte::GameObject* unit, sc2::Point2D target);
 };
