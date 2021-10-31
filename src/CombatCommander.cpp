@@ -465,15 +465,18 @@ void CombatCommander::reaperOnStep(){
         const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
         if(r == nullptr) continue;
 
-        // TODO: only get enemies that are units
         // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
         // that give more vision of surrounding location
-        sc2::Units localEnemies = API::getClosestNUnits(r->pos, 99, 9, sc2::Unit::Alliance::Enemy);
+        sc2::Units allLocalEnemy = API::getClosestNUnits(r->pos, 99, 9, sc2::Unit::Alliance::Enemy);
+        sc2::Units localEnemies;
         sc2::Units localEnemyWorkers;
         const sc2::Unit* target = nullptr;
         float targetHP = std::numeric_limits<float>::max();
-        for(auto& e : localEnemies)
+        for(auto& e : allLocalEnemy){
+            if(!e->is_building) localEnemies.emplace_back(e);
             if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
+        }
+            
         
         // generate influence map
         Monte::InfluenceMap map(r->pos, 11);
@@ -512,11 +515,47 @@ void CombatCommander::reaperOnStep(){
                 }
 
             break;
-            case Monte::ReaperState::Attack:
+            case Monte::ReaperState::Attack:{
                 // do state action
 
+                int attackCase = 0; // for debug, mostly
+                // this means there are no enemy combatants (besides workers) so
+                // this is case 1
+                if(localEnemies.size() == localEnemyWorkers.size() && !localEnemies.empty()){
+                    // TODO: find lowest hp worker in weapon range, else just get closest worker
+                    attackCase = 1;
+                    target = nullptr;
+                    for(auto& e : localEnemyWorkers){
+                        if(e->health < targetHP && sc2::DistanceSquared2D(e, r) <= 25) target = e;
+                    }
+                    if(target == nullptr){ // all the workers have same hp so just get closest
+                        target = localEnemyWorkers.front();
+                        for(auto& e : localEnemyWorkers){
+                            if(sc2::DistanceSquared2D(e->pos, r->pos) < sc2::DistanceSquared2D(target->pos, r->pos))
+                                target = e;
+                        }
+                    }
+                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::ATTACK, target);
+                }
+                else{
+                    // either one of case 2 or 3
+                    // if we can find an enemy combatant in weapon range, it is case 3
+                    // else it is case 2
+                    for(auto& e : localEnemies){
+                        if(sc2::DistanceSquared2D(e->pos, r->pos) <= 25 && !API::isWorker(e->unit_type.ToType())){
+                            // case 3
+                            // TODO: case 3 functionality
+                            attackCase = 3;
+                            break;
+                        }
+                    }
+                    if(attackCase != 3){
+                        attackCase = 2;
+                        // TODO case 2 functionality
+                    }
 
-                    
+                } // end case 2/3
+                
                 // validate state
                 if(r->health <= 20){ // bide if we are below 1/3 hp
                     sc2::Point2D centerMap = sc2::Point2D(gInterface->observation->GetGameInfo().playable_max.x/2, gInterface->observation->GetGameInfo().playable_max.y/2);
@@ -530,7 +569,7 @@ void CombatCommander::reaperOnStep(){
                     reaper.targetLocation = enemyMain;
                     reaper.state = Monte::ReaperState::Move;
                 }
-            break;
+            break;}
             case Monte::ReaperState::Kite:
                 // do state action
                 // skip doing action if no enemies are nearby
