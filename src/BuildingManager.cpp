@@ -94,6 +94,19 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 }
 
+void BuildingManager::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
+    for(auto& b : inProgressBuildings){
+        if(b.first == unit_->tag){
+            float healthPercent = unit_->health / unit_->health_max;
+            // if health is <= 7% then cancel building
+            if(healthPercent <= 0.07)
+                gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::CANCEL);
+            return;
+        }
+    }
+
+}
+
 void BuildingManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // remove Construction from list and set worker to unemployed, unless building was a refinery (in which case the new job is gathering gas)
     for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){

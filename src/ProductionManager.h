@@ -25,8 +25,11 @@ class ProductionManager : public Manager {
     void OnBuildingConstructionComplete(const Unit* building_);
     void OnUnitCreated(const Unit* unit_);
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
-    void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
+    // pass these to building manager
+    void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitDamaged(const Unit* unit_, float health_, float shields_);
+    
     ProductionConfig& getProductionConfig();
 
     protected:

@@ -19,6 +19,7 @@ class BuildingManager : public Manager {
 
     // used for if a worker assigned to a job or building under construction is killed
     void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitDamaged(const Unit* unit_, float health_, float shields_);
 
     // used for resetting worker job and for setting ownership of expansion, and for updating num of friendly refineries in an expansion
     void OnBuildingConstructionComplete(const Unit* building_);
