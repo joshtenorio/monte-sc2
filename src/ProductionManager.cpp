@@ -133,8 +133,8 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 }
 
-void ProductionManager::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
-    bm.OnUnitDestroyed(unit_);
+void ProductionManager::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
+    bm.OnUnitDamaged(unit_, health_, shields_);
 }
 
 ProductionConfig& ProductionManager::getProductionConfig(){
