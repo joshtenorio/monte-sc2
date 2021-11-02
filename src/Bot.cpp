@@ -208,7 +208,8 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
 }
 
 void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
-    pm.OnUnitDamaged(unit_, health_, shields_);
+    if(unit_->alliance == sc2::Unit::Alliance::Self)
+        pm.OnUnitDamaged(unit_, health_, shields_);
     cc.OnUnitDamaged(unit_, health_, shields_);
 }
 
