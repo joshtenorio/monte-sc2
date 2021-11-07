@@ -1,5 +1,9 @@
 #include "BuildingPlacer.h"
 
+BuildingPlacer::BuildingPlacer(){
+    logger = Logger("BuildingPlacer");
+}
+
 void BuildingPlacer::OnGameStart(){
     int mapHeight = gInterface->observation->GetGameInfo().height;
     int mapWidth = gInterface->observation->GetGameInfo().width;

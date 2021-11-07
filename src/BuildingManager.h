@@ -12,7 +12,7 @@ typedef std::pair<sc2::Tag, Worker*> Construction;
 
 class BuildingManager : public Manager {
     public:
-    BuildingManager() { logger = Logger("BuildingManager"); };
+    BuildingManager();
 
     void OnGameStart();
     void OnStep();

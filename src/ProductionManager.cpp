@@ -1,5 +1,16 @@
 #include "ProductionManager.h"
 
+ProductionManager::ProductionManager(){
+    bm = BuildingManager();
+    logger = Logger("ProductionManager");
+}
+
+ProductionManager::ProductionManager(Strategy* strategy_){
+    strategy = strategy_;
+    bm = BuildingManager();
+    logger = Logger("ProductionManager");
+}
+
 void ProductionManager::OnStep(){
 
     // clear the busyBuildings vector of tags

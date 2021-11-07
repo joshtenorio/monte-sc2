@@ -58,7 +58,7 @@ typedef struct Expansion_s_t {
 
 class Mapper {
     public:
-    Mapper() { logger = Logger("Mapper"); };
+    Mapper();
     void initialize();
     Expansion* getClosestExpansion(sc2::Point3D point);
 

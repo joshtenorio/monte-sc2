@@ -5,6 +5,9 @@
 // initialize expansions
 std::vector<Expansion> Mapper::expansions;
 
+Mapper::Mapper(){
+    logger = Logger("Mapper");
+}
 
 void Mapper::initialize(){
     calculateExpansions();

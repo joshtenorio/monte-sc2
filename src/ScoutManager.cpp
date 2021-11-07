@@ -1,5 +1,8 @@
 #include "ScoutManager.h"
 
+ScoutManager::ScoutManager(){
+    logger = Logger("ScoutManager");
+}
 
 void ScoutManager::OnGameStart(){
     scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SCV);

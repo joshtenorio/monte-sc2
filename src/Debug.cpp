@@ -2,6 +2,14 @@
 
 namespace Monte {
 
+Debug::Debug(){
+    logger = Logger("Debug");
+}
+
+Debug::Debug(sc2::DebugInterface* debug_): debug(debug_){
+    logger = Logger("Debug");
+}
+
 void Debug::sendDebug(){
     #ifdef BUILD_FOR_LADDER
     // don't send debug

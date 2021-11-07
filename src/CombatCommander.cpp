@@ -1,5 +1,9 @@
 #include "CombatCommander.h"
 
+CombatCommander::CombatCommander(){
+    sm = ScoutManager(); logger = Logger("CombatCommander");
+}
+
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);

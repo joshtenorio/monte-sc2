@@ -1,5 +1,9 @@
 #include "BuildingManager.h"
 
+BuildingManager::BuildingManager(){
+    logger = Logger("BuildingManager");
+}
+
 void BuildingManager::OnGameStart(){
     bp.OnGameStart();
 }

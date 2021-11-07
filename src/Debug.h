@@ -10,8 +10,8 @@ namespace Monte {
 class Debug {
     public:
     // constructors
-    Debug() { logger = Logger("Debug"); };
-    Debug(sc2::DebugInterface* debug_): debug(debug_) { logger = Logger("Debug"); };
+    Debug();
+    Debug(sc2::DebugInterface* debug_);
 
     // sendDebug is only valid when BUILD_FOR_LADDER is off, see build instructions
     void sendDebug();

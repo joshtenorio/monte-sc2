@@ -2,7 +2,6 @@
 
 InformationManager::InformationManager(){
     logger = Logger("InformationManager");
-    
 }
 
 void InformationManager::OnGameStart(){
@@ -56,7 +55,7 @@ void InformationManager::updateExpoOwnership(){
 void InformationManager::checkForWorkerRush(){
     // if we have 4 or more completed buildings, don't check for worker rush
     int structureCount = API::countUnitType([](const sc2::Unit& u){
-                return (API::isStructure(u.unit_type.ToType()) && u.build_progress == 1.0);
+                return (u.is_building && u.build_progress == 1.0);
             });
     if(structureCount >= 4) return;
 

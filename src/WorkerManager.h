@@ -32,7 +32,7 @@ typedef struct Worker_s_t {
 
 class WorkerManager : public Manager {
     public:
-    WorkerManager() { logger = Logger("WorkerManager"); }; // empty constructor
+    WorkerManager(); // empty constructor
 
     void OnStep();
     void OnUnitCreated(const Unit* unit_);

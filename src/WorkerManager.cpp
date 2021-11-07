@@ -11,6 +11,9 @@
 
 using namespace sc2;
 
+WorkerManager::WorkerManager(){
+    logger = Logger("WorkerManager");
+}
 const sc2::Unit* Worker::getUnit(){
     return gInterface->observation->GetUnit(tag);
 }

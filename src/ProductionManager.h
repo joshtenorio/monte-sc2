@@ -13,12 +13,8 @@ using namespace sc2;
 class ProductionManager : public Manager {
     public:
     // constructors
-    ProductionManager() { bm = BuildingManager(); logger = Logger("ProductionManager"); };
-    ProductionManager(Strategy* strategy_){
-        strategy = strategy_;
-        bm = BuildingManager();
-        logger = Logger("ProductionManager");
-    };
+    ProductionManager();
+    ProductionManager(Strategy* strategy_);
 
     void OnStep();
     void OnGameStart();

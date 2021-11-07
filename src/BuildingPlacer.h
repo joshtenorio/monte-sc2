@@ -17,7 +17,7 @@ typedef sc2::Point2DI Tile;
 // TODO: should this inherit manager?
 class BuildingPlacer {
     public:
-    BuildingPlacer() { logger = Logger("BuildingPlacer"); };
+    BuildingPlacer();
 
     // initialize reserved tiles here (set everything to false unless if tile is unbuildable)
     void OnGameStart();
