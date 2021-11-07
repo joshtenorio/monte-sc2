@@ -99,13 +99,13 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // only run this after the 50th loop
     // necessary to avoid crashing when the main cc is created
-    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()) && !API::isAddon(unit_->unit_type.ToType()))
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && unit_->is_building && !API::isAddon(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(
-        API::isStructure(unit_->unit_type.ToType()) ||
+        unit_->is_building ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MULE) return;
     

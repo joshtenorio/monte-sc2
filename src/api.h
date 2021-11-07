@@ -46,7 +46,6 @@ namespace API {
     sc2::UNIT_TYPEID getProducer(sc2::ABILITY_ID unit);
     bool requiresTechLab(sc2::ABILITY_ID unit);
 
-    bool isStructure(sc2::UNIT_TYPEID unit);
     bool isTownHall(sc2::UNIT_TYPEID unit);
     bool isAddon(sc2::UNIT_TYPEID unit);
     bool isFlying(const sc2::Unit& u);

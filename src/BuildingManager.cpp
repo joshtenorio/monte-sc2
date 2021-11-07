@@ -54,7 +54,7 @@ void BuildingManager::OnStep(){
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     
     // if it is a structure we need to free the tiles
-    if(API::isStructure(unit_->unit_type.ToType()))
+    if(unit_->is_building)
         bp.freeTiles(unit_->pos, API::getStructureRadiusByAbility(API::unitTypeIDToAbilityID(unit_->unit_type.ToType())));
 
     // if its an in-prog building that died, release the worker and remove Construction from list
