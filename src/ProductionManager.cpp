@@ -75,7 +75,7 @@ void ProductionManager::OnGameStart(){
     config = strategy->getConfig();
 }
 
-void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
+void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // building manager doesn't handle addons
     if(!API::isAddon(building_->unit_type.ToType()))
         bm.OnBuildingConstructionComplete(building_);
@@ -310,7 +310,7 @@ void ProductionManager::handleStarports(){
 }
 
 void ProductionManager::handleTownHalls(){
-    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     if(ccs.empty()) return;
 
     for(auto& cc : ccs){
@@ -434,7 +434,7 @@ void ProductionManager::trainUnit(Step s){
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
-    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(structureID));
     for(auto& b : buildings){
         if(b->build_progress < 1.0) continue;
         bool canResearch = false;
@@ -474,14 +474,14 @@ bool ProductionManager::TryBuildSupplyDepot(){
         return false;
     
     // else, try and build a number of depots equal to the number of town halls we have
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT, numTownhalls);
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, numTownhalls);
 }
 
 bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 8 barracks already
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
+        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
 bool ProductionManager::tryBuildFactory(){
@@ -496,7 +496,7 @@ bool ProductionManager::tryBuildStarport(){
 
 bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= 6) return false;
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_REFINERY);
 }
 
 bool ProductionManager::tryBuildCommandCenter(){
@@ -556,7 +556,7 @@ bool ProductionManager::tryBuildMissileTurret(){
 bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
     sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);
 
-    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(buildingID));
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(buildingID));
     if(buildings.empty()) return false;
 
     // TODO: add support for training n units and reactors
@@ -576,8 +576,8 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
 
 void ProductionManager::handleUpgrades(){
     // get random infantry unit
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
     // get random vehicle unit
     // get random flying unit
@@ -599,7 +599,7 @@ void ProductionManager::handleUpgrades(){
     }
 
     if(getCombatShields){
-        sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
         if(!techLabs.empty()){
             castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_COMBATSHIELD, false, false, false));
         }
@@ -620,7 +620,7 @@ void ProductionManager::handleUpgrades(){
 void ProductionManager::callMules(){
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) <= 0) return;
 
-    sc2::Units orbitals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+    sc2::Units orbitals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
     for(auto& orbital : orbitals){
         if(orbital->energy >= 50){
@@ -631,7 +631,7 @@ void ProductionManager::callMules(){
             // get a visible mineral unit closest to the current expansion
             // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically
             //          ie i think we should have Mapper extend Manager
-            sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
+            sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsVisibleMineralPatch());
 	        if(minerals.empty()) return;
             const sc2::Unit* mineralTarget = minerals.front();
             for(auto& m : minerals)

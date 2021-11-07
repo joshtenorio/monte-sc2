@@ -8,8 +8,6 @@
 #include "BuildingManager.h"
 #include "Strategy.h"
 
-using namespace sc2;
-
 class ProductionManager : public Manager {
     public:
     // constructors
@@ -18,13 +16,13 @@ class ProductionManager : public Manager {
 
     void OnStep();
     void OnGameStart();
-    void OnBuildingConstructionComplete(const Unit* building_);
-    void OnUnitCreated(const Unit* unit_);
+    void OnBuildingConstructionComplete(const sc2::Unit* building_);
+    void OnUnitCreated(const sc2::Unit* unit_);
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
 
     // pass these to building manager
     void OnUnitDestroyed(const sc2::Unit* unit_);
-    void OnUnitDamaged(const Unit* unit_, float health_, float shields_);
+    void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     
     ProductionConfig& getProductionConfig();
 

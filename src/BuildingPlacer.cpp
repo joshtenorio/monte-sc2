@@ -312,7 +312,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
         case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
         if(near == nullptr){
-            sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+            sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
             for(auto& b : barracks){
                 sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                 for(auto a : abilities.abilities){
@@ -328,7 +328,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
         case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
         if(near == nullptr){
-            sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+            sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
             for(auto& b : factories){
                 sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                 for(auto a : abilities.abilities){
@@ -344,7 +344,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
         case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
             if(near == nullptr){
-                sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+                sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
                 for(auto& b : starports){
                     sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                     for(auto a : abilities.abilities){

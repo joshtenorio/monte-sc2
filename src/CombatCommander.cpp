@@ -56,7 +56,7 @@ void CombatCommander::OnStep(){
         } // end for bunkers
 } // end OnStep
 
-void CombatCommander::OnUnitCreated(const Unit* unit_){
+void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
     if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
 
     switch(unit_->unit_type.ToType()){
@@ -226,12 +226,12 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 
 void CombatCommander::marineOnStep(){
     int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
-    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
 
     // send a wave if we have a decent amount of bio
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
         
-        sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
+        sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
@@ -257,13 +257,13 @@ void CombatCommander::marineOnStep(){
                 if(closestEnemyExpo != nullptr){
                     gInterface->actions->UnitCommand(
                             m,
-                            ABILITY_ID::ATTACK_ATTACK,
+                            sc2::ABILITY_ID::ATTACK_ATTACK,
                             closestEnemyExpo->baseLocation);
                 }
                 else{
                     gInterface->actions->UnitCommand(
                         m,
-                        ABILITY_ID::ATTACK_ATTACK,
+                        sc2::ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
                 }
             } // end if !reachedEnemyMain && m->orders.empty()
@@ -316,10 +316,10 @@ void CombatCommander::marineOnStep(){
 }
 
 void CombatCommander::medivacOnStep(){
-    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
         // move each medivac to the marine that is closest to the enemy main
-        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
         sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
         const sc2::Unit* closestMarine = nullptr;
         float d = std::numeric_limits<float>::max();

@@ -23,7 +23,6 @@
 #define JOB_REPAIRING           6
 #define JOB_SCOUTING            7
 
-using namespace sc2;
 typedef struct Worker_s_t {
     int job;
     sc2::Tag tag;
@@ -35,12 +34,12 @@ class WorkerManager : public Manager {
     WorkerManager(); // empty constructor
 
     void OnStep();
-    void OnUnitCreated(const Unit* unit_);
-    void OnUnitDestroyed(const Unit* unit_);
-    void OnUnitIdle(const Unit* unit_);
+    void OnUnitCreated(const sc2::Unit* unit_);
+    void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitIdle(const sc2::Unit* unit_);
 
     void DistributeWorkers(int gasWorkers = 3);
-    const sc2::Unit* FindNearestMineralPatch(const Point2D& start); // TODO: iirc this is unused, need to remove at some point
+    const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start); // TODO: iirc this is unused, need to remove at some point
 
     // TODO: make a function that returns a list of Workers
     // return a pointer to the first unemployed worker in list
@@ -48,7 +47,7 @@ class WorkerManager : public Manager {
 
     // free worker is defined as a worker who is either unemployed or gathering minerals
     Worker* getFreeWorker();
-    Worker* getWorker(const Unit* unit_); // get a pointer to a Worker object by Unit*
+    Worker* getWorker(const sc2::Unit* unit_); // get a pointer to a Worker object by Unit*
     Worker* getWorker(sc2::Tag tag_);
     Worker* getNthWorker(size_t n);
     // TODO: add implementation for getting closest worker who has a specific job

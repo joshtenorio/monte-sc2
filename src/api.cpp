@@ -7,7 +7,7 @@ void OnGameStart(){
 }
 
 int countIdleUnits(sc2::UNIT_TYPEID type){
-    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(type));
     int c = 0;
     for(auto& u : units){
         if(isUnitIdle(u)) c++;
@@ -47,7 +47,7 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
         pool = gInterface->observation->GetUnits(alliance);
     
     else // TODO: should we just return the getClosestNUnits (filter imp) here?
-        pool = gInterface->observation->GetUnits(alliance, IsUnit(unitType));
+        pool = gInterface->observation->GetUnits(alliance, sc2::IsUnit(unitType));
 
     sc2::Units output;
     for(auto& u : pool){
