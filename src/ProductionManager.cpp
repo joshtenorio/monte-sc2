@@ -101,7 +101,7 @@ void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building
             strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
+            gInterface->map->setExpansionOwnership(building_->pos, OWNER_SELF);
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -139,7 +139,7 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
     )
-        gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
+        gInterface->map->setExpansionOwnership(unit_->pos, OWNER_NEUTRAL);
         
 
 }

@@ -24,6 +24,13 @@ void InformationManager::OnStep(){
     // start updating expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
+    
+    if(gInterface->observation->GetGameLoop() % 400 == 0 && gInterface->observation->GetGameLoop() > 2){
+        int n = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
+        logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
+    }
 }
 
 ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
@@ -45,10 +52,7 @@ CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig
 void InformationManager::updateExpoOwnership(){
     sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
     for(auto& th : enemyTownHalls){
-        Expansion* closest = gInterface->map->getClosestExpansion(th->pos);
-        if(closest == nullptr) return;
-        else
-            closest->ownership = OWNER_ENEMY;
+        gInterface->map->setExpansionOwnership(th->pos, OWNER_ENEMY);
     }
 }
 

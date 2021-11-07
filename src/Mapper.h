@@ -76,6 +76,9 @@ class Mapper {
 
     int numOfExpansions();
 
+    void setExpansionOwnership(Expansion* e, char newOwner);
+    void setExpansionOwnership(sc2::Point3D p, char newOwner);
+
 
     protected:
     // get expansions functions are from mullemech

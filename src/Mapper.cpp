@@ -27,7 +27,7 @@ void Mapper::initialize(){
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
     Expansion* tmp = &(expansions.front());
     for (auto& e : expansions){
-        if(sc2::DistanceSquared2D(tmp->baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, Point2D(point)))
+        if(sc2::DistanceSquared2D(tmp->baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, sc2::Point2D(point)))
             tmp = &e;
     }
     return tmp;
@@ -59,6 +59,16 @@ Expansion* Mapper::getNextExpansion(){
 
 int Mapper::numOfExpansions(){
     return expansions.size();
+}
+
+void Mapper::setExpansionOwnership(Expansion* e, char newOwner){
+    if(!e) return;
+
+    e->ownership = newOwner;
+}
+
+void Mapper::setExpansionOwnership(sc2::Point3D p, char newOwner){
+    setExpansionOwnership(getClosestExpansion(p), newOwner);
 }
 
 void Mapper::calculateExpansions(){
