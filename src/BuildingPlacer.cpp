@@ -169,7 +169,8 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                     if(findRefineryLocation(e) != nullptr){
                         return findRefineryLocation(e);
                     }
-                } */
+                }*/
+                
             sc2::Units geysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
             const sc2::Unit* geyserToBuild = nullptr;
             float distSquared = 9000;
@@ -253,23 +254,23 @@ const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
         return nullptr;
     */
    // FIXME: update mapper so that we can use the above code instead of doing this below
-    std::vector<sc2::UNIT_TYPEID> geyserTypes;
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER);
 
-    sc2::Units geysers = API::getClosestNUnits(e->baseLocation, 2, 11, sc2::Unit::Alliance::Neutral, geyserTypes);
+    sc2::Units geysers = API::getClosestNUnits(e->baseLocation, 2, 11, sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
 
     if(geysers.empty()) return nullptr;
 
     if(e->numFriendlyRefineries == 0){
-        return e->gasGeysers.front();
+        logger.infoInit().withStr("0 friendly").write();
+        gInterface->debug->debugSphereOut(geysers.front()->pos, 3);
+        gInterface->debug->sendDebug();
+        return geysers.front();
     }
         
     else if(e->numFriendlyRefineries == 1){
-        return e->gasGeysers.back();
+        logger.infoInit().withStr("1 friendly").write();
+        gInterface->debug->debugSphereOut(geysers.back()->pos, 3);
+        gInterface->debug->sendDebug();
+        return geysers.back();
     }
         
     else

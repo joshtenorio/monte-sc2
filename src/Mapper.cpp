@@ -272,5 +272,5 @@ void Mapper::validateGeysers(){
     for(auto r : results){
         if(r) trueResults++;
     }
-    //printf("%d of %d valid\n", trueResults, results.size());
+    logger.infoInit().withInt(trueResults).withStr("of").withInt(results.size()).withStr("valid").write();
 }

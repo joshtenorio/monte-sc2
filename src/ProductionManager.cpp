@@ -13,6 +13,12 @@ ProductionManager::ProductionManager(Strategy* strategy_){
 
 void ProductionManager::OnStep(){
 
+    // TODO REMOVE THIS WHEN DONE TESTING
+    tryBuildRefinery();
+    TryBuildSupplyDepot();
+    handleTownHalls();
+    return;
+
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 
@@ -510,7 +516,7 @@ bool ProductionManager::tryBuildStarport(){
 }
 
 bool ProductionManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= 6) return false;
+    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= config.maxRefineries) return false;
     return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_REFINERY);
 }
 
