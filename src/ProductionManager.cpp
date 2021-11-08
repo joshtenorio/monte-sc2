@@ -66,6 +66,19 @@ void ProductionManager::OnStep(){
         logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
+    if(gInterface->observation->GetGameLoop() % 50 == 0){
+        logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
+        const sc2::ScoreDetails score = gInterface->observation->GetScore().score_details;
+        logger.addPlotData("mineral income", (float) score.collection_rate_minerals);
+        logger.addPlotData("vespene income", (float) score.collection_rate_vespene);
+        int numBases = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++){
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_SELF) numBases++;
+        }
+        logger.addPlotData("num of bases", (float) numBases);
+        logger.writePlotRow();
+    }
+
 }
 
 void ProductionManager::OnGameStart(){
@@ -73,6 +86,8 @@ void ProductionManager::OnGameStart(){
     
     strategy->initialize();
     config = strategy->getConfig();
+
+    logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){

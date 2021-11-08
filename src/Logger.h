@@ -9,8 +9,8 @@
 #include <sc2api/sc2_unit.h>
 
 typedef struct Plot_s_t {
-    std::string plotName;
-    std::map<std::string, int> columns;
+    std::string name;
+    std::map<std::string, size_t> columns;
     std::vector<float> currentRow;
 } Plot;
 

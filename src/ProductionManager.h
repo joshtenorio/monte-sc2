@@ -3,6 +3,7 @@
 #include <sc2api/sc2_unit.h>
 #include <vector>
 #include <memory>
+#include <sc2api/sc2_score.h>
 #include "api.h"
 #include "Manager.h"
 #include "BuildingManager.h"

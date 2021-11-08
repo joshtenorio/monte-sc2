@@ -22,10 +22,7 @@ Bot::Bot(){
 
 void Bot::OnGameStart(){
 
-    API::OnGameStart();
-    im.OnGameStart();
-    pm.OnGameStart();
-    cc.OnGameStart();
+
 
     gInterface->matchID = logger.createOutputPrefix();
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
@@ -35,13 +32,16 @@ void Bot::OnGameStart(){
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
-
+    API::OnGameStart();
+    im.OnGameStart();
+    pm.OnGameStart();
+    cc.OnGameStart();
 
 }
 
 void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
     logger.infoInit().withUnit(building_).withStr("constructed").write();
-    logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
+    //logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
