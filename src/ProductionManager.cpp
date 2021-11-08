@@ -13,12 +13,6 @@ ProductionManager::ProductionManager(Strategy* strategy_){
 
 void ProductionManager::OnStep(){
 
-    // TODO REMOVE THIS WHEN DONE TESTING
-    tryBuildRefinery();
-    TryBuildSupplyDepot();
-    handleTownHalls();
-    return;
-
     // clear the busyBuildings vector of tags
     busyBuildings.clear();
 

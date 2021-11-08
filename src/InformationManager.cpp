@@ -41,6 +41,14 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         currentPConfig.maxStarports = 3;
     }
 
+    float bioRatio = currentPConfig.marineMarauderRatio;
+    if(bioRatio != -1){
+        int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+        int numMarauders = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+        float currRatio = (numMarauders != 0 ? numMarines / numMarauders : numMarines);
+        currentPConfig.barracksTechOutput = (currRatio > bioRatio ? sc2::ABILITY_ID::TRAIN_MARAUDER : sc2::ABILITY_ID::TRAIN_MARINE);
+    }
+
 
     return currentPConfig; // TODO: since we pass in the reference to the current config, do we need this?
 }

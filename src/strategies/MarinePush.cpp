@@ -3,7 +3,7 @@
 void MarinePush::initialize(){
 
     config.maxWorkers = 80;
-    config.barracksTechOutput = sc2::ABILITY_ID::TRAIN_MARINE;
+    config.barracksTechOutput = sc2::ABILITY_ID::TRAIN_MARAUDER;
     config.factoryTechOutput = sc2::ABILITY_ID::TRAIN_SIEGETANK;
     config.autoMorphCC = true;
     config.maxRefineries = 6;

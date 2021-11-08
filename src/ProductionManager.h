@@ -59,6 +59,8 @@ class ProductionManager : public Manager {
 
     // handle upgrades
     void handleUpgrades();
+    void upgradeInfantryWeapons(int currLevel);
+    void upgradeInfantryArmor(int currLevel);
 
     // use orbital cc
     void callMules();
@@ -72,6 +74,5 @@ class ProductionManager : public Manager {
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
     ProductionConfig config; // TODO: when we make an InformationManager class this class should be friends with that class
 
-    void upgradeInfantryWeapons(int currLevel);
-    void upgradeInfantryArmor(int currLevel);
+
 };
