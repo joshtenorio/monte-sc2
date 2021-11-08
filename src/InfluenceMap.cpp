@@ -86,14 +86,14 @@ sc2::Point2D InfluenceMap::getOptimalWaypoint(sc2::Point2D target){
     // 3. get the neighbor with lowest score, and return its location
     // this shouldn't be possible, but just in case something goes wrong
     if(neighbors.empty()){
-        std::cout << "neighbor empty" << std::endl;
+        //std::cout << "neighbor empty" << std::endl;
         return sc2::Point2D(0,0);
     }
     InfluenceTile waypoint = neighbors.front();
     for(auto& n : neighbors){
         if(n.second < waypoint.second) waypoint = n;
     }
-    std::cout << "optimal waypoint score: " << waypoint.second << std::endl;
+    //std::cout << "optimal waypoint score: " << waypoint.second << std::endl;
     return waypoint.first;
 }
 
@@ -108,7 +108,7 @@ sc2::Point2D InfluenceMap::getSafeWaypoint(){
         }
     }
     if(neighbors.empty()){
-        std::cout << "neighbor empty" << std::endl;
+        //std::cout << "neighbor empty" << std::endl;
         return sc2::Point2D(0,0);
     }
         
@@ -116,7 +116,7 @@ sc2::Point2D InfluenceMap::getSafeWaypoint(){
     for(auto& n : neighbors){
         if(n.second < waypoint.second) waypoint = n;
     }
-    std::cout << "safe waypoint score: " << waypoint.second << std::endl;
+    //std::cout << "safe waypoint score: " << waypoint.second << std::endl;
     return waypoint.first;
 }
 

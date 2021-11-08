@@ -595,22 +595,30 @@ void ProductionManager::handleUpgrades(){
     sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
     // get random vehicle unit
+    sc2::Units factoryUnits = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(
+        {
+            sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, sc2::UNIT_TYPEID::TERRAN_CYCLONE, sc2::UNIT_TYPEID::TERRAN_WIDOWMINE,
+            sc2::UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED, sc2::UNIT_TYPEID::TERRAN_HELLION, sc2::UNIT_TYPEID::TERRAN_HELLIONTANK, sc2::UNIT_TYPEID::TERRAN_THOR,
+            sc2::UNIT_TYPEID::TERRAN_THORAP
+        }));
     // get random flying unit
-    // FIXME: implement getting random vehicle/flying units upgrade levels
+    
+
     
     // get current upgrade levels
     // FIXME: the combat shields stuff here is temporary
     bool getCombatShields = false;
-    int infantryWeapons = 0;
-    int infantryArmor = 0;
+    int infantryWeapons = 0, infantryArmor = 0;
     if(!marines.empty()){
         infantryWeapons = marines.front()->attack_upgrade_level;
         infantryArmor = marines.front()->armor_upgrade_level;
         if(marines.front()->health_max < 50) getCombatShields = true;
-        if(gInterface->observation->GetGameLoop() % 400 == 0){
-            logger.infoInit().withStr("Infantry Weapons:").withInt(infantryWeapons);
-            logger.withStr("\tInfantry Armor:").withInt(infantryArmor).write();
-        }
+    }
+
+    int vehicleWeapons = 0, vehicleArmor = 0;
+    if(!factoryUnits.empty()){
+        vehicleWeapons = factoryUnits.front()->attack_upgrade_level;
+        vehicleArmor = factoryUnits.front()->armor_upgrade_level;
     }
 
     if(getCombatShields){
@@ -630,6 +638,16 @@ void ProductionManager::handleUpgrades(){
         upgradeInfantryWeapons(infantryWeapons);
         upgradeInfantryArmor(infantryArmor);
     }
+
+    if(vehicleWeapons > vehicleArmor){
+        upgradeVehicleArmor(vehicleArmor);
+        upgradeFactoryWeapons(vehicleWeapons);
+    }
+    else{
+        upgradeFactoryWeapons(vehicleWeapons);
+        upgradeVehicleArmor(vehicleArmor);
+    }
+    
 }
 
 void ProductionManager::callMules(){
@@ -692,4 +710,36 @@ void ProductionManager::upgradeInfantryArmor(int currLevel){
             castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, false, false, false));
             break;
     }
+}
+
+void ProductionManager::upgradeFactoryWeapons(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL3, false, false, false));
+            break;
+    }
+}
+
+void ProductionManager::upgradeVehicleArmor(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL3, false, false, false));
+            break;
+    }
+}
+
+void ProductionManager::upgradeStarshipWeapons(int currLevel){
+
 }

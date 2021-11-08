@@ -61,6 +61,9 @@ class ProductionManager : public Manager {
     void handleUpgrades();
     void upgradeInfantryWeapons(int currLevel);
     void upgradeInfantryArmor(int currLevel);
+    void upgradeFactoryWeapons(int currLevel);
+    void upgradeVehicleArmor(int currLevel);
+    void upgradeStarshipWeapons(int currLevel);
 
     // use orbital cc
     void callMules();

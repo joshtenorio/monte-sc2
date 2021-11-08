@@ -94,7 +94,7 @@ typedef struct ProductionConfig_s_t {
     short maxStarports = 2;
     short maxRefineries = 6;
     short maxEngineeringBays = 2;
-    short maxArmories = 1;
+    short maxArmories = 2;
     short maxOrbitals = 3; //std::numeric_limits<short>::max();
     float marineMarauderRatio = 2; // marines:marauders; this number is __ marines to 1 marauder. if this is -1, then dont build marauders
 
