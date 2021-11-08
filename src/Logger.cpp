@@ -113,3 +113,33 @@ int Logger::createOutputPrefix(){
 
     return currentMatchID;
 }
+
+void Logger::initializePlot(std::vector<std::string> columns, std::string plotName){
+    plot.plotName = plotName;
+    for(int i = 0; i < columns.size(); i++){
+        plot.columns.insert({columns[i], i});
+    }
+    plot.currentRow.resize(columns.size());
+    std::ofstream fileWriter;
+    std::string file = "data/" + topic + "/" + std::to_string(gInterface->matchID) + plotName + ".csv";
+    fileWriter.open(file);
+    if(fileWriter.is_open()){
+        for(int i = 0; i < columns.size(); i++){
+            fileWriter << columns[i];
+            if(i != columns.size()-1)
+                fileWriter << ", ";
+        }
+        fileWriter << std::endl;
+    }
+}
+
+void Logger::addPlotData(std::string column, float data){
+    // find index of column
+    // then set currentRow[index] = data
+    // TODO: probably should add overloads with diff variable types
+}
+
+void Logger::writePlotRow(){
+
+}
+
