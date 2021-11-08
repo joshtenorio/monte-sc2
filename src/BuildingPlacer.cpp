@@ -1,5 +1,9 @@
 #include "BuildingPlacer.h"
 
+BuildingPlacer::BuildingPlacer(){
+    logger = Logger("BuildingPlacer");
+}
+
 void BuildingPlacer::OnGameStart(){
     int mapHeight = gInterface->observation->GetGameInfo().height;
     int mapWidth = gInterface->observation->GetGameInfo().width;
@@ -165,7 +169,8 @@ const sc2::Unit* BuildingPlacer::findUnit(sc2::ABILITY_ID building, const sc2::P
                     if(findRefineryLocation(e) != nullptr){
                         return findRefineryLocation(e);
                     }
-                } */
+                }*/
+                
             sc2::Units geysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
             const sc2::Unit* geyserToBuild = nullptr;
             float distSquared = 9000;
@@ -249,23 +254,23 @@ const sc2::Unit* BuildingPlacer::findRefineryLocation(Expansion* e){
         return nullptr;
     */
    // FIXME: update mapper so that we can use the above code instead of doing this below
-    std::vector<sc2::UNIT_TYPEID> geyserTypes;
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER);
-    geyserTypes.emplace_back(sc2::UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER);
 
-    sc2::Units geysers = API::getClosestNUnits(e->baseLocation, 2, 11, sc2::Unit::Alliance::Neutral, geyserTypes);
+    sc2::Units geysers = API::getClosestNUnits(e->baseLocation, 2, 11, sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
 
     if(geysers.empty()) return nullptr;
 
     if(e->numFriendlyRefineries == 0){
-        return e->gasGeysers.front();
+        logger.infoInit().withStr("0 friendly").write();
+        gInterface->debug->debugSphereOut(geysers.front()->pos, 3);
+        gInterface->debug->sendDebug();
+        return geysers.front();
     }
         
     else if(e->numFriendlyRefineries == 1){
-        return e->gasGeysers.back();
+        logger.infoInit().withStr("1 friendly").write();
+        gInterface->debug->debugSphereOut(geysers.back()->pos, 3);
+        gInterface->debug->sendDebug();
+        return geysers.back();
     }
         
     else
@@ -308,7 +313,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
         case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
         if(near == nullptr){
-            sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
+            sc2::Units barracks = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
             for(auto& b : barracks){
                 sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                 for(auto a : abilities.abilities){
@@ -324,7 +329,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
         case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
         if(near == nullptr){
-            sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+            sc2::Units factories = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
             for(auto& b : factories){
                 sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                 for(auto a : abilities.abilities){
@@ -340,7 +345,7 @@ const sc2::Unit* BuildingPlacer::findUnitForAddon(sc2::ABILITY_ID building, cons
         case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
         case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
             if(near == nullptr){
-                sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
+                sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
                 for(auto& b : starports){
                     sc2::AvailableAbilities abilities = gInterface->query->GetAbilitiesForUnit(b, true);
                     for(auto a : abilities.abilities){

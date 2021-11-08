@@ -7,7 +7,7 @@ void OnGameStart(){
 }
 
 int countIdleUnits(sc2::UNIT_TYPEID type){
-    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(type));
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(type));
     int c = 0;
     for(auto& u : units){
         if(isUnitIdle(u)) c++;
@@ -47,7 +47,7 @@ sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance 
         pool = gInterface->observation->GetUnits(alliance);
     
     else // TODO: should we just return the getClosestNUnits (filter imp) here?
-        pool = gInterface->observation->GetUnits(alliance, IsUnit(unitType));
+        pool = gInterface->observation->GetUnits(alliance, sc2::IsUnit(unitType));
 
     sc2::Units output;
     for(auto& u : pool){
@@ -575,34 +575,6 @@ bool requiresTechLab(sc2::ABILITY_ID unit){
         case sc2::ABILITY_ID::TRAIN_THOR:
         case sc2::ABILITY_ID::TRAIN_MARAUDER:
         case sc2::ABILITY_ID::TRAIN_GHOST:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool isStructure(sc2::UNIT_TYPEID unit){
-    switch(unit){
-        case sc2::UNIT_TYPEID::TERRAN_ARMORY:
-        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
-        case sc2::UNIT_TYPEID::TERRAN_BUNKER:
-        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
-        case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
-        case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
-        case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-        case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
-        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
-        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
-        case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
-        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
-        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
-        case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
-        case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB:
-        case sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR:
-        case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB:
-        case sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR:
-        case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB:
             return true;
         default:
             return false;

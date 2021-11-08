@@ -44,7 +44,7 @@ namespace Monte {
 class CombatCommander : public Manager {
     public:
     // constructors
-    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
+    CombatCommander();
     // TODO: add a constructor with strategy
 
     void OnGameStart();

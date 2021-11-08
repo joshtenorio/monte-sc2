@@ -1,5 +1,9 @@
 #include "BuildingManager.h"
 
+BuildingManager::BuildingManager(){
+    logger = Logger("BuildingManager");
+}
+
 void BuildingManager::OnGameStart(){
     bp.OnGameStart();
 }
@@ -23,7 +27,7 @@ void BuildingManager::OnStep(){
     for(auto& c : inProgressBuildings){
         // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
         //       here, pos would be location of the in progress building
-        sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+        sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         for(auto& w : workers){
             if(w != nullptr){ // TODO: not sure if this check is necessary
                 if(!w->orders.empty())
@@ -54,7 +58,7 @@ void BuildingManager::OnStep(){
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     
     // if it is a structure we need to free the tiles
-    if(API::isStructure(unit_->unit_type.ToType()))
+    if(unit_->is_building)
         bp.freeTiles(unit_->pos, API::getStructureRadiusByAbility(API::unitTypeIDToAbilityID(unit_->unit_type.ToType())));
 
     // if its an in-prog building that died, release the worker and remove Construction from list
@@ -94,7 +98,7 @@ void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
 
 }
 
-void BuildingManager::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
+void BuildingManager::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
     for(auto& b : inProgressBuildings){
         if(b.first == unit_->tag){
             float healthPercent = unit_->health / unit_->health_max;
@@ -160,7 +164,7 @@ void BuildingManager::OnUnitCreated(const sc2::Unit* building_){
 bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, int maxConcurrent, sc2::UNIT_TYPEID unit_type){
 
     const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
 
     // if there is an in progress building, don't immediately build another
     if(checkConstructions(API::abilityToUnitTypeID(ability_type_for_structure))) return false;
@@ -210,7 +214,7 @@ bool BuildingManager::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structu
         // make sure there are geysers
         if(gInterface->map->getStartingExpansion().gasGeysers.size() <= 0)
             return false;
-        const sc2::Unit* gas = bp.findUnit(ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
+        const sc2::Unit* gas = bp.findUnit(sc2::ABILITY_ID::BUILD_REFINERY, &(unit_to_build->pos));
         if(gas == nullptr) return false;
 
         reservedWorkers.emplace_back(unit_to_build->tag);

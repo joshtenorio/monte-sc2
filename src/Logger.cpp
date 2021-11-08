@@ -113,3 +113,51 @@ int Logger::createOutputPrefix(){
 
     return currentMatchID;
 }
+
+void Logger::initializePlot(std::vector<std::string> columns, std::string plotName){
+    plot.name = plotName;
+    for(size_t i = 0; i < columns.size(); i++){
+        plot.columns.insert({columns[i], i});
+    }
+    plot.currentRow.resize(columns.size());
+    std::ofstream fileWriter;
+    std::string file = "data/" + topic + "/" + std::to_string(gInterface->matchID) + plotName + ".csv";
+    fileWriter.open(file);
+    if(fileWriter.is_open()){
+        for(int i = 0; i < columns.size(); i++){
+            fileWriter << columns[i];
+            if(i != columns.size()-1)
+                fileWriter << ", ";
+        }
+        fileWriter << std::endl;
+    }
+    fileWriter.close();
+}
+
+void Logger::addPlotData(std::string column, float data){
+    auto pair = plot.columns.find(column);
+    if(pair != plot.columns.end()){
+        plot.currentRow[pair->second] = data;
+    }
+    // TODO: probably should add overloads with diff variable types
+}
+
+void Logger::writePlotRow(){
+    std::ofstream fileWriter;
+    std::string file = "data/" + topic + "/" + std::to_string(gInterface->matchID) + plot.name + ".csv";
+    fileWriter.open(file, std::ios_base::app);
+    if(fileWriter.is_open()){
+        for(int i = 0; i < plot.currentRow.size(); i++){
+            fileWriter << plot.currentRow[i];
+            if(i != plot.currentRow.size()-1)
+                fileWriter << ", ";
+        }
+        fileWriter << std::endl;
+    }
+    fileWriter.close();
+
+    // reset currentRow
+    for(auto& c : plot.currentRow)
+        c = 0;
+}
+

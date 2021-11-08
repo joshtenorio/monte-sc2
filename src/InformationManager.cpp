@@ -2,7 +2,6 @@
 
 InformationManager::InformationManager(){
     logger = Logger("InformationManager");
-    
 }
 
 void InformationManager::OnGameStart(){
@@ -25,6 +24,13 @@ void InformationManager::OnStep(){
     // start updating expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
+    
+    if(gInterface->observation->GetGameLoop() % 400 == 0 && gInterface->observation->GetGameLoop() > 2){
+        int n = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
+        logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
+    }
 }
 
 ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
@@ -33,6 +39,14 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         currentPConfig.buildTurrets = true;
         currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
         currentPConfig.maxStarports = 3;
+    }
+
+    float bioRatio = currentPConfig.marineMarauderRatio;
+    if(bioRatio != -1){
+        int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+        int numMarauders = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+        float currRatio = (numMarauders != 0 ? numMarines / numMarauders : numMarines);
+        currentPConfig.barracksTechOutput = (currRatio > bioRatio ? sc2::ABILITY_ID::TRAIN_MARAUDER : sc2::ABILITY_ID::TRAIN_MARINE);
     }
 
 
@@ -46,17 +60,14 @@ CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig
 void InformationManager::updateExpoOwnership(){
     sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
     for(auto& th : enemyTownHalls){
-        Expansion* closest = gInterface->map->getClosestExpansion(th->pos);
-        if(closest == nullptr) return;
-        else
-            closest->ownership = OWNER_ENEMY;
+        gInterface->map->setExpansionOwnership(th->pos, OWNER_ENEMY);
     }
 }
 
 void InformationManager::checkForWorkerRush(){
     // if we have 4 or more completed buildings, don't check for worker rush
     int structureCount = API::countUnitType([](const sc2::Unit& u){
-                return (API::isStructure(u.unit_type.ToType()) && u.build_progress == 1.0);
+                return (u.is_building && u.build_progress == 1.0);
             });
     if(structureCount >= 4) return;
 

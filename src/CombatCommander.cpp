@@ -1,5 +1,9 @@
 #include "CombatCommander.h"
 
+CombatCommander::CombatCommander(){
+    sm = ScoutManager(); logger = Logger("CombatCommander");
+}
+
 void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
@@ -52,7 +56,7 @@ void CombatCommander::OnStep(){
         } // end for bunkers
 } // end OnStep
 
-void CombatCommander::OnUnitCreated(const Unit* unit_){
+void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
     if(unit_ == nullptr) return; // if for whatever reason its nullptr, dont do anything
 
     switch(unit_->unit_type.ToType()){
@@ -175,7 +179,7 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
     if(unit_->alliance != sc2::Unit::Alliance::Self) return;
 
-    if(API::isStructure(unit_->unit_type.ToType()) || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
+    if(unit_->is_building || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV){
         // 1. get a list of 7 closest workers to pull
         sc2::Units workers;
         workers = API::getClosestNUnits(unit_->pos, 7, 9, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SCV);
@@ -185,7 +189,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         sc2::Units armyPool = API::getClosestNUnits(unit_->pos, 50, 36, sc2::Unit::Alliance::Self);
         sc2::Units idleArmy;
         for(auto& a : armyPool)
-            if(a->orders.empty() && !API::isStructure(a->unit_type.ToType())) idleArmy.emplace_back(a);
+            if(a->orders.empty() && !a->is_building) idleArmy.emplace_back(a);
 
         // 3. get closest enemy units to unit_ and find their center
         sc2::Units enemies = API::getClosestNUnits(unit_->pos, 11, 12, sc2::Unit::Alliance::Enemy);
@@ -202,7 +206,7 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
         gInterface->actions->UnitCommand(idleArmy, sc2::ABILITY_ID::ATTACK_ATTACK, enemyCenter);
 
         if(gInterface->observation->GetGameLoop() > 3000) return;
-        if(API::isStructure(unit_->unit_type.ToType()))
+        if(unit_->is_building)
             for(int n = 0; n < workers.size(); n++){
                 if(n % 3 == 0){
                     gInterface->actions->UnitCommand(workers[n], sc2::ABILITY_ID::EFFECT_REPAIR, unit_);
@@ -222,12 +226,12 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 
 void CombatCommander::marineOnStep(){
     int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
-    sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
 
     // send a wave if we have a decent amount of bio
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
         
-        sc2::Units enemy = gInterface->observation->GetUnits(Unit::Alliance::Enemy);
+        sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
             if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
@@ -253,13 +257,13 @@ void CombatCommander::marineOnStep(){
                 if(closestEnemyExpo != nullptr){
                     gInterface->actions->UnitCommand(
                             m,
-                            ABILITY_ID::ATTACK_ATTACK,
+                            sc2::ABILITY_ID::ATTACK_ATTACK,
                             closestEnemyExpo->baseLocation);
                 }
                 else{
                     gInterface->actions->UnitCommand(
                         m,
-                        ABILITY_ID::ATTACK_ATTACK,
+                        sc2::ABILITY_ID::ATTACK_ATTACK,
                         gInterface->observation->GetGameInfo().enemy_start_locations.front());
                 }
             } // end if !reachedEnemyMain && m->orders.empty()
@@ -312,10 +316,10 @@ void CombatCommander::marineOnStep(){
 }
 
 void CombatCommander::medivacOnStep(){
-    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
         // move each medivac to the marine that is closest to the enemy main
-        sc2::Units marines = gInterface->observation->GetUnits(Unit::Alliance::Self, IsUnits(bio));
+        sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
         sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
         const sc2::Unit* closestMarine = nullptr;
         float d = std::numeric_limits<float>::max();
@@ -373,11 +377,11 @@ void CombatCommander::siegeTankOnStep(){
                 morph = false;
                 // first check if we are in range of an enemy structure r=13
                 for(auto& e : closestEnemies){
-                    if(API::isStructure(e->unit_type.ToType()) && sc2::Distance2D(t->pos, e->pos) <= 13){
+                    if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
                         morph = true;
                         break;
                     }
-                    else if(!API::isStructure(e->unit_type.ToType())){
+                    else if(!e->is_building){
                         morph = true;
                         break;
                     }
@@ -412,11 +416,11 @@ void CombatCommander::siegeTankOnStep(){
             //  structure within r=13
             //  any unit within r=16
             for(auto& e : closestEnemies){
-                if(API::isStructure(e->unit_type.ToType()) && sc2::Distance2D(t->pos, e->pos) <= 13){
+                if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
                     morph = false;
                     break;
                 }
-                else if(!API::isStructure(e->unit_type.ToType())){
+                else if(!e->is_building){
                     morph = false;
                     break;
                 }

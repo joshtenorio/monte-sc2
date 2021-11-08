@@ -18,8 +18,6 @@
 #include "Debug.h"
 #include "Strategy.h"
 
-using namespace sc2;
-
 
 namespace API {
 
@@ -46,7 +44,6 @@ namespace API {
     sc2::UNIT_TYPEID getProducer(sc2::ABILITY_ID unit);
     bool requiresTechLab(sc2::ABILITY_ID unit);
 
-    bool isStructure(sc2::UNIT_TYPEID unit);
     bool isTownHall(sc2::UNIT_TYPEID unit);
     bool isAddon(sc2::UNIT_TYPEID unit);
     bool isFlying(const sc2::Unit& u);
@@ -58,9 +55,9 @@ namespace API {
 
 class Interface {
     public:
-    Interface(const ObservationInterface* observation_,
-        ActionInterface* actions_,
-        QueryInterface* query_,
+    Interface(const sc2::ObservationInterface* observation_,
+        sc2::ActionInterface* actions_,
+        sc2::QueryInterface* query_,
         Monte::Debug* debug_,
         WorkerManager* wm_,
         Mapper* map_,
@@ -74,9 +71,9 @@ class Interface {
             matchID = matchID_;
         };
     
-    const ObservationInterface* observation;
-    ActionInterface* actions;
-    QueryInterface* query;
+    const sc2::ObservationInterface* observation;
+    sc2::ActionInterface* actions;
+    sc2::QueryInterface* query;
     Monte::Debug* debug;
     WorkerManager* wm;
     Mapper* map;

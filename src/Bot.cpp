@@ -1,8 +1,8 @@
 #include "Bot.h"
-using namespace sc2;
+
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_11_6"; // update this everytime we upload
+std::string version = "v0_11_7"; // update this everytime we upload
 
 // TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
@@ -22,10 +22,7 @@ Bot::Bot(){
 
 void Bot::OnGameStart(){
 
-    API::OnGameStart();
-    im.OnGameStart();
-    pm.OnGameStart();
-    cc.OnGameStart();
+
 
     gInterface->matchID = logger.createOutputPrefix();
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
@@ -35,11 +32,14 @@ void Bot::OnGameStart(){
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
-
+    API::OnGameStart();
+    im.OnGameStart();
+    pm.OnGameStart();
+    cc.OnGameStart();
 
 }
 
-void Bot::OnBuildingConstructionComplete(const Unit* building_){
+void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
     logger.infoInit().withUnit(building_).withStr("constructed").write();
     //logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
@@ -48,20 +48,20 @@ void Bot::OnBuildingConstructionComplete(const Unit* building_){
         Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     
     switch(building_->unit_type.ToType()){
-        case UNIT_TYPEID::TERRAN_ARMORY:
-        case UNIT_TYPEID::TERRAN_BARRACKS:
-        case UNIT_TYPEID::TERRAN_BUNKER:
-        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-        case UNIT_TYPEID::TERRAN_FACTORY:
-        case UNIT_TYPEID::TERRAN_FUSIONCORE:
-        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-        case UNIT_TYPEID::TERRAN_MISSILETURRET:
-        case UNIT_TYPEID::TERRAN_REFINERY:
-        case UNIT_TYPEID::TERRAN_REFINERYRICH:
-        case UNIT_TYPEID::TERRAN_SENSORTOWER:
-        case UNIT_TYPEID::TERRAN_STARPORT:
-        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+        case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+        case sc2::UNIT_TYPEID::TERRAN_BUNKER:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+        case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
         case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
         case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR:
@@ -99,7 +99,7 @@ void Bot::OnStep() {
     im.updateProductionConfig(pm.getProductionConfig());
 
     // raise supply depots if enemy is nearby
-    sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnits(depotTypes));
+    sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
     if(Observation()->GetGameLoop() % 15 == 0)
         for (auto& d : depots){
@@ -121,28 +121,28 @@ void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
     pm.OnUpgradeCompleted(upgrade_);
 }
 
-void Bot::OnUnitCreated(const Unit* unit_){
+void Bot::OnUnitCreated(const sc2::Unit* unit_){
     logger.infoInit().withUnit(unit_).withStr("was created").write();
     
     cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){
-        case UNIT_TYPEID::TERRAN_SCV:
+        case sc2::UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
             break;
-        case UNIT_TYPEID::TERRAN_ARMORY:
-        case UNIT_TYPEID::TERRAN_BARRACKS:
-        case UNIT_TYPEID::TERRAN_BUNKER:
-        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-        case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-        case UNIT_TYPEID::TERRAN_FACTORY:
-        case UNIT_TYPEID::TERRAN_FUSIONCORE:
-        case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-        case UNIT_TYPEID::TERRAN_MISSILETURRET:
-        case UNIT_TYPEID::TERRAN_REFINERY:
-        case UNIT_TYPEID::TERRAN_REFINERYRICH:
-        case UNIT_TYPEID::TERRAN_SENSORTOWER:
-        case UNIT_TYPEID::TERRAN_STARPORT:
-        case UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
+        case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+        case sc2::UNIT_TYPEID::TERRAN_BUNKER:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+        case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+        case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
+        case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+        case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
+        case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
             pm.OnUnitCreated(unit_);
             break;
         default:
@@ -151,54 +151,54 @@ void Bot::OnUnitCreated(const Unit* unit_){
     }
 }
 
-void Bot::OnUnitIdle(const Unit* unit) {
+void Bot::OnUnitIdle(const sc2::Unit* unit) {
     switch (unit->unit_type.ToType()){
-        case UNIT_TYPEID::TERRAN_COMMANDCENTER:
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             break;
-        case UNIT_TYPEID::TERRAN_SCV:
+        case sc2::UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitIdle(unit);
             break;
-        case UNIT_TYPEID::TERRAN_BARRACKS:
+        case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
             break;
-        case UNIT_TYPEID::TERRAN_REFINERY:
-        case UNIT_TYPEID::TERRAN_REFINERYRICH:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+        case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
             break;
         default:
             break;
     }
 }
 
-void Bot::OnUnitDestroyed(const Unit* unit_){
+void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
     logger.infoInit().withUnit(unit_).withStr("was destroyed").write();
     
     // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
     // additionally we also track dead town halls in scout manager
     cc.OnUnitDestroyed(unit_);
     // we only care if one of our units dies (for now, perhaps)
-    if(unit_->alliance == Unit::Alliance::Self){
+    if(unit_->alliance == sc2::Unit::Alliance::Self){
 
         
         switch(unit_->unit_type.ToType()){
-            case UNIT_TYPEID::TERRAN_SCV:
+            case sc2::UNIT_TYPEID::TERRAN_SCV:
                 // the pm gets called first, bc we need to remove worker pointer from 
                 // a Construction in bm if it is building it
                 pm.OnUnitDestroyed(unit_);
                 wm.OnUnitDestroyed(unit_);
                 break;
-            case UNIT_TYPEID::TERRAN_ARMORY:
-            case UNIT_TYPEID::TERRAN_BARRACKS:
-            case UNIT_TYPEID::TERRAN_BUNKER:
-            case UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            case UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
-            case UNIT_TYPEID::TERRAN_FACTORY:
-            case UNIT_TYPEID::TERRAN_FUSIONCORE:
-            case UNIT_TYPEID::TERRAN_GHOSTACADEMY:
-            case UNIT_TYPEID::TERRAN_MISSILETURRET:
-            case UNIT_TYPEID::TERRAN_REFINERY:
-            case UNIT_TYPEID::TERRAN_REFINERYRICH:
-            case UNIT_TYPEID::TERRAN_SENSORTOWER:
-            case UNIT_TYPEID::TERRAN_STARPORT:
-            case UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
+            case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+            case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
+            case sc2::UNIT_TYPEID::TERRAN_BUNKER:
+            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+            case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+            case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
+            case sc2::UNIT_TYPEID::TERRAN_GHOSTACADEMY:
+            case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET:
+            case sc2::UNIT_TYPEID::TERRAN_REFINERY:
+            case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
+            case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
+            case sc2::UNIT_TYPEID::TERRAN_STARPORT:
+            case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
                 pm.OnUnitDestroyed(unit_);
                 break;
             default:
@@ -207,7 +207,7 @@ void Bot::OnUnitDestroyed(const Unit* unit_){
     }
 }
 
-void Bot::OnUnitDamaged(const Unit* unit_, float health_, float shields_){
+void Bot::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
     if(unit_->alliance == sc2::Unit::Alliance::Self)
         pm.OnUnitDamaged(unit_, health_, shields_);
     cc.OnUnitDamaged(unit_, health_, shields_);
@@ -217,7 +217,7 @@ void Bot::OnUnitEnterVision(const sc2::Unit* unit_){
     cc.OnUnitEnterVision(unit_);
 }
 
-void Bot::OnError(const std::vector<ClientError>& client_errors,
+void Bot::OnError(const std::vector<sc2::ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors){
     for (const auto i : client_errors) {
         std::cerr << "Encountered client error: " <<

@@ -1,5 +1,16 @@
 #include "ProductionManager.h"
 
+ProductionManager::ProductionManager(){
+    bm = BuildingManager();
+    logger = Logger("ProductionManager");
+}
+
+ProductionManager::ProductionManager(Strategy* strategy_){
+    strategy = strategy_;
+    bm = BuildingManager();
+    logger = Logger("ProductionManager");
+}
+
 void ProductionManager::OnStep(){
 
     // clear the busyBuildings vector of tags
@@ -55,6 +66,19 @@ void ProductionManager::OnStep(){
         logger.withStr("BusyBuildings Size:").withInt(busyBuildings.size()).write();
     }
 
+    if(gInterface->observation->GetGameLoop() % 50 == 0){
+        logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
+        const sc2::ScoreDetails score = gInterface->observation->GetScore().score_details;
+        logger.addPlotData("mineral income", (float) score.collection_rate_minerals);
+        logger.addPlotData("vespene income", (float) score.collection_rate_vespene);
+        int numBases = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++){
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_SELF) numBases++;
+        }
+        logger.addPlotData("num of bases", (float) numBases);
+        logger.writePlotRow();
+    }
+
 }
 
 void ProductionManager::OnGameStart(){
@@ -62,9 +86,11 @@ void ProductionManager::OnGameStart(){
     
     strategy->initialize();
     config = strategy->getConfig();
+
+    logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
 }
 
-void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
+void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
     // building manager doesn't handle addons
     if(!API::isAddon(building_->unit_type.ToType()))
         bm.OnBuildingConstructionComplete(building_);
@@ -90,7 +116,7 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
             strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            gInterface->map->getClosestExpansion(building_->pos)->ownership = OWNER_SELF;
+            gInterface->map->setExpansionOwnership(building_->pos, OWNER_SELF);
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -99,13 +125,13 @@ void ProductionManager::OnBuildingConstructionComplete(const Unit* building_){
 void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     // only run this after the 50th loop
     // necessary to avoid crashing when the main cc is created
-    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && API::isStructure(unit_->unit_type.ToType()) && !API::isAddon(unit_->unit_type.ToType()))
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && unit_->is_building && !API::isAddon(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(
-        API::isStructure(unit_->unit_type.ToType()) ||
+        unit_->is_building ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_MULE) return;
     
@@ -128,7 +154,7 @@ void ProductionManager::OnUnitDestroyed(const sc2::Unit* unit_){
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
         unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
     )
-        gInterface->map->getClosestExpansion(unit_->pos)->ownership = OWNER_NEUTRAL;
+        gInterface->map->setExpansionOwnership(unit_->pos, OWNER_NEUTRAL);
         
 
 }
@@ -299,7 +325,7 @@ void ProductionManager::handleStarports(){
 }
 
 void ProductionManager::handleTownHalls(){
-    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     if(ccs.empty()) return;
 
     for(auto& cc : ccs){
@@ -423,7 +449,7 @@ void ProductionManager::trainUnit(Step s){
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
-    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(structureID));
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(structureID));
     for(auto& b : buildings){
         if(b->build_progress < 1.0) continue;
         bool canResearch = false;
@@ -463,14 +489,14 @@ bool ProductionManager::TryBuildSupplyDepot(){
         return false;
     
     // else, try and build a number of depots equal to the number of town halls we have
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_SUPPLYDEPOT, numTownhalls);
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT, numTownhalls);
 }
 
 bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 8 barracks already
-    if(API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
-        API::CountUnitType(UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_BARRACKS);
+    if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
+        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
 bool ProductionManager::tryBuildFactory(){
@@ -484,8 +510,8 @@ bool ProductionManager::tryBuildStarport(){
 }
 
 bool ProductionManager::tryBuildRefinery(){
-    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= 6) return false;
-    return bm.TryBuildStructure(ABILITY_ID::BUILD_REFINERY);
+    if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= config.maxRefineries) return false;
+    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_REFINERY);
 }
 
 bool ProductionManager::tryBuildCommandCenter(){
@@ -545,7 +571,7 @@ bool ProductionManager::tryBuildMissileTurret(){
 bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
     sc2::UNIT_TYPEID buildingID = API::getProducer(unitToTrain);
 
-    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(buildingID));
+    sc2::Units buildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(buildingID));
     if(buildings.empty()) return false;
 
     // TODO: add support for training n units and reactors
@@ -565,30 +591,38 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
 
 void ProductionManager::handleUpgrades(){
     // get random infantry unit
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units marauders = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     marines.insert(std::end(marines), std::begin(marauders), std::end(marauders));
     // get random vehicle unit
+    sc2::Units factoryUnits = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(
+        {
+            sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED, sc2::UNIT_TYPEID::TERRAN_CYCLONE, sc2::UNIT_TYPEID::TERRAN_WIDOWMINE,
+            sc2::UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED, sc2::UNIT_TYPEID::TERRAN_HELLION, sc2::UNIT_TYPEID::TERRAN_HELLIONTANK, sc2::UNIT_TYPEID::TERRAN_THOR,
+            sc2::UNIT_TYPEID::TERRAN_THORAP
+        }));
     // get random flying unit
-    // FIXME: implement getting random vehicle/flying units upgrade levels
+    
+
     
     // get current upgrade levels
     // FIXME: the combat shields stuff here is temporary
     bool getCombatShields = false;
-    int infantryWeapons = 0;
-    int infantryArmor = 0;
+    int infantryWeapons = 0, infantryArmor = 0;
     if(!marines.empty()){
         infantryWeapons = marines.front()->attack_upgrade_level;
         infantryArmor = marines.front()->armor_upgrade_level;
         if(marines.front()->health_max < 50) getCombatShields = true;
-        if(gInterface->observation->GetGameLoop() % 400 == 0){
-            logger.infoInit().withStr("Infantry Weapons:").withInt(infantryWeapons);
-            logger.withStr("\tInfantry Armor:").withInt(infantryArmor).write();
-        }
+    }
+
+    int vehicleWeapons = 0, vehicleArmor = 0;
+    if(!factoryUnits.empty()){
+        vehicleWeapons = factoryUnits.front()->attack_upgrade_level;
+        vehicleArmor = factoryUnits.front()->armor_upgrade_level;
     }
 
     if(getCombatShields){
-        sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        sc2::Units techLabs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
         if(!techLabs.empty()){
             castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_COMBATSHIELD, false, false, false));
         }
@@ -604,12 +638,22 @@ void ProductionManager::handleUpgrades(){
         upgradeInfantryWeapons(infantryWeapons);
         upgradeInfantryArmor(infantryArmor);
     }
+
+    if(vehicleWeapons > vehicleArmor){
+        upgradeVehicleArmor(vehicleArmor);
+        upgradeFactoryWeapons(vehicleWeapons);
+    }
+    else{
+        upgradeFactoryWeapons(vehicleWeapons);
+        upgradeVehicleArmor(vehicleArmor);
+    }
+    
 }
 
 void ProductionManager::callMules(){
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND) <= 0) return;
 
-    sc2::Units orbitals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+    sc2::Units orbitals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
     for(auto& orbital : orbitals){
         if(orbital->energy >= 50){
@@ -620,7 +664,7 @@ void ProductionManager::callMules(){
             // get a visible mineral unit closest to the current expansion
             // TODO: in Mapper, update units in Expansion since their visibility status doesnt update automatically
             //          ie i think we should have Mapper extend Manager
-            sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsVisibleMineralPatch());
+            sc2::Units minerals = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsVisibleMineralPatch());
 	        if(minerals.empty()) return;
             const sc2::Unit* mineralTarget = minerals.front();
             for(auto& m : minerals)
@@ -666,4 +710,36 @@ void ProductionManager::upgradeInfantryArmor(int currLevel){
             castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3, false, false, false));
             break;
     }
+}
+
+void ProductionManager::upgradeFactoryWeapons(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL3, false, false, false));
+            break;
+    }
+}
+
+void ProductionManager::upgradeVehicleArmor(int currLevel){
+    switch(currLevel){
+        case 0:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL1, false, false, false));
+            break;
+        case 1:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL2, false, false, false));
+            break;
+        case 2:
+            castBuildingAbility(Step(TYPE_BUILDINGCAST, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL3, false, false, false));
+            break;
+    }
+}
+
+void ProductionManager::upgradeStarshipWeapons(int currLevel){
+
 }

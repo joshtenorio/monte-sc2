@@ -7,10 +7,11 @@
 #include "WorkerManager.h"
 
 #include "api.h" // this breaks our "code style," but it is necessary for now to avoid circular definition
-// TODO: find a way to avoid workaround
 
-using namespace sc2;
 
+WorkerManager::WorkerManager(){
+    logger = Logger("WorkerManager");
+}
 const sc2::Unit* Worker::getUnit(){
     return gInterface->observation->GetUnit(tag);
 }
@@ -24,7 +25,7 @@ void WorkerManager::OnStep(){
     }
 }
 
-void WorkerManager::OnUnitCreated(const Unit* unit_){
+void WorkerManager::OnUnitCreated(const sc2::Unit* unit_){
     Worker w;
     if(gInterface->observation->GetGameLoop() < 20) w.job = JOB_GATHERING_MINERALS;
     else w.job = JOB_UNEMPLOYED;
@@ -37,8 +38,8 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     
 }
 
-void WorkerManager::OnUnitDestroyed(const Unit* unit_){
-    Tag key = unit_->tag;
+void WorkerManager::OnUnitDestroyed(const sc2::Unit* unit_){
+    sc2::Tag key = unit_->tag;
     int index = 0;
     for(auto itr = workers.begin(); itr != workers.end(); ){
         if((*itr).tag == key){
@@ -98,7 +99,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 
     // 2. send to next base if base is overfull
-    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     for(auto& cc : ccs){
         if(cc->assigned_harvesters > cc->ideal_harvesters){
             // worker to move
@@ -135,10 +136,10 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 }
 
-const Unit* WorkerManager::FindNearestMineralPatch(const Point2D& start){
-    Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral, IsMineralPatch());
+const sc2::Unit* WorkerManager::FindNearestMineralPatch(const sc2::Point2D& start){
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsMineralPatch());
     float distance = std::numeric_limits<float>::max();
-    const Unit* target = nullptr;
+    const sc2::Unit* target = nullptr;
     for(const auto& u : units){
         if(DistanceSquared2D(u->pos, start) < distance){
             distance = DistanceSquared2D(u->pos, start);
@@ -167,8 +168,8 @@ Worker* WorkerManager::getFreeWorker(){
     return nullptr;
 }
 
-Worker* WorkerManager::getWorker(const Unit* unit_){
-    Tag key = unit_->tag;
+Worker* WorkerManager::getWorker(const sc2::Unit* unit_){
+    sc2::Tag key = unit_->tag;
     for(auto& w : workers){
         if(w.tag == key){
             return &w; 

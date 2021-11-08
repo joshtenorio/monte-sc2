@@ -5,6 +5,9 @@
 // initialize expansions
 std::vector<Expansion> Mapper::expansions;
 
+Mapper::Mapper(){
+    logger = Logger("Mapper");
+}
 
 void Mapper::initialize(){
     calculateExpansions();
@@ -24,7 +27,7 @@ void Mapper::initialize(){
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
     Expansion* tmp = &(expansions.front());
     for (auto& e : expansions){
-        if(sc2::DistanceSquared2D(tmp->baseLocation, Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, Point2D(point)))
+        if(sc2::DistanceSquared2D(tmp->baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, sc2::Point2D(point)))
             tmp = &e;
     }
     return tmp;
@@ -58,13 +61,23 @@ int Mapper::numOfExpansions(){
     return expansions.size();
 }
 
+void Mapper::setExpansionOwnership(Expansion* e, char newOwner){
+    if(!e) return;
+
+    e->ownership = newOwner;
+}
+
+void Mapper::setExpansionOwnership(sc2::Point3D p, char newOwner){
+    setExpansionOwnership(getClosestExpansion(p), newOwner);
+}
+
 void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future
-    Units mineralPatches = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsMineralPatch());
+    sc2::Units mineralPatches = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsMineralPatch());
 
     // second step: get geysers
-    Units gasGeysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsGeyser());
+    sc2::Units gasGeysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
 
     // third: calculate mineral lines and use to create expansions
     expansions.reserve(16);
@@ -124,7 +137,7 @@ void Mapper::calculateExpansions(){
     }
 
     // manually assign starting location to an expansion
-    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
     if(cc != nullptr){
         for(auto& e : expansions){
             // find the mineral line close to starting location
@@ -259,5 +272,5 @@ void Mapper::validateGeysers(){
     for(auto r : results){
         if(r) trueResults++;
     }
-    //printf("%d of %d valid\n", trueResults, results.size());
+    logger.infoInit().withInt(trueResults).withStr("of").withInt(results.size()).withStr("valid").write();
 }

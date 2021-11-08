@@ -3,9 +3,10 @@
 void MarinePush::initialize(){
 
     config.maxWorkers = 80;
-    config.barracksTechOutput = sc2::ABILITY_ID::TRAIN_MARINE;
+    config.barracksTechOutput = sc2::ABILITY_ID::TRAIN_MARAUDER;
     config.factoryTechOutput = sc2::ABILITY_ID::TRAIN_SIEGETANK;
     config.autoMorphCC = true;
+    config.maxRefineries = 6;
 
     pushBuildOrderStep(TYPE_BUILD, sc2::ABILITY_ID::BUILD_BARRACKS, STEP_NONBLOCKING, STEP_HIGHEST_PRIO, 16);
     pushBuildOrderStep(TYPE_BUILD, sc2::ABILITY_ID::BUILD_REFINERY, STEP_NONBLOCKING, STEP_HIGHEST_PRIO, 16);

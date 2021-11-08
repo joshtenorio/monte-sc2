@@ -1,5 +1,8 @@
 #include "ScoutManager.h"
 
+ScoutManager::ScoutManager(){
+    logger = Logger("ScoutManager");
+}
 
 void ScoutManager::OnGameStart(){
     scoutTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SCV);
@@ -19,13 +22,6 @@ void ScoutManager::OnStep(){
 
     if(gInterface->observation->GetGameLoop() % 625 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
-
-    if(gInterface->observation->GetGameLoop() % 400 == 0 && gInterface->observation->GetGameLoop() > 2){
-        int n = 0;
-        for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
-            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
-        logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
-    }
         
 
 }
@@ -36,10 +32,7 @@ void ScoutManager::OnUnitDestroyed(const sc2::Unit* unit_){
         removeScout(unit_->tag);
     }
     else if(unit_->alliance == sc2::Unit::Alliance::Enemy && API::isTownHall(unit_->unit_type.ToType())){
-        Expansion* e = gInterface->map->getClosestExpansion(unit_->pos);
-        if(e == nullptr) return;
-
-        e->ownership = OWNER_NEUTRAL;
+        gInterface->map->setExpansionOwnership(unit_->pos, OWNER_NEUTRAL);
     }
     
 }
