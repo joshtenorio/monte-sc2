@@ -20,7 +20,7 @@ void ScoutManager::OnGameStart(){
 
 void ScoutManager::OnStep(){
 
-    if(gInterface->observation->GetGameLoop() % 625 == 0 && gInterface->observation->GetGameLoop() >= 3000)
+    if(gInterface->observation->GetGameLoop() % 900 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         createScoutingMission();
         
 
