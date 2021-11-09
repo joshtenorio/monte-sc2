@@ -42,7 +42,7 @@ typedef struct MetaType_s_t {
 } MetaType;
 
 typedef struct Step_s_t {
-    Step_s_t() { container.type = TYPE_NULL; priority = -1; };
+    Step_s_t() { container.type = TYPE_NULL; priority = -1; blocking = false; };
     Step_s_t(int mtType, sc2::ABILITY_ID mtAbility, bool blocking_, int priority_, int reqSupply_) :
                 container(mtType, mtAbility), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
