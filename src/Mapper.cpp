@@ -16,9 +16,14 @@ void Mapper::initialize(){
     ramps = findRamps();
     // find the ramp closest to starting location and call that the main ramp
     Ramp closest;
+    float dist = std::numeric_limits<float>::max();
     for(auto& r : ramps){
-        
+        if(sc2::DistanceSquared2D(r.center, gInterface->observation->GetStartLocation()) < dist){
+            closest = r;
+            dist = sc2::DistanceSquared2D(r.center, gInterface->observation->GetStartLocation());
+        }
     }
+    main = generateMainRamp(closest);
 
     //validateGeysers();
 
