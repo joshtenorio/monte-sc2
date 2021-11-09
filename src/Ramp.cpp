@@ -50,6 +50,18 @@ std::vector<Ramp> findRamps(){
             auto itr = std::find(rampPoints.begin(), rampPoints.end(), closestPoint);
             if(itr != rampPoints.end()) rampPoints.erase(itr);
         }
+
+        // get center of ramp
+        int x = 0, y = 0;
+        int num = 0;
+        for(auto& p : r.points){
+            x += p.x;
+            y += p.y;
+            num++;
+        }
+        if(num)
+            r.center = sc2::Point2D(x/num, y/num);
+        
         ramps.emplace_back(r);
     } // while we still have ramp points to consider
 
@@ -62,5 +74,7 @@ std::vector<Ramp> findRamps(){
 }
 
 MainRamp generateMainRamp(Ramp r){
-    
+    MainRamp main;
+
+    return main;
 }

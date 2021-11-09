@@ -17,8 +17,9 @@ void Mapper::initialize(){
     // find the ramp closest to starting location and call that the main ramp
     Ramp closest;
     for(auto& r : ramps){
-
+        
     }
+
     //validateGeysers();
 
 }
