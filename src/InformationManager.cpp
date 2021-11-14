@@ -90,16 +90,21 @@ void InformationManager::checkForWorkerRush(){
 
 void InformationManager::checkForEnemyCloak(){
     // if we find a dangerous cloaked enemy (e.g. not an observer), set requireDetectors to true
-    // also we should send a chat message and temporarily a Tag as well
+    // also we should send a chat message and a Tag as well
 
 }
 
 void InformationManager::checkForMassAir(){
-    // check for mutacount >= 8, or spire, etc
-    // TODO: also check for broodlords, banshees, etc
-
-    // this is concurrent mutaCount, not all of the mutas we have seen so far
+    // TODO: why is mutaCount a private variable and not a local variable here? same w/ spireExists
     mutaCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_MUTALISK)).size();
+    
+    int bcCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
+    int fusionCoreExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE)).size();
+    
+    if((bcCount || fusionCoreExists) && !requireAntiAir){
+        requireAntiAir = true;
+        logger.tag("require_anti_air");
+    }
 
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
