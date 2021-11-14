@@ -97,6 +97,7 @@ typedef struct ProductionConfig_s_t {
     short maxArmories = 2;
     short maxOrbitals = 3; //std::numeric_limits<short>::max();
     float marineMarauderRatio = 2; // marines:marauders; this number is __ marines to 1 marauder. if this is -1, then dont build marauders
+    float marineMedivacRatio = 7; // marines:medivacs; __ marines to 1 medivac
 
     // if we should automatically morph a cc
     bool autoMorphCC = true;
@@ -129,6 +130,8 @@ typedef struct ProductionConfig_s_t {
         maxEngineeringBays = pc.maxEngineeringBays;
         maxArmories = pc.maxArmories;
         maxOrbitals = pc.maxOrbitals;
+        marineMarauderRatio = pc.marineMarauderRatio;
+        marineMedivacRatio = pc.marineMedivacRatio;
 
         autoMorphCC = pc.autoMorphCC;
    
