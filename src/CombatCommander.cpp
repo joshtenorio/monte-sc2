@@ -234,7 +234,7 @@ void CombatCommander::marineOnStep(){
         sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
+            if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
                 gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
