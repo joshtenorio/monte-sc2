@@ -9,6 +9,12 @@ void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
+    
+    harassTable.reserve(17);
+    for(int n = 0; n < 17; n++){
+        harassTable.emplace_back(0);
+    }
+
 
     reachedEnemyMain = false;
     sm.OnGameStart();
@@ -24,10 +30,11 @@ void CombatCommander::OnStep(){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-    // handle marines after loop = 100 because we rely on mapper.initialize()
+    // handle these after loop = 100 because we rely on mapper.initialize()
     if(gInterface->observation->GetGameLoop() > 100){
         marineOnStep();
         reaperOnStep();
+        liberatorOnStep();
     }
         
 
@@ -78,6 +85,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
         break;
         }
         case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
+            liberators.emplace_back(Monte::Liberator(unit_->tag));
             // first, generate target flight point
             sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
             sc2::Point3D enemyMineralMidpoint;
@@ -156,24 +164,38 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED){
-        for(auto itr = tanks.begin(); itr != tanks.end(); ){
-            if(unit_->tag == (*itr).tag){
-                itr = tanks.erase(itr);
-                break;
+    switch(unit_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+            for(auto itr = tanks.begin(); itr != tanks.end(); ){
+                if(unit_->tag == (*itr).tag){
+                    itr = tanks.erase(itr);
+                    break;
+                }
+                else ++itr;
             }
-            else ++itr;
-        }
-    } // end if unit is tank
-    else if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REAPER){
-        for(auto itr = reapers.begin(); itr != reapers.end(); ){
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+            for(auto itr = reapers.begin(); itr != reapers.end(); ){
             if(unit_->tag == (*itr).tag){
                 itr = reapers.erase(itr);
                 break;
             }
             else ++itr;
-        }
-    } // end if unit is reaper
+            }
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+            for(auto itr = liberators.begin(); itr != liberators.end(); ){
+            if(unit_->tag == (*itr).tag){
+                itr = liberators.erase(itr);
+                break;
+            }
+            else ++itr;
+            }
+        break;
+    } // end switch unit_->unit_type.ToType()
+
 }
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
@@ -649,6 +671,31 @@ void CombatCommander::reaperOnStep(){
             break;
         }
     } // for r : reapers
+}
+
+void CombatCommander::liberatorOnStep(){
+    for(auto& l : liberators){
+        const sc2::Unit* unit = gInterface->observation->GetUnit(l.tag);
+        if(!unit) continue;
+
+        switch(l.state){
+            case Monte::LiberatorState::Init:
+            break;
+            case Monte::LiberatorState::movingToIntermediate:
+            break;
+            case Monte::LiberatorState::movingToTarget:
+            break;
+            case Monte::LiberatorState::Sieging:
+            break;
+            case Monte::LiberatorState::Sieged:
+            break;
+            case Monte::LiberatorState::Evade:
+            break;
+            case Monte::LiberatorState::Null:
+            default:
+            break;
+        } // end switch l.state
+    } // end for l : liberators
 }
 
 

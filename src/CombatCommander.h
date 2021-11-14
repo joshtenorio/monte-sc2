@@ -32,12 +32,30 @@ namespace Monte {
         Bide
     };
 
-    typedef struct Reaper_s_t{
+    typedef struct Reaper_s_t {
         Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Init; };
         sc2::Tag tag;
         Monte::ReaperState state;
         sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
     } Reaper;
+
+    enum class LiberatorState {
+        Null = -1,
+        Init,
+        movingToIntermediate,
+        movingToTarget,
+        Sieging,
+        Sieged,
+        Evade
+    };
+
+    typedef struct Liberator_s_t {
+        Liberator_s_t(sc2::Tag tag_) {tag = tag_; state = Monte::LiberatorState::Null; };
+        sc2::Tag tag;
+        Monte::LiberatorState state;
+        sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);
+        sc2::Point2D targetFlightPoint = sc2::Point2D(-1, -1);
+    } Liberator;
 
 } // end namespace Monte
 
@@ -58,6 +76,7 @@ class CombatCommander : public Manager {
     void medivacOnStep();
     void siegeTankOnStep();
     void reaperOnStep();
+    void liberatorOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
     void handleChangelings();
@@ -68,6 +87,8 @@ class CombatCommander : public Manager {
 
     std::vector<Monte::Tank> tanks;
     std::vector<Monte::Reaper> reapers;
+    std::vector<Monte::Liberator> liberators;
+    std::vector<short> harassTable;
 
     // used for marine control
     bool reachedEnemyMain;
