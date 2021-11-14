@@ -53,6 +53,7 @@ namespace Monte {
         Liberator_s_t(sc2::Tag tag_) {tag = tag_; state = Monte::LiberatorState::Null; };
         sc2::Tag tag;
         Monte::LiberatorState state;
+        sc2::Point2D target = sc2::Point2D(-1, -1); // mineral midpoint of targeted expansion
         sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);
         sc2::Point2D targetFlightPoint = sc2::Point2D(-1, -1);
     } Liberator;
