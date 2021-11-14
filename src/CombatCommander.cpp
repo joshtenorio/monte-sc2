@@ -84,10 +84,10 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         break;
         }
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
             liberators.emplace_back(Monte::Liberator(unit_->tag));
         break;
-        }
+        
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
             tanks.emplace_back(Monte::Tank(unit_->tag));
             // have siege tanks rally at natural in the direction of the enemy main
@@ -645,7 +645,22 @@ void CombatCommander::liberatorOnStep(){
                         logger.infoInit().withUnit(unit).withStr("found suitable harass at expansion").withInt(eNumber).write();
                     }
                 }
-                if(!target) break;
+                
+                if(!target){
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    target = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
+                    logger.warningInit().withUnit(unit).withStr("couldn't find harass target, so harassing enemy main").write();
+                    // get the expansion number of enemy main
+                    for(int n = eNumber; n >= 0; n--){
+                        if(target->baseLocation == gInterface->map->getNthExpansion(n)->baseLocation){
+                            harassTable[n]++;
+                            break;
+                        }
+                    }
+                }
+                else{
+                    harassTable[eNumber]++;
+                }
 
                 // generate flight points
                 sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;
