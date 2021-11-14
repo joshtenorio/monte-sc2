@@ -201,6 +201,13 @@ void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
 void CombatCommander::marineOnStep(){
     int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+    
+    for(const auto& m : marines)
+        if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
+                reachedEnemyMain = true;
+                gInterface->actions->SendChat("Tag: reachedEnemyMain");
+                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
+        }
 
     // send a wave if we have a decent amount of bio
     if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
