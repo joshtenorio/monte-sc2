@@ -9,6 +9,12 @@ void CombatCommander::OnGameStart(){
     bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
+    
+    harassTable.reserve(40);
+    for(int n = 0; n < 40; n++){
+        harassTable.emplace_back(0);
+    }
+
 
     reachedEnemyMain = false;
     sm.OnGameStart();
@@ -24,10 +30,11 @@ void CombatCommander::OnStep(){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-    // handle marines after loop = 100 because we rely on mapper.initialize()
+    // handle these after loop = 100 because we rely on mapper.initialize()
     if(gInterface->observation->GetGameLoop() > 100){
         marineOnStep();
         reaperOnStep();
+        liberatorOnStep();
     }
         
 
@@ -77,57 +84,10 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
             gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
         break;
         }
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:{
-            // first, generate target flight point
-            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
-            sc2::Point3D enemyMineralMidpoint;
-            Expansion* e = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
-            if(e == nullptr) return;
-
-            enemyMineralMidpoint = e->mineralMidpoint;
-            sc2::Point2D targetFlightPoint = Monte::getPoint2D(enemyMineralMidpoint, Monte::Vector2D(enemyMain, enemyMineralMidpoint), 7);
-            
-            // then get the intermediate flight point
-            sc2::Point2D intermediateFlightPoint = sc2::Point2D(unit_->pos.x, targetFlightPoint.y);
-
-            // validate the flight points (ie make sure they are within map bounds)
-            // if they are not valid, adjust them so they fit within map bounds
-            sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;
-            sc2::Point2D minPoint = gInterface->observation->GetGameInfo().playable_min;
-            int minAdjust = 1;
-            // TODO: is there a cleaner way to write this? keep the braces in case we need to print stuff here
-            if(targetFlightPoint.x >= maxPoint.x){
-                targetFlightPoint.x -= (targetFlightPoint.x - maxPoint.x - minAdjust);
-            }
-            else if(targetFlightPoint.x <= minPoint.x){
-                targetFlightPoint.x += (minPoint.x - targetFlightPoint.x + minAdjust);
-            }
-            if(targetFlightPoint.y >= maxPoint.y){
-                targetFlightPoint.y -= (targetFlightPoint.y - maxPoint.y - minAdjust);
-            }
-            else if(targetFlightPoint.y <= minPoint.y){
-                targetFlightPoint.y += (minPoint.y - targetFlightPoint.y + minAdjust);
-            }
-
-            if(intermediateFlightPoint.x >= maxPoint.x){
-                intermediateFlightPoint.x -= (intermediateFlightPoint.x - maxPoint.x - minAdjust);
-            }
-            else if(intermediateFlightPoint.x <= minPoint.x){
-                intermediateFlightPoint.x += (minPoint.x - intermediateFlightPoint.x + minAdjust);
-            }
-            if(intermediateFlightPoint.y >= maxPoint.y){
-                intermediateFlightPoint.y -= (intermediateFlightPoint.y - maxPoint.y - minAdjust);
-            }
-            else if(intermediateFlightPoint.y <= minPoint.y){
-                intermediateFlightPoint.y += (minPoint.y - intermediateFlightPoint.y + minAdjust);
-            }
-
-            // give liberator commands
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MOVE_MOVE, intermediateFlightPoint);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MOVE_MOVE, targetFlightPoint, true);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::MORPH_LIBERATORAGMODE, enemyMineralMidpoint, true);
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+            liberators.emplace_back(Monte::Liberator(unit_->tag));
         break;
-        }
+        
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
             tanks.emplace_back(Monte::Tank(unit_->tag));
             // have siege tanks rally at natural in the direction of the enemy main
@@ -156,24 +116,38 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED){
-        for(auto itr = tanks.begin(); itr != tanks.end(); ){
-            if(unit_->tag == (*itr).tag){
-                itr = tanks.erase(itr);
-                break;
+    switch(unit_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+            for(auto itr = tanks.begin(); itr != tanks.end(); ){
+                if(unit_->tag == (*itr).tag){
+                    itr = tanks.erase(itr);
+                    break;
+                }
+                else ++itr;
             }
-            else ++itr;
-        }
-    } // end if unit is tank
-    else if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REAPER){
-        for(auto itr = reapers.begin(); itr != reapers.end(); ){
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+            for(auto itr = reapers.begin(); itr != reapers.end(); ){
             if(unit_->tag == (*itr).tag){
                 itr = reapers.erase(itr);
                 break;
             }
             else ++itr;
-        }
-    } // end if unit is reaper
+            }
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+            for(auto itr = liberators.begin(); itr != liberators.end(); ){
+            if(unit_->tag == (*itr).tag){
+                itr = liberators.erase(itr);
+                break;
+            }
+            else ++itr;
+            }
+        break;
+    } // end switch unit_->unit_type.ToType()
+
 }
 
 void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
@@ -234,7 +208,7 @@ void CombatCommander::marineOnStep(){
         sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
         //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
-            if(25 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
+            if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
                 reachedEnemyMain = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
                 gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
@@ -649,6 +623,113 @@ void CombatCommander::reaperOnStep(){
             break;
         }
     } // for r : reapers
+}
+
+void CombatCommander::liberatorOnStep(){
+    for(auto& l : liberators){
+        const sc2::Unit* unit = gInterface->observation->GetUnit(l.tag);
+        if(!unit) continue;
+
+        switch(l.state){
+            case Monte::LiberatorState::Init:{ // select a target and generate flight points
+                // find a target
+                Expansion* target = nullptr;
+                int eNumber = gInterface->map->numOfExpansions() - 1;
+                for(int n = eNumber; n >= 0; n--){
+                    Expansion* e = gInterface->map->getNthExpansion(n);
+                    if(!e) continue;
+                    else if(e->ownership != OWNER_ENEMY) continue;
+                    else if(harassTable[n] < harassTable[eNumber]){
+                        eNumber = n;
+                        target = e;
+                        logger.infoInit().withUnit(unit).withStr("found suitable harass at expansion").withInt(eNumber).write();
+                    }
+                }
+                
+                if(!target){
+                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+                    target = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
+                    logger.warningInit().withUnit(unit).withStr("couldn't find harass target, so harassing enemy main").write();
+                    // get the expansion number of enemy main
+                    for(int n = eNumber; n >= 0; n--){
+                        if(target->baseLocation == gInterface->map->getNthExpansion(n)->baseLocation){
+                            harassTable[n]++;
+                            break;
+                        }
+                    }
+                }
+                else{
+                    harassTable[eNumber]++;
+                }
+
+                // generate flight points
+                sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;
+                sc2::Point2D minPoint = gInterface->observation->GetGameInfo().playable_min;
+                int minAdjust = 1;
+                l.target = target->mineralMidpoint;
+                l.targetFlightPoint = Monte::getPoint2D(l.target, Monte::Vector2D(target->baseLocation, l.target), 7);
+                l.intermediateFlightPoint = sc2::Point2D(unit->pos.x, l.targetFlightPoint.y);
+                
+                if(l.targetFlightPoint.x >= maxPoint.x){
+                    l.targetFlightPoint.x -= (l.targetFlightPoint.x - maxPoint.x - minAdjust);
+                }
+                else if(l.targetFlightPoint.x <= minPoint.x){
+                    l.targetFlightPoint.x += (minPoint.x - l.targetFlightPoint.x + minAdjust);
+                }
+                if(l.targetFlightPoint.y >= maxPoint.y){
+                    l.targetFlightPoint.y -= (l.targetFlightPoint.y - maxPoint.y - minAdjust);
+                }
+                else if(l.targetFlightPoint.y <= minPoint.y){
+                    l.targetFlightPoint.y += (minPoint.y - l.targetFlightPoint.y + minAdjust);
+                }
+
+                if(l.intermediateFlightPoint.x >= maxPoint.x){
+                    l.intermediateFlightPoint.x -= (l.intermediateFlightPoint.x - maxPoint.x - minAdjust);
+                }
+                else if(l.intermediateFlightPoint.x <= minPoint.x){
+                    l.intermediateFlightPoint.x += (minPoint.x - l.intermediateFlightPoint.x + minAdjust);
+                }
+                if(l.intermediateFlightPoint.y >= maxPoint.y){
+                    l.intermediateFlightPoint.y -= (l.intermediateFlightPoint.y - maxPoint.y - minAdjust);
+                }
+                else if(l.intermediateFlightPoint.y <= minPoint.y){
+                    l.intermediateFlightPoint.y += (minPoint.y - l.intermediateFlightPoint.y + minAdjust);
+                }
+
+                // if flight points are valid, then transition to movingToIntermediate
+                if(l.intermediateFlightPoint.x != -1){
+                    l.state = Monte::LiberatorState::movingToIntermediate;
+                }
+                break;
+            }
+            case Monte::LiberatorState::movingToIntermediate: // TODO: influence maps
+                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::MOVE_MOVE, l.intermediateFlightPoint);
+                if(sc2::DistanceSquared2D(unit->pos, l.intermediateFlightPoint) < 9){
+                    l.state = Monte::LiberatorState::movingToTarget;
+                }
+                break;
+            case Monte::LiberatorState::movingToTarget: // TODO: influence maps
+                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::MOVE_MOVE, l.targetFlightPoint);
+                if(sc2::DistanceSquared2D(unit->pos, l.targetFlightPoint) < 9){
+                    l.state = Monte::LiberatorState::Sieging;
+                }
+                break;
+            case Monte::LiberatorState::Sieging: 
+                gInterface->actions->UnitCommand(unit, sc2::ABILITY_ID::MORPH_LIBERATORAGMODE, l.target);
+                if(unit->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_LIBERATORAG){
+                    l.state = Monte::LiberatorState::Sieged;
+                }
+                break;
+            case Monte::LiberatorState::Sieged: // basically do nothing ? or unsiege and go away if there is a lot of enemies
+                break;
+            case Monte::LiberatorState::Evade: // maybe a redundant state; perhaps could reselect a target? if so, rename state
+                break;
+            case Monte::LiberatorState::Null:
+            default:
+                l.state = Monte::LiberatorState::Init;
+                break;
+        } // end switch l.state
+    } // end for l : liberators
 }
 
 
