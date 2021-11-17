@@ -11,7 +11,7 @@
 
 WorkerManager::WorkerManager(){
     logger = Logger("WorkerManager");
-    logger.initializePlot({"game loop", "long distance miners"}, "long distance mining");
+    //logger.initializePlot({"game loop", "long distance miners"}, "long distance mining");
 }
 const sc2::Unit* Worker::getUnit(){
     return gInterface->observation->GetUnit(tag);
@@ -129,9 +129,9 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
     } // end for cc : ccs
 
-    logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
-    logger.addPlotData("long distance miners", (float) numLongDistanceMiners);
-    logger.writePlotRow();
+    //logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
+    //logger.addPlotData("long distance miners", (float) numLongDistanceMiners);
+    //logger.writePlotRow();
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
