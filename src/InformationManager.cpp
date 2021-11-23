@@ -2,6 +2,12 @@
 
 InformationManager::InformationManager(){
     logger = Logger("InformationManager");
+
+    // initialize array
+    income.resize(1000);
+    for(int i = 0; i < 1000; i++){
+        income[i] = 0;
+    }
 }
 
 void InformationManager::OnGameStart(){
@@ -14,6 +20,11 @@ void InformationManager::OnGameStart(){
 }
 
 void InformationManager::OnStep(){
+
+    // only check income after some time
+    if(gInterface->observation->GetGameLoop() > 5000){
+        checkIncome();
+    }
 
     if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 3000)
         checkForWorkerRush(); // only check this before 3 or 4 minutes
@@ -30,10 +41,20 @@ void InformationManager::OnStep(){
         for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
             if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
         logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
+        logger.infoInit().withStr("delta income:").withFloat(income[0]-income[999]).write();
     }
+    gInterface->debug->debugTextOut("income[0]=" + std::to_string(income[0]));
+    gInterface->debug->debugTextOut("income[999]=" + std::to_string(income[999]));
+    gInterface->debug->debugTextOut("income diff=" + std::to_string(income[0]-income[999]));
+    gInterface->debug->sendDebug();
 }
 
 ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
+
+    if(requireExpansion){
+        currentPConfig.prioritiseExpansion = true;
+
+    }
     
     if(requireAntiAir){
         currentPConfig.buildTurrets = true;
@@ -121,4 +142,42 @@ void InformationManager::checkForMassAir(){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
+}
+
+void InformationManager::checkIncome(){
+    const sc2::ScoreDetails score = gInterface->observation->GetScore().score_details;
+    float currIncome = score.collection_rate_minerals;
+    for(int i = income.size()-1; i > 0; i--){
+        income[i] = income[i-1];
+    }
+    income[0] = currIncome;
+
+    // if our income has gotten smaller and we have quite a bit of long distance miners and a cc isnt already in production,
+    // then we should prioritise expansion
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
+    bool ccInProduction = false;
+    for(auto& cc : ccs){
+        if(cc->build_progress < 1.0){
+            ccInProduction = true;
+            break;
+        }
+    }
+    if(
+        income[0] < income[income.size()-1] &&
+        gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE) > 13 &&
+        !requireExpansion &&
+        !ccInProduction
+    ){
+        requireExpansion = true;
+        logger.infoInit().withStr("income diff from 1000 loops ago:")
+            .withFloat(income[0]-income[income.size()-1])
+            .withStr("and").withInt(gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE))
+            .withStr("long distance miners")
+            .chat(true);
+    }
+    else if(requireExpansion && ccInProduction){
+        // reset requireExpansion only when we have a cc in production
+        requireExpansion = false;
+    }
+
 }

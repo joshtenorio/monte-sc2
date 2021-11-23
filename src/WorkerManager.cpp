@@ -23,9 +23,6 @@ void WorkerManager::OnStep(){
     if(gInterface->observation->GetGameLoop() % 15 == 0 && gInterface->observation->GetGameLoop() > 500){
         DistributeWorkers();
     }
-    if(gInterface->observation->GetGameLoop() % 50 == 0){
-        logger.infoInit().withStr("long distance miners:").withInt(getNumWorkers(JOB_LONGDISTANCE_MINE)).write();
-    }
 }
 
 void WorkerManager::OnUnitCreated(const sc2::Unit* unit_){
