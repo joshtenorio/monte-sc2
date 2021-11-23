@@ -181,6 +181,9 @@ void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
         
         switch(unit_->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SCV:
+            case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+            case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: // hopefully moving this here doesnt break anything lmao
                 // the pm gets called first, bc we need to remove worker pointer from 
                 // a Construction in bm if it is building it
                 pm.OnUnitDestroyed(unit_);
@@ -189,7 +192,7 @@ void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
             case sc2::UNIT_TYPEID::TERRAN_ARMORY:
             case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
             case sc2::UNIT_TYPEID::TERRAN_BUNKER:
-            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            
             case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
             case sc2::UNIT_TYPEID::TERRAN_FACTORY:
             case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:

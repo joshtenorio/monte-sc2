@@ -46,6 +46,7 @@ void InformationManager::OnStep(){
     gInterface->debug->debugTextOut("income[0]=" + std::to_string(income[0]));
     gInterface->debug->debugTextOut("income[999]=" + std::to_string(income[999]));
     gInterface->debug->debugTextOut("income diff=" + std::to_string(income[0]-income[999]));
+    gInterface->debug->debugTextOut("long distance=" + std::to_string(gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE)));
     gInterface->debug->sendDebug();
 }
 

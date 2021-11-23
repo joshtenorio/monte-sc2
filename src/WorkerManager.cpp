@@ -39,15 +39,31 @@ void WorkerManager::OnUnitCreated(const sc2::Unit* unit_){
 }
 
 void WorkerManager::OnUnitDestroyed(const sc2::Unit* unit_){
-    sc2::Tag key = unit_->tag;
-    int index = 0;
-    for(auto itr = workers.begin(); itr != workers.end(); ){
-        if((*itr).tag == key){
-            itr = workers.erase(itr);
-            break;
+    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS){
+        // if a cc is destroyed, assume the closest 16 workers were mining minerals
+        // if not, its a close-enough approximation imo
+        sc2::Units nearbyWorkers = API::getClosestNUnits(unit_->pos, 16, 11, sc2::Unit::Alliance::Self, sc2::IsWorker());
+        for(auto& w : nearbyWorkers){
+            Worker* scv = gInterface->wm->getWorker(w->tag);
+            if(scv){
+                scv->job = JOB_LONGDISTANCE_MINE;
+            }
         }
-        else ++itr;
     }
+    else{
+        sc2::Tag key = unit_->tag;
+        int index = 0;
+        for(auto itr = workers.begin(); itr != workers.end(); ){
+            if((*itr).tag == key){
+                itr = workers.erase(itr);
+                break;
+            }
+            else ++itr;
+        }
+    }
+
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
