@@ -20,6 +20,7 @@ class InformationManager : public Manager {
     void checkForWorkerRush();
     void checkForEnemyCloak();
     void checkForMassAir();
+    void checkIncome(); // if income is dropping and we have a lot of long distance miners, then prioritise expansion
 
     sc2::Race enemyRace;
 
@@ -36,6 +37,7 @@ class InformationManager : public Manager {
     bool workerRushDetected = false;
 
     bool enemyHeavyEcon = false; // if this is true, set combatstate to aggressive - test against bluntmacro, miningmachine
+    bool requireExpansion = false; // if true, production manager will save up for cc
 
     private:
     int mutaCount = 0;

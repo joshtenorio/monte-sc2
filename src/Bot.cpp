@@ -48,10 +48,11 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
         Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     
     switch(building_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            wm.OnBuildingConstructionComplete(building_);
         case sc2::UNIT_TYPEID::TERRAN_ARMORY:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
         case sc2::UNIT_TYPEID::TERRAN_BUNKER:
-        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
         case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
         case sc2::UNIT_TYPEID::TERRAN_FACTORY:
         case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:

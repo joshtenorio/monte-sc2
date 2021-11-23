@@ -22,6 +22,7 @@
 #define JOB_FIGHTING            5
 #define JOB_REPAIRING           6
 #define JOB_SCOUTING            7
+#define JOB_LONGDISTANCE_MINE   8
 
 typedef struct Worker_s_t {
     int job;
@@ -37,6 +38,7 @@ class WorkerManager : public Manager {
     void OnUnitCreated(const sc2::Unit* unit_);
     void OnUnitDestroyed(const sc2::Unit* unit_);
     void OnUnitIdle(const sc2::Unit* unit_);
+    void OnBuildingConstructionComplete(const sc2::Unit* building_);
 
     void DistributeWorkers(int gasWorkers = 3);
     const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start); // TODO: iirc this is unused, need to remove at some point
@@ -52,7 +54,7 @@ class WorkerManager : public Manager {
     Worker* getNthWorker(size_t n);
     // TODO: add implementation for getting closest worker who has a specific job
     Worker* getClosestWorker(sc2::Point2D pos, int jobType = -1);
-    int getNumWorkers();
+    int getNumWorkers(int jobType = -1);
     bool isFree(Worker* w);
 
     protected:
