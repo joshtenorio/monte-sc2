@@ -11,6 +11,7 @@
 
 WorkerManager::WorkerManager(){
     logger = Logger("WorkerManager");
+    //logger.initializePlot({"game loop", "long distance miners"}, "long distance mining");
 }
 const sc2::Unit* Worker::getUnit(){
     return gInterface->observation->GetUnit(tag);
@@ -124,6 +125,7 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 
     // 2. send to next base if base is overfull
+    int numLongDistanceMiners = 0;
     sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     for(auto& cc : ccs){
         if(cc->assigned_harvesters > cc->ideal_harvesters){
@@ -144,12 +146,17 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             }
             
             if(e != nullptr){
+                numLongDistanceMiners++;
                 const sc2::Unit* mineral = FindNearestMineralPatch(e->baseLocation);
                 gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, mineral);
                 w->job = (e->ownership != OWNER_SELF ? JOB_LONGDISTANCE_MINE : JOB_GATHERING_MINERALS);
             }
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
     } // end for cc : ccs
+
+    //logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
+    //logger.addPlotData("long distance miners", (float) numLongDistanceMiners);
+    //logger.writePlotRow();
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
