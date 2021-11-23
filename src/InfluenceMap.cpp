@@ -1,7 +1,7 @@
 #include "InfluenceMap.h"
 
 namespace Monte {
-
+//brr
 InfluenceMap::InfluenceMap(sc2::Point2D center_, float maxRadius_){
     center = center_;
     maxRadius = maxRadius_;
