@@ -148,7 +148,10 @@ void InformationManager::checkIncome(){
     const sc2::ScoreDetails score = gInterface->observation->GetScore().score_details;
     float currIncome = score.collection_rate_minerals;
     for(int i = income.size()-1; i > 0; i--){
-        income[i] = income[i-1];
+        if(income[i] == income[i-1])
+            continue;
+        else
+            income[i] = income[i-1];
     }
     income[0] = currIncome;
 
@@ -164,7 +167,7 @@ void InformationManager::checkIncome(){
     }
     if(
         income[0] < income[income.size()-1] &&
-        gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE) > 13 &&
+        gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE) > 10 &&
         !requireExpansion &&
         !ccInProduction
     ){
