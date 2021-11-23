@@ -77,6 +77,10 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         int numMedivacs = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MEDIVAC);
         float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
         currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
+
+        // if we need anti air and we are building liberators, build vikings instead
+        if(currentPConfig.starportOutput == sc2::ABILITY_ID::TRAIN_LIBERATOR && requireAntiAir)
+            currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
     }
 
 
