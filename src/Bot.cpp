@@ -2,7 +2,7 @@
 
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_11_10"; // update this everytime we upload
+std::string version = "v0_11_11"; // update this everytime we upload
 
 // TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
@@ -48,10 +48,11 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
         Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
     
     switch(building_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            wm.OnBuildingConstructionComplete(building_);
         case sc2::UNIT_TYPEID::TERRAN_ARMORY:
         case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
         case sc2::UNIT_TYPEID::TERRAN_BUNKER:
-        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
         case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
         case sc2::UNIT_TYPEID::TERRAN_FACTORY:
         case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:
@@ -180,6 +181,9 @@ void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
         
         switch(unit_->unit_type.ToType()){
             case sc2::UNIT_TYPEID::TERRAN_SCV:
+            case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
+            case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
+            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: // hopefully moving this here doesnt break anything lmao
                 // the pm gets called first, bc we need to remove worker pointer from 
                 // a Construction in bm if it is building it
                 pm.OnUnitDestroyed(unit_);
@@ -188,7 +192,7 @@ void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
             case sc2::UNIT_TYPEID::TERRAN_ARMORY:
             case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
             case sc2::UNIT_TYPEID::TERRAN_BUNKER:
-            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
+            
             case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
             case sc2::UNIT_TYPEID::TERRAN_FACTORY:
             case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE:

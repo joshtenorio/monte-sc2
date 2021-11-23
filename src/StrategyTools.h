@@ -108,6 +108,8 @@ typedef struct ProductionConfig_s_t {
     // if we need missile turrets
     bool buildTurrets = false;
 
+    bool prioritiseExpansion = false;
+
     // defines what we produce by default
     sc2::ABILITY_ID barracksOutput = PRODUCTION_UNUSED;
     sc2::ABILITY_ID barracksTechOutput = PRODUCTION_UNUSED;
@@ -137,6 +139,7 @@ typedef struct ProductionConfig_s_t {
    
         pullWorkers = pc.pullWorkers;
         buildTurrets = pc.buildTurrets;
+        prioritiseExpansion = pc.prioritiseExpansion;
 
         barracksOutput = pc.barracksOutput;
         barracksTechOutput = pc.barracksTechOutput;

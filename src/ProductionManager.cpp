@@ -41,6 +41,10 @@ void ProductionManager::OnStep(){
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
         tryBuildCommandCenter();
+        // if we are prioritising expansion, don't bother doing any other steps
+        // since we need to save up money
+        if(config.prioritiseExpansion) return;
+
         TryBuildBarracks();
         tryBuildRefinery();
         tryBuildArmory();
@@ -117,6 +121,7 @@ void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building
             return;
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             gInterface->map->setExpansionOwnership(building_->pos, OWNER_SELF);
+            
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -128,6 +133,10 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
     if(gInterface->observation->GetGameLoop() > 50 && unit_->tag != 0 && unit_->is_building && !API::isAddon(unit_->unit_type.ToType()))
         bm.OnUnitCreated(unit_);
     
+    // set to false since we just expanded
+    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER)
+        config.prioritiseExpansion = false;
+
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
     if(
@@ -552,7 +561,6 @@ bool ProductionManager::tryBuildAddon(){
     sc2::Units starports = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORT));
     for(auto& s : starports){
         if(s->add_on_tag != 0 || s->build_progress < 1.0 || !s->orders.empty()) continue;
-        logger.infoInit().withStr("we want to build starport addon !").write();
         gInterface->actions->UnitCommand(s, config.starportDefaultAddon);
     }
 
