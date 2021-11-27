@@ -239,7 +239,7 @@ void Mapper::sortExpansions(sc2::Point2D point){
             expansions[n].distanceToStart = distances[n];
         else{ // distance = 0 so it is unpathable, remove it
             expansions.erase(expansions.begin() + n);
-            n--; // so we don't go out of bounds?
+            //n--; // so we don't go out of bounds?
             removed++;
         }
     }
