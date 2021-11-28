@@ -46,6 +46,8 @@ void ProductionManager::OnStep(){
         if(config.prioritiseExpansion) return;
 
         TryBuildBarracks();
+        tryBuildFactory();
+        tryBuildStarport();
         tryBuildRefinery();
         tryBuildArmory();
         tryBuildEngineeringBay();
