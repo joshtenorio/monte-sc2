@@ -240,6 +240,7 @@ void Mapper::sortExpansions(sc2::Point2D point){
         else{ // distance = 0 so it is unpathable, remove it
             logger.errorInit().withStr("removing expansion").withPoint(expansions[n].mineralMidpoint).write();
             expansions.erase(expansions.begin() + n);
+            distances.erase(distances.begin() + n);
             //n--; // so we dont go out of bounds?
             removed++;
         }
