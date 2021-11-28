@@ -238,9 +238,9 @@ void Mapper::sortExpansions(sc2::Point2D point){
         if(distances[n])
             expansions[n].distanceToStart = distances[n];
         else{ // distance = 0 so it is unpathable, remove it
-            logger.errorInit().withStr("removing expansion").withPoint(expansions[n].baseLocation).write();
+            logger.errorInit().withStr("removing expansion").withPoint(expansions[n].mineralMidpoint).write();
             expansions.erase(expansions.begin() + n);
-            //n--; // so we don't go out of bounds?
+            //n--; // so we dont go out of bounds?
             removed++;
         }
     }
