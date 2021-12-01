@@ -14,8 +14,6 @@ namespace Monte {
         float maxRadius;
     } InfluenceSource;
 
-    typedef std::pair<sc2::Point2D, float> InfluenceTile;
-
     class InfluenceMap {
         public:
         InfluenceMap();

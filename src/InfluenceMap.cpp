@@ -65,7 +65,8 @@ void InfluenceMap::resetInfluenceScores(){
 }
 
 void InfluenceMap::propagate(){
-    resetInfluenceScores();
+    if(!sources.empty())
+        resetInfluenceScores();
     for(auto& s : sources){
         int xMin = s.center.x - s.maxRadius, xMax = s.center.x + s.maxRadius;
         int yMin = s.center.y - s.maxRadius, yMax = s.center.y + s.maxRadius;
