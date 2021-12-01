@@ -2,10 +2,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
+#include <vector>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_data.h>
 #include <sc2api/sc2_unit.h>
 
+typedef struct Plot_s_t {
+    std::string name;
+    std::map<std::string, size_t> columns;
+    std::vector<float> currentRow;
+} Plot;
 
 class Logger {
     public:
@@ -35,9 +42,13 @@ class Logger {
     // generate a prefix for data output files for the match
     int createOutputPrefix();
 
-
+    // plot functions
+    void initializePlot(std::vector<std::string> columns, std::string plotName);
+    void addPlotData(std::string column, float data);
+    void writePlotRow();
 
     private:
     std::string topic;
     std::string output;
+    Plot plot;
 };

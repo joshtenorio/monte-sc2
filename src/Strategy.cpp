@@ -91,7 +91,7 @@ void Strategy::removeStep(Step s){
 void Strategy::removeStep(sc2::ABILITY_ID ability){
     // find the highest valid priority item with this ability
     // then use removeStep(Step s) to remove it
-    Step step;
+    Step step = STEP_NULL;
     for(auto& s : buildOrder){
         if(s.priority >= step.priority && s.getAbility() == ability)
             step = s;
@@ -170,10 +170,10 @@ int Strategy::getType(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL3:
         case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS:
         case sc2::ABILITY_ID::RESEARCH_BANSHEEHYPERFLIGHTROTORS:
-        case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
+        //case sc2::ABILITY_ID::RESEARCH_RAPIDREIGNITIONSYSTEM:
         case sc2::ABILITY_ID::RESEARCH_SMARTSERVOS:
         case sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS:
-        case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
+        //case sc2::ABILITY_ID::RESEARCH_ENHANCEDSHOCKWAVES:
         case sc2::ABILITY_ID::RESEARCH_HISECAUTOTRACKING:
         case sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE:
         case sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD:

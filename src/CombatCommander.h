@@ -7,10 +7,10 @@
 #include "Manager.h"
 #include "Strategy.h"
 #include "ScoutManager.h"
-#include "combat/AttackSquad.h"
+#include "InfluenceMap.h"
 
 namespace Monte {
-    enum TankState {
+    enum class TankState {
         Null = -1,
         Unsieged,
         Sieging,
@@ -24,21 +24,48 @@ namespace Monte {
         Monte::TankState state;
     } Tank;
 
+    enum class ReaperState {
+        Null = -1,
+        Init,
+        Attack,
+        Kite,
+        Move,
+        Bide
+    };
+
+    typedef struct Reaper_s_t {
+        Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Init; };
+        sc2::Tag tag;
+        Monte::ReaperState state;
+        sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
+    } Reaper;
+
+    enum class LiberatorState {
+        Null = -1,
+        Init,
+        movingToIntermediate,
+        movingToTarget,
+        Sieging,
+        Sieged,
+        Evade
+    };
+
+    typedef struct Liberator_s_t {
+        Liberator_s_t(sc2::Tag tag_) {tag = tag_; state = Monte::LiberatorState::Null; };
+        sc2::Tag tag;
+        Monte::LiberatorState state;
+        sc2::Point2D target = sc2::Point2D(-1, -1); // mineral midpoint of targeted expansion
+        sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);
+        sc2::Point2D targetFlightPoint = sc2::Point2D(-1, -1);
+    } Liberator;
 
 } // end namespace Monte
 
 class CombatCommander : public Manager {
     public:
     // constructors
-    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
-    // TODO: add a constructor with strategy, bc we need CombatConfig from strategy
-    CombatCommander(Strategy* strategy_){
-        config = strategy_->getCombatConfig();
-        mainSquad = AttackSquad();
-        mainSquad.setConfig(config);
-        sm = ScoutManager();
-        logger = Logger("CombatCommander");
-    };
+    CombatCommander();
+    // TODO: add a constructor with strategy
 
     void OnGameStart();
     void OnStep();
@@ -47,6 +74,11 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
+    void marineOnStep();
+    void medivacOnStep();
+    void siegeTankOnStep();
+    void reaperOnStep();
+    void liberatorOnStep();
     void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
 
     void handleChangelings();
@@ -59,10 +91,14 @@ class CombatCommander : public Manager {
     CombatConfig config;
 
     std::vector<Monte::Tank> tanks;
-    AttackSquad mainSquad;
+    std::vector<Monte::Reaper> reapers;
+    std::vector<Monte::Liberator> liberators;
+    std::vector<short> harassTable;
 
     // used for marine control
     bool reachedEnemyMain;
     std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
     std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
+    Monte::InfluenceMap groundMap;
+    Monte::InfluenceMap airMap;
 };

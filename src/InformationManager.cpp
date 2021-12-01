@@ -2,7 +2,12 @@
 
 InformationManager::InformationManager(){
     logger = Logger("InformationManager");
-    
+
+    // initialize array
+    income.resize(1000);
+    for(int i = 0; i < 1000; i++){
+        income[i] = 0;
+    }
 }
 
 void InformationManager::OnGameStart(){
@@ -16,6 +21,11 @@ void InformationManager::OnGameStart(){
 
 void InformationManager::OnStep(){
 
+    // only check income after some time
+    if(gInterface->observation->GetGameLoop() > 5000){
+        checkIncome();
+    }
+
     if(gInterface->observation->GetGameLoop() > 60 && gInterface->observation->GetGameLoop() < 3000)
         checkForWorkerRush(); // only check this before 3 or 4 minutes
 
@@ -25,14 +35,47 @@ void InformationManager::OnStep(){
     // start updating expansions well after mapper has initialized
     if(gInterface->observation->GetGameLoop() % 30 == 0 && gInterface->observation->GetGameLoop() >= 3000)
         updateExpoOwnership();
+    
+    if(gInterface->observation->GetGameLoop() % 400 == 0 && gInterface->observation->GetGameLoop() > 2){
+        int n = 0;
+        for(int i = 0; i < gInterface->map->numOfExpansions(); i++)
+            if(gInterface->map->getNthExpansion(i)->ownership == OWNER_ENEMY) n++;
+        logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
+        logger.infoInit().withStr("delta income:").withFloat(income[0]-income[999]).write();
+    }
 }
 
 ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
+
+    if(requireExpansion){
+        currentPConfig.prioritiseExpansion = true;
+
+    }
     
     if(requireAntiAir){
         currentPConfig.buildTurrets = true;
         currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
         currentPConfig.maxStarports = 3;
+    }
+
+    float bioRatio = currentPConfig.marineMarauderRatio;
+    if(bioRatio != -1){
+        int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+        int numMarauders = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+        float currRatio = (numMarauders != 0 ? numMarines / numMarauders : numMarines);
+        currentPConfig.barracksTechOutput = (currRatio > bioRatio ? sc2::ABILITY_ID::TRAIN_MARAUDER : sc2::ABILITY_ID::TRAIN_MARINE);
+    }
+
+    float medicRatio = currentPConfig.marineMedivacRatio;
+    if(medicRatio != -1){
+        int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+        int numMedivacs = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MEDIVAC);
+        float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
+        currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
+
+        // if we need anti air and we are building liberators, build vikings instead
+        if(currentPConfig.starportOutput == sc2::ABILITY_ID::TRAIN_LIBERATOR && requireAntiAir)
+            currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
     }
 
 
@@ -46,17 +89,14 @@ CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig
 void InformationManager::updateExpoOwnership(){
     sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
     for(auto& th : enemyTownHalls){
-        Expansion* closest = gInterface->map->getClosestExpansion(th->pos);
-        if(closest == nullptr) return;
-        else
-            closest->ownership = OWNER_ENEMY;
+        gInterface->map->setExpansionOwnership(th->pos, OWNER_ENEMY);
     }
 }
 
 void InformationManager::checkForWorkerRush(){
     // if we have 4 or more completed buildings, don't check for worker rush
     int structureCount = API::countUnitType([](const sc2::Unit& u){
-                return (API::isStructure(u.unit_type.ToType()) && u.build_progress == 1.0);
+                return (u.is_building && u.build_progress == 1.0);
             });
     if(structureCount >= 4) return;
 
@@ -79,16 +119,21 @@ void InformationManager::checkForWorkerRush(){
 
 void InformationManager::checkForEnemyCloak(){
     // if we find a dangerous cloaked enemy (e.g. not an observer), set requireDetectors to true
-    // also we should send a chat message and temporarily a Tag as well
+    // also we should send a chat message and a Tag as well
 
 }
 
 void InformationManager::checkForMassAir(){
-    // check for mutacount >= 8, or spire, etc
-    // TODO: also check for broodlords, banshees, etc
-
-    // this is concurrent mutaCount, not all of the mutas we have seen so far
+    // TODO: why is mutaCount a private variable and not a local variable here? same w/ spireExists
     mutaCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_MUTALISK)).size();
+    
+    int bcCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
+    int fusionCoreExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE)).size();
+    
+    if((bcCount || fusionCoreExists) && !requireAntiAir){
+        requireAntiAir = true;
+        logger.tag("require_anti_air");
+    }
 
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
@@ -97,4 +142,45 @@ void InformationManager::checkForMassAir(){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
+}
+
+void InformationManager::checkIncome(){
+    const sc2::ScoreDetails score = gInterface->observation->GetScore().score_details;
+    float currIncome = score.collection_rate_minerals;
+    for(int i = income.size()-1; i > 0; i--){
+        if(income[i] == income[i-1])
+            continue;
+        else
+            income[i] = income[i-1];
+    }
+    income[0] = currIncome;
+
+    // if our income has gotten smaller and we have quite a bit of long distance miners and a cc isnt already in production,
+    // then we should prioritise expansion
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
+    bool ccInProduction = false;
+    for(auto& cc : ccs){
+        if(cc->build_progress < 1.0){
+            ccInProduction = true;
+            break;
+        }
+    }
+    if(
+        income[0] < income[income.size()-1] &&
+        gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE) > 10 &&
+        !requireExpansion &&
+        !ccInProduction
+    ){
+        requireExpansion = true;
+        logger.infoInit().withStr("income diff from 1000 loops ago:")
+            .withFloat(income[0]-income[income.size()-1])
+            .withStr("and").withInt(gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE))
+            .withStr("long distance miners")
+            .chat(true);
+    }
+    else if(requireExpansion && ccInProduction){
+        // reset requireExpansion only when we have a cc in production
+        requireExpansion = false;
+    }
+
 }

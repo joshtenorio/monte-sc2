@@ -3,30 +3,28 @@
 #include <sc2api/sc2_unit.h>
 #include <vector>
 #include <memory>
+#include <sc2api/sc2_score.h>
 #include "api.h"
 #include "Manager.h"
 #include "BuildingManager.h"
 #include "Strategy.h"
 
-using namespace sc2;
-
 class ProductionManager : public Manager {
     public:
     // constructors
-    ProductionManager() { bm = BuildingManager(); logger = Logger("ProductionManager"); };
-    ProductionManager(Strategy* strategy_){
-        strategy = strategy_;
-        bm = BuildingManager();
-        logger = Logger("ProductionManager");
-    };
+    ProductionManager();
+    ProductionManager(Strategy* strategy_);
 
     void OnStep();
     void OnGameStart();
-    void OnBuildingConstructionComplete(const Unit* building_);
-    void OnUnitCreated(const Unit* unit_);
+    void OnBuildingConstructionComplete(const sc2::Unit* building_);
+    void OnUnitCreated(const sc2::Unit* unit_);
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_);
-    void OnUnitDestroyed(const sc2::Unit* unit_); // pass to building manager
 
+    // pass these to building manager
+    void OnUnitDestroyed(const sc2::Unit* unit_);
+    void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
+    
     ProductionConfig& getProductionConfig();
 
     protected:
@@ -61,6 +59,11 @@ class ProductionManager : public Manager {
 
     // handle upgrades
     void handleUpgrades();
+    void upgradeInfantryWeapons(int currLevel);
+    void upgradeInfantryArmor(int currLevel);
+    void upgradeFactoryWeapons(int currLevel);
+    void upgradeVehicleArmor(int currLevel);
+    void upgradeStarshipWeapons(int currLevel);
 
     // use orbital cc
     void callMules();
@@ -74,6 +77,5 @@ class ProductionManager : public Manager {
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
     ProductionConfig config;
 
-    void upgradeInfantryWeapons(int currLevel);
-    void upgradeInfantryArmor(int currLevel);
+
 };

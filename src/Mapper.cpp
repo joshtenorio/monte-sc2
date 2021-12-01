@@ -5,6 +5,9 @@
 // initialize expansions
 std::vector<Expansion> Mapper::expansions;
 
+Mapper::Mapper(){
+    logger = Logger("Mapper");
+}
 
 void Mapper::initialize(){
     calculateExpansions();
@@ -24,7 +27,7 @@ void Mapper::initialize(){
 Expansion* Mapper::getClosestExpansion(sc2::Point3D point){
     Expansion* tmp = &(expansions.front());
     for (auto& e : expansions){
-        if(sc2::DistanceSquared2D(tmp->baseLocation, Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, Point2D(point)))
+        if(sc2::DistanceSquared2D(tmp->baseLocation, sc2::Point2D(point)) > sc2::DistanceSquared2D(e.baseLocation, sc2::Point2D(point)))
             tmp = &e;
     }
     return tmp;
@@ -58,13 +61,23 @@ int Mapper::numOfExpansions(){
     return expansions.size();
 }
 
+void Mapper::setExpansionOwnership(Expansion* e, char newOwner){
+    if(!e) return;
+
+    e->ownership = newOwner;
+}
+
+void Mapper::setExpansionOwnership(sc2::Point3D p, char newOwner){
+    setExpansionOwnership(getClosestExpansion(p), newOwner);
+}
+
 void Mapper::calculateExpansions(){
     // first step: get all minerals
     // probably inefficient so need to improve this in the future
-    Units mineralPatches = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsMineralPatch());
+    sc2::Units mineralPatches = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsMineralPatch());
 
     // second step: get geysers
-    Units gasGeysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, IsGeyser());
+    sc2::Units gasGeysers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsGeyser());
 
     // third: calculate mineral lines and use to create expansions
     expansions.reserve(16);
@@ -124,7 +137,7 @@ void Mapper::calculateExpansions(){
     }
 
     // manually assign starting location to an expansion
-    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
     if(cc != nullptr){
         for(auto& e : expansions){
             // find the mineral line close to starting location
@@ -198,54 +211,75 @@ void Mapper::calculateExpansions(){
 
 void Mapper::sortExpansions(sc2::Point2D point){
 
-    // get distances
-    for (auto& e : expansions){
-        e.distanceToStart = sc2::DistanceSquared2D(point, e.baseLocation);
-    }
-
-    // use std::sort
-    std::sort(expansions.begin(), expansions.end());
-    
-
-    /**
     // use a worker if available to ensure ground distance is calculated
     sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
     const sc2::Unit* worker = (workers.empty() ? nullptr : workers.front());
     std::vector<sc2::QueryInterface::PathingQuery> queries;
-    for(auto& e : expansions){ // TODO: need special behavior for enemy start location since pathingquery returns 0 for that, maybe use mineral midpoint instead?
+    for(auto& e : expansions){
         if(worker != nullptr){
             sc2::QueryInterface::PathingQuery query;
             query.start_unit_tag_ = worker->tag;
-            query.end_ = e.mineralMidpoint;
+            query.end_ = e.baseLocation;
             queries.emplace_back(query);
         }
         else{
             sc2::QueryInterface::PathingQuery query;
-            const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+            const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
             query.start_ = cc->pos;
-            query.end_ = e.mineralMidpoint;
+            query.end_ = e.baseLocation;
             queries.emplace_back(query);
         } 
     }
 
     // assign distances to expansions
     std::vector<float> distances = gInterface->query->PathingDistance(queries);
-    for(int n = 0; n < expansions.size(); n++)
-        expansions[n].distanceToStart = distances[n];
+    int removed = 0;
+    for(int n = 0; n < expansions.size(); n++){
+        if(distances[n])
+            expansions[n].distanceToStart = distances[n];
+        else{ // distance = 0
+            const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+            if(cc != nullptr)
+
+            // case 1: its the enemy expansion, set distance to flight distance
+            if(sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), expansions[n].baseLocation) < 25){
+                expansions[n].distanceToStart = sc2::Distance2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(),
+                                                                cc->pos);
+            }
+            // case 2: its our expansion
+            else if(sc2::DistanceSquared2D(cc->pos, expansions[n].baseLocation) < 49){
+                expansions[n].distanceToStart = 0.0;
+            }
+            // case 3: it is unpathable
+            else{
+                logger.errorInit().withStr("removing expansion").withPoint(expansions[n].baseLocation).withStr("distance:").withFloat(distances[n]).write();
+
+                sc2::Point3D debugPos = sc2::Point3D(expansions[n].mineralMidpoint.x, expansions[n].mineralMidpoint.y, expansions[n].mineralMidpoint.z + 5);
+                gInterface->debug->debugTextOut("removed", debugPos);
+                expansions.erase(expansions.begin() + n);
+                distances.erase(distances.begin() + n);
+                n--; // so we dont go out of bounds?
+                removed++;
+            }
+
+        }
+    }
+    logger.warningInit().withStr("removed").withInt(removed).withStr("expansions").write();
     
     // sort them
     std::sort(expansions.begin(), expansions.end());
 
     for(int n = 0; n < expansions.size(); n++){
-        logger.infoInit().withStr("distance for").withPoint(expansions[n].mineralMidpoint).withStr(":").withFloat(expansions[n].distanceToStart).write();
-        gInterface->debug->debugTextOut(std::to_string(n), expansions[n].mineralMidpoint);
+        logger.infoInit().withStr("distance for").withPoint(expansions[n].baseLocation).withStr(":").withFloat(expansions[n].distanceToStart).write();
+        sc2::Point3D debugPos = sc2::Point3D(expansions[n].mineralMidpoint.x, expansions[n].mineralMidpoint.y, expansions[n].mineralMidpoint.z + 5);
+        gInterface->debug->debugTextOut(std::to_string(n), debugPos);
     }
     gInterface->debug->sendDebug();
     logger.infoInit().withStr("enemy location:").withPoint(gInterface->observation->GetGameInfo().enemy_start_locations.front()).write();
-    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
+    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
     if(cc != nullptr)
         logger.infoInit().withStr("our location:").withPoint(cc->pos).write();
-    */
+
 }
 
 void Mapper::validateGeysers(){
@@ -259,5 +293,5 @@ void Mapper::validateGeysers(){
     for(auto r : results){
         if(r) trueResults++;
     }
-    //printf("%d of %d valid\n", trueResults, results.size());
+    logger.infoInit().withInt(trueResults).withStr("of").withInt(results.size()).withStr("valid").write();
 }
