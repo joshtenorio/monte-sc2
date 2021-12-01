@@ -3,8 +3,8 @@
 CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
-    //groundMap = Monte::InfluenceMap();
-    airMap = Monte::InfluenceMap();
+
+
 }
 
 void CombatCommander::OnGameStart(){
@@ -22,7 +22,7 @@ void CombatCommander::OnGameStart(){
     reachedEnemyMain = false;
     sm.OnGameStart();
 
-    airMap.initialize();
+    //airMap.initialize();
 
 }
 
