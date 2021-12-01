@@ -3,6 +3,10 @@
 namespace Monte {
 
 InfluenceMap::InfluenceMap(){
+
+}
+
+void InfluenceMap::initialize(){
     mapWidth = gInterface->observation->GetGameInfo().width;
     mapHeight = gInterface->observation->GetGameInfo().height;
     map.resize(mapWidth);

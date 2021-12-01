@@ -4,12 +4,11 @@
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
 std::string version = "v0_11_12"; // update this everytime we upload
 
-// TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
     wm = WorkerManager();
     map = Mapper();
-    cc = CombatCommander();
+    
     im = InformationManager();
 
     strategy = new MarinePush();
@@ -18,6 +17,7 @@ Bot::Bot(){
     debug = Monte::Debug(Debug());
 
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
+    cc = CombatCommander();
 }
 
 void Bot::OnGameStart(){

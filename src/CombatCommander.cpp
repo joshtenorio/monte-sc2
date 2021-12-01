@@ -1,7 +1,10 @@
 #include "CombatCommander.h"
 
 CombatCommander::CombatCommander(){
-    sm = ScoutManager(); logger = Logger("CombatCommander");
+    sm = ScoutManager();
+    logger = Logger("CombatCommander");
+    //groundMap = Monte::InfluenceMap();
+    airMap = Monte::InfluenceMap();
 }
 
 void CombatCommander::OnGameStart(){
@@ -19,17 +22,17 @@ void CombatCommander::OnGameStart(){
     reachedEnemyMain = false;
     sm.OnGameStart();
 
-    groundMap.setGroundMap();
-    airMap.setAirMap();
+    airMap.initialize();
+
 }
 
 void CombatCommander::OnStep(){
     
     // update influence maps
-    groundMap.setGroundMap();
-    groundMap.propagate();
-    airMap.setAirMap();
-    airMap.propagate();
+    //groundMap.setGroundMap();
+    //groundMap.propagate();
+    //airMap.setAirMap();
+    //airMap.propagate();
 
     // scout manager
     sm.OnStep();
@@ -42,7 +45,7 @@ void CombatCommander::OnStep(){
     // handle these after loop = 100 because we rely on mapper.initialize()
     if(gInterface->observation->GetGameLoop() > 100){
         marineOnStep();
-        reaperOnStep();
+        //reaperOnStep();
         liberatorOnStep();
     }
         
@@ -599,7 +602,7 @@ void CombatCommander::reaperOnStep(){
                 // do state action
                 // skip doing action if no enemies are nearby
                 if(!localEnemies.empty()){
-                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getSafeWaypoint(r->pos));
+                    //gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getSafeWaypoint(r->pos));
                 }
 
                 // validate state
@@ -613,7 +616,7 @@ void CombatCommander::reaperOnStep(){
             break;
             case Monte::ReaperState::Bide:
                 // do state action
-                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getOptimalWaypoint(r->pos, reaper.targetLocation));
+                //gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getOptimalWaypoint(r->pos, reaper.targetLocation));
                 // validate state
                 if(r->health > 40){
                     reaper.targetLocation = enemyMain;
