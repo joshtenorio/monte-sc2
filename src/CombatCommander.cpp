@@ -30,10 +30,12 @@ void CombatCommander::OnGameStart(){
 void CombatCommander::OnStep(){
     
     // update influence maps
-    groundMap.setGroundMap();
-    groundMap.propagate();
-    //airMap.setAirMap();
-    //airMap.propagate();
+    if(gInterface->observation->GetGameLoop() % 4 == 0){
+        groundMap.setGroundMap();
+        groundMap.propagate();
+        //airMap.setAirMap();
+        //airMap.propagate();
+    }
 
     // scout manager
     sm.OnStep();
