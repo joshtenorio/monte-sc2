@@ -18,10 +18,19 @@ void CombatCommander::OnGameStart(){
 
     reachedEnemyMain = false;
     sm.OnGameStart();
+
+    groundMap.setGroundMap();
+    airMap.setAirMap();
 }
 
 void CombatCommander::OnStep(){
-        
+    
+    // update influence maps
+    groundMap.setGroundMap();
+    groundMap.propagate();
+    airMap.setAirMap();
+    airMap.propagate();
+
     // scout manager
     sm.OnStep();
 
@@ -446,6 +455,7 @@ void CombatCommander::siegeTankOnStep(){
 
 void CombatCommander::reaperOnStep(){
     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    // generate influence map
     for(auto& reaper : reapers){
         const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
         if(r == nullptr) continue;
@@ -461,18 +471,6 @@ void CombatCommander::reaperOnStep(){
             if(!e->is_building) localEnemies.emplace_back(e);
             if(API::isWorker(e->unit_type.ToType())) localEnemyWorkers.emplace_back(e);
         }
-            
-        
-        // generate influence map
-        Monte::InfluenceMap map(r->pos, 11);
-        for(auto& e : localEnemies){
-            sc2::UnitTypeData unitData = gInterface->observation->GetUnitTypeData()[e->unit_type];
-            std::vector<sc2::Weapon> weapons = unitData.weapons;
-            for(auto& w : weapons){
-                if(w.type == sc2::Weapon::TargetType::Ground || w.type == sc2::Weapon::TargetType::Any)
-                    map.addSource(e->pos, w.damage_, w.range + e->radius); // true range of weapon is w.range + e->radius
-            } // end for w : weapons
-        } // end for e : localEnemies
 
         switch(reaper.state){
             case Monte::ReaperState::Init:
@@ -601,8 +599,7 @@ void CombatCommander::reaperOnStep(){
                 // do state action
                 // skip doing action if no enemies are nearby
                 if(!localEnemies.empty()){
-                    map.propagate();
-                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, map.getSafeWaypoint());
+                    gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getSafeWaypoint(r->pos));
                 }
 
                 // validate state
@@ -614,10 +611,9 @@ void CombatCommander::reaperOnStep(){
                     reaper.state = Monte::ReaperState::Attack;
                 }
             break;
-            case Monte::ReaperState::Bide: // TODO: bide at a nearby neutral expansion, not at our natural
+            case Monte::ReaperState::Bide:
                 // do state action
-                map.update(r->pos);
-                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, map.getOptimalWaypoint(reaper.targetLocation));
+                gInterface->actions->UnitCommand(r, sc2::ABILITY_ID::MOVE_MOVE, groundMap.getOptimalWaypoint(r->pos, reaper.targetLocation));
                 // validate state
                 if(r->health > 40){
                     reaper.targetLocation = enemyMain;

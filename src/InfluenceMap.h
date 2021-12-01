@@ -42,15 +42,11 @@ namespace Monte {
         InfluenceMap();
 
         // set sources to be all ground/air weapons of a specific race
-        void setGroundMap(sc2::Race opponentRace);
-        void setAirMap(sc2::Race opponentRace);
+        void setGroundMap();
+        void setAirMap();
 
         // add a new influence source
         void addSource(sc2::Point2D center, float score, float radius);
-
-        // preferred way of adding an influence source
-        void addSource(const sc2::Unit* u, float score);
-        void addSource(const sc2::Unit* u);
 
         // reset list of sources
         void clearSources();
@@ -73,6 +69,7 @@ namespace Monte {
         protected:
         std::vector<InfluenceSource> sources;
         std::vector<std::vector<float>> map;
+        int mapWidth, mapHeight;
 
     };
 } // end namespace Monte
