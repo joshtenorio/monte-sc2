@@ -43,11 +43,6 @@ void InformationManager::OnStep(){
         logger.infoInit().withStr("enemy has").withInt(n).withStr("expansions").write();
         logger.infoInit().withStr("delta income:").withFloat(income[0]-income[999]).write();
     }
-    gInterface->debug->debugTextOut("income[0]=" + std::to_string(income[0]));
-    gInterface->debug->debugTextOut("income[999]=" + std::to_string(income[999]));
-    gInterface->debug->debugTextOut("income diff=" + std::to_string(income[0]-income[999]));
-    gInterface->debug->debugTextOut("long distance=" + std::to_string(gInterface->wm->getNumWorkers(JOB_LONGDISTANCE_MINE)));
-    gInterface->debug->sendDebug();
 }
 
 ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& currentPConfig){
