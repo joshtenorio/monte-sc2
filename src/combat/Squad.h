@@ -26,6 +26,7 @@ enum SquadStatus {
 };
 
 typedef struct SquadOrder_s_t {
+    SquadOrder_s_t() { type = SquadOrderType::Null; };
     SquadOrder_s_t(SquadOrderType type_, sc2::Point2D target_, float radius_){
         type = type_; target = target_; radius = radius_;
     }

@@ -11,6 +11,8 @@ class GameObject {
     const sc2::Unit* getUnit();
     sc2::UnitTypeData getData();
     sc2::UnitTypeID getType();
+    sc2::Tag getTag();
+    sc2::Point3D getPos();
 
     bool isValid();
     bool isFriendly();

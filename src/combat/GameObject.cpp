@@ -13,8 +13,17 @@ sc2::UnitTypeData GameObject::getData(){
 }
 
 sc2::UnitTypeID GameObject::getType(){
-    if(!isValid()) return isValid();
+    if(!isValid()) return isValid(); // FIXME: what to do here? isValid is bool
     return getUnit()->unit_type;
+}
+
+sc2::Tag GameObject::getTag(){
+    return tag;
+}
+
+sc2::Point3D GameObject::getPos(){
+    if(!isValid()) return sc2::Point3D(0,0,0);
+    return getUnit()->pos;
 }
 
 bool GameObject::isValid(){
