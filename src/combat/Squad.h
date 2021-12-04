@@ -1,40 +1,10 @@
 #pragma once
 #include <sc2api/sc2_common.h>
+#include "CombatTools.h"
 #include "GameObject.h"
+#include "MicroManager.h"
 
-/*
-minimum functionality:
-- add/remove units
-- set target and order
 
-required classes/structs/enums:
-- Squad class
-- SquadOrder struct
-*/
-enum SquadOrderType {
-    Null,
-    Attack,
-    Defend,
-    Harass,
-    Regroup,
-    Idle
-};
-
-enum SquadStatus {
-    Idle,
-    Busy
-};
-
-typedef struct SquadOrder_s_t {
-    SquadOrder_s_t() { type = SquadOrderType::Null; };
-    SquadOrder_s_t(SquadOrderType type_, sc2::Point2D target_, float radius_){
-        type = type_; target = target_; radius = radius_;
-    }
-
-    SquadOrderType type;
-    sc2::Point2D target;
-    float radius;
-} SquadOrder;
 
 class Squad {
     public:
@@ -61,6 +31,7 @@ class Squad {
     int validateUnits();
     sc2::Point2D getCenter();
 
+    MicroManager mm;
     size_t priority;
     SquadOrder order;
     SquadStatus status;
