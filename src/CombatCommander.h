@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
@@ -8,6 +9,7 @@
 #include "Strategy.h"
 #include "ScoutManager.h"
 #include "InfluenceMap.h"
+#include "combat/Squad.h"
 
 namespace Monte {
     enum class TankState {
@@ -94,6 +96,8 @@ class CombatCommander : public Manager {
     std::vector<Monte::Reaper> reapers;
     std::vector<Monte::Liberator> liberators;
     std::vector<short> harassTable;
+
+    std::map<std::string, Squad> squads;
 
     // used for marine control
     bool reachedEnemyMain;
