@@ -27,6 +27,14 @@ void MicroManager::initialize(){
     }
 }
 
+void MicroManager::addUnit(sc2::Tag tag){
+    
+}
+
+bool MicroManager::removeUnit(sc2::Tag tag){
+
+}
+
 void MicroManager::marineOnStep(){
     int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));

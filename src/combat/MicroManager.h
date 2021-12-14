@@ -22,6 +22,9 @@ class MicroManager : public Manager {
     // focus on putting down auto turrets, else use anti armor missles
     void ravenOnStep();
 
+    void addUnit(sc2::Tag tag);
+    bool removeUnit(sc2::Tag tag);
+
     protected:
     std::vector<Tank> tanks;
     std::vector<Reaper> reapers;
