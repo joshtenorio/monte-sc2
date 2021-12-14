@@ -3,6 +3,7 @@
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
 #include "InfluenceMap.h"
+#include "GameObject.h"
 
 enum SquadOrderType {
     Null,
@@ -37,9 +38,8 @@ enum class TankState {
     Unsieging
 };
 
-typedef struct Tank_s_t {
-    Tank_s_t(sc2::Tag tag_) { tag = tag_; state = TankState::Null; };
-    sc2::Tag tag;
+typedef struct Tank_s_t : public GameObject {
+    Tank_s_t(sc2::Tag tag_) : GameObject(tag_) { state = TankState::Null; };
     TankState state;
 } Tank;
 
@@ -52,9 +52,8 @@ enum class ReaperState {
     Bide
 };
 
-typedef struct Reaper_s_t {
-    Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = ReaperState::Init; };
-    sc2::Tag tag;
+typedef struct Reaper_s_t : public GameObject {
+    Reaper_s_t(sc2::Tag tag_) : GameObject(tag_) { state = ReaperState::Init; };
     ReaperState state;
     sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
 } Reaper;
@@ -69,9 +68,8 @@ enum class LiberatorState {
     Evade
 };
 
-typedef struct Liberator_s_t {
-    Liberator_s_t(sc2::Tag tag_) {tag = tag_; state = LiberatorState::Null; };
-    sc2::Tag tag;
+typedef struct Liberator_s_t : public GameObject {
+    Liberator_s_t(sc2::Tag tag_) : GameObject(tag_) { state = LiberatorState::Null; };
     LiberatorState state;
     sc2::Point2D target = sc2::Point2D(-1, -1); // mineral midpoint of targeted expansion
     sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);

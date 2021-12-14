@@ -9,8 +9,8 @@ void MicroManager::OnStep(){
 }
 
 void MicroManager::initialize(){
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
+    bioTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    bioTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
     reachedEnemyMain = false;
@@ -25,7 +25,7 @@ void MicroManager::initialize(){
 
 void MicroManager::marineOnStep(){
     int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
     
     for(const auto& m : marines)
         if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
@@ -125,7 +125,7 @@ void MicroManager::medivacOnStep(){
     sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
         // move each medivac to the marine that is closest to the enemy main
-        sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+        sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
         sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
         const sc2::Unit* closestMarine = nullptr;
         float d = std::numeric_limits<float>::max();
@@ -163,11 +163,11 @@ void MicroManager::medivacOnStep(){
 
 void MicroManager::siegeTankOnStep(){
 
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
 
     for(auto& st : tanks){
-        const sc2::Unit* t = gInterface->observation->GetUnit(st.tag);
+        const sc2::Unit* t = st.getUnit();
         if(t == nullptr) continue;
 
         sc2::Units closestEnemies = API::getClosestNUnits(t->pos, 100, 16, sc2::Unit::Alliance::Enemy,
@@ -175,7 +175,7 @@ void MicroManager::siegeTankOnStep(){
                 return !u.is_flying;
                 });
         sc2::Units nearbyTanks = API::getClosestNUnits(t->pos, 99, 10, sc2::Unit::Alliance::Self, sc2::IsUnits(tankTypes));
-        sc2::Units localSupport = API::getClosestNUnits(t->pos, 99, 16, sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
+        sc2::Units localSupport = API::getClosestNUnits(t->pos, 99, 16, sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
         bool morph = false;
 
         switch(st.state){
@@ -235,7 +235,7 @@ void MicroManager::siegeTankOnStep(){
             // unsiege if:
             //  no other nearby tank is unsieging (ie only one tank in a group can unsiege at a time)
                 for(auto& mt : tanks){
-                    const sc2::Unit* otherTank = gInterface->observation->GetUnit(mt.tag);
+                    const sc2::Unit* otherTank = mt.getUnit();
                     if(otherTank == nullptr) continue;
                     
                     // a nearby tank is unsieging, so don't unsiege
@@ -273,7 +273,7 @@ void MicroManager::reaperOnStep(){
     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
     // generate influence map
     for(auto& reaper : reapers){
-        const sc2::Unit* r = gInterface->observation->GetUnit(reaper.tag);
+        const sc2::Unit* r = reaper.getUnit();
         if(r == nullptr) continue;
 
         // r = 11, which is slightly higher than reaper's vision (9) in case there are nearby friendlies
@@ -446,7 +446,7 @@ void MicroManager::reaperOnStep(){
 
 void MicroManager::liberatorOnStep(){
     for(auto& l : liberators){
-        const sc2::Unit* unit = gInterface->observation->GetUnit(l.tag);
+        const sc2::Unit* unit = l.getUnit();
         if(!unit) continue;
 
         switch(l.state){

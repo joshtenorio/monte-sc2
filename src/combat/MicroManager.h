@@ -30,7 +30,7 @@ class MicroManager : public Manager {
     std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
 
     bool reachedEnemyMain;
-    std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
+    std::vector<sc2::UNIT_TYPEID> bioTypes; // filter for GetUnits
     std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;
