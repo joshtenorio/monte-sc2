@@ -5,7 +5,11 @@ MicroManager::MicroManager(){
 }
 
 void MicroManager::OnStep(){
-
+    marineOnStep();
+    medivacOnStep();
+    siegeTankOnStep();
+    reaperOnStep();
+    liberatorOnStep();
 }
 
 void MicroManager::initialize(){

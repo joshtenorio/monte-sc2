@@ -76,17 +76,11 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
-    void marineOnStep();
-    void medivacOnStep();
-    void siegeTankOnStep();
-    void reaperOnStep();
-    void liberatorOnStep();
-    void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
-
     void handleChangelings();
 
     CombatConfig& getCombatConfig();
     
+    bool isUnitInSquad(sc2::Tag tag);
 
     protected:
     ScoutManager sm;
