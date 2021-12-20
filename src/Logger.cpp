@@ -2,6 +2,11 @@
 
 // including this here to avoid circular dependency
 #include "api.h"
+std::string Logger::versionNumber;
+
+void Logger::setVersionNumber(std::string version){
+    versionNumber = version;
+}
 
 Logger& Logger::infoInit(){
     output = "#" + std::to_string(gInterface->observation->GetGameLoop()) + " [INFO] " + topic + ": ";
@@ -57,7 +62,7 @@ void Logger::write(std::string fileName, bool error){
     std::ofstream file;
     std::string fileWithPath;
     if(!error)
-        fileWithPath = "data/" + std::to_string(gInterface->matchID) + fileName;
+        fileWithPath = "data/" + topic + "/" + std::to_string(gInterface->matchID) + fileName;
     else
         fileWithPath = "data/error/" + std::to_string(gInterface->matchID) + fileName;
     file.open(fileWithPath, std::ios_base::app);
