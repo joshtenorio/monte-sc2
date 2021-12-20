@@ -6,6 +6,7 @@ Monte
 *.bat
 *.sh
 *.png
+*.jpg
 *.SC2Replay
 data
 *.txt

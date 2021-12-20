@@ -20,7 +20,7 @@
 #include "strategies/MarinePush.h"
 
 
-class Bot : public sc2::Agent{
+class Bot : public sc2::Agent {
 
 public:
     Bot();

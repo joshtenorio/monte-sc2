@@ -6,18 +6,20 @@ std::string version = "v0_11_13"; // update this everytime we upload
 
 std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
+
     wm = WorkerManager();
+
     map = Mapper();
-    
+
     im = InformationManager();
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
     logger = Logger("Bot");
     debug = Monte::Debug(Debug());
-
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
     cc = CombatCommander();
+
 }
 
 void Bot::OnGameStart(){
@@ -78,7 +80,6 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
     }
 }
 
-
 void Bot::OnStep() {
 
     if(Observation()->GetGameLoop() == 0){
@@ -124,8 +125,8 @@ void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 
 void Bot::OnUnitCreated(const sc2::Unit* unit_){
     logger.infoInit().withUnit(unit_).withStr("was created").write();
+
     
-    cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
@@ -145,6 +146,30 @@ void Bot::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_STARPORT:
         case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
             pm.OnUnitCreated(unit_);
+            break;
+        case sc2::UNIT_TYPEID::TERRAN_MARINE:
+        case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        case sc2::UNIT_TYPEID::TERRAN_GHOST:
+        case sc2::UNIT_TYPEID::TERRAN_WIDOWMINE:
+        case sc2::UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED:
+        case sc2::UNIT_TYPEID::TERRAN_CYCLONE:
+        case sc2::UNIT_TYPEID::TERRAN_HELLION:
+        case sc2::UNIT_TYPEID::TERRAN_HELLIONTANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+        case sc2::UNIT_TYPEID::TERRAN_THOR:
+        case sc2::UNIT_TYPEID::TERRAN_THORAP:
+        case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+        case sc2::UNIT_TYPEID::TERRAN_RAVEN:
+        case sc2::UNIT_TYPEID::TERRAN_BANSHEE:
+        case sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER:
+            pm.OnUnitCreated(unit_);
+            cc.OnUnitCreated(unit_);
             break;
         default:
             pm.OnUnitCreated(unit_);

@@ -158,11 +158,12 @@ typedef struct CombatConfig_s_t {
     CombatConfig_s_t() {};
 
     char combatState = COMBAT_BIDE; // define whether or not we should be always attacking or wait for waves
-    int bioWaveSize; // should this be the barracks multiplier instead?
+    int bioMultiplier = 3; // should this be the barracks multiplier instead?
+    int minimumWave = 5;
 
     // TODO: this should be a std::map instead where they key is the unit type and the value is the maximum number
     int maxTanks;
-    int maxMedivacs;
+    int medivacMultiplier = 2; // this * numBarracks = max medivac number
 
 
     void operator = (const CombatConfig_s_t& cc){
