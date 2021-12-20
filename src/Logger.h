@@ -44,11 +44,11 @@ class Logger {
 
     // plot functions
     void initializePlot(std::vector<std::string> columns, std::string plotName);
-    void addPlotData(std::string column, float data);
-    void writePlotRow();
+    void addPlotData(std::string plotName, std::string column, float data);
+    void writePlotRow(std::string plotName);
 
     private:
     std::string topic;
     std::string output;
-    Plot plot;
+    std::map<std::string, Plot> plots;
 };
