@@ -2,6 +2,11 @@
 
 // including this here to avoid circular dependency
 #include "api.h"
+std::string Logger::versionNumber;
+
+void Logger::setVersionNumber(std::string version){
+    versionNumber = version;
+}
 
 Logger& Logger::infoInit(){
     output = "#" + std::to_string(gInterface->observation->GetGameLoop()) + " [INFO] " + topic + ": ";
@@ -57,7 +62,7 @@ void Logger::write(std::string fileName, bool error){
     std::ofstream file;
     std::string fileWithPath;
     if(!error)
-        fileWithPath = "data/" + std::to_string(gInterface->matchID) + fileName;
+        fileWithPath = "data/" + topic + "/" + std::to_string(gInterface->matchID) + fileName;
     else
         fileWithPath = "data/error/" + std::to_string(gInterface->matchID) + fileName;
     file.open(fileWithPath, std::ios_base::app);
@@ -115,6 +120,7 @@ int Logger::createOutputPrefix(){
 }
 
 void Logger::initializePlot(std::vector<std::string> columns, std::string plotName){
+    Plot plot;
     plot.name = plotName;
     for(size_t i = 0; i < columns.size(); i++){
         plot.columns.insert({columns[i], i});
@@ -132,24 +138,25 @@ void Logger::initializePlot(std::vector<std::string> columns, std::string plotNa
         fileWriter << std::endl;
     }
     fileWriter.close();
+    plots.insert({plot.name, plot});
 }
 
-void Logger::addPlotData(std::string column, float data){
-    auto pair = plot.columns.find(column);
-    if(pair != plot.columns.end()){
-        plot.currentRow[pair->second] = data;
+void Logger::addPlotData(std::string plotName, std::string column, float data){
+    auto pair = plots[plotName].columns.find(column);
+    if(pair != plots[plotName].columns.end()){
+        plots[plotName].currentRow[pair->second] = data;
     }
     // TODO: probably should add overloads with diff variable types
 }
 
-void Logger::writePlotRow(){
+void Logger::writePlotRow(std::string plotName){
     std::ofstream fileWriter;
-    std::string file = "data/" + topic + "/" + std::to_string(gInterface->matchID) + plot.name + ".csv";
+    std::string file = "data/" + topic + "/" + std::to_string(gInterface->matchID) + plots[plotName].name + ".csv";
     fileWriter.open(file, std::ios_base::app);
     if(fileWriter.is_open()){
-        for(int i = 0; i < plot.currentRow.size(); i++){
-            fileWriter << plot.currentRow[i];
-            if(i != plot.currentRow.size()-1)
+        for(int i = 0; i < plots[plotName].currentRow.size(); i++){
+            fileWriter << plots[plotName].currentRow[i];
+            if(i != plots[plotName].currentRow.size()-1)
                 fileWriter << ", ";
         }
         fileWriter << std::endl;
@@ -157,7 +164,7 @@ void Logger::writePlotRow(){
     fileWriter.close();
 
     // reset currentRow
-    for(auto& c : plot.currentRow)
+    for(auto& c : plots[plotName].currentRow)
         c = 0;
 }
 

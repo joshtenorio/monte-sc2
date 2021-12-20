@@ -4,6 +4,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <sys/stat.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_data.h>
 #include <sc2api/sc2_unit.h>
@@ -18,6 +19,8 @@ class Logger {
     public:
     Logger() { topic = "Null"; };
     Logger(std::string topic_) { topic = topic_; };
+
+    static void setVersionNumber(std::string version);
 
     // initialize log message
     Logger& infoInit();
@@ -44,11 +47,13 @@ class Logger {
 
     // plot functions
     void initializePlot(std::vector<std::string> columns, std::string plotName);
-    void addPlotData(std::string column, float data);
-    void writePlotRow();
+    void addPlotData(std::string plotName, std::string column, float data);
+    void writePlotRow(std::string plotName);
 
     private:
+    static std::string versionNumber;
+    std::string path;
     std::string topic;
     std::string output;
-    Plot plot;
+    std::map<std::string, Plot> plots;
 };

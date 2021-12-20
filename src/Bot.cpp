@@ -4,27 +4,28 @@
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
 std::string version = "v0_11_13"; // update this everytime we upload
 
-// TODO: move this to header?
 std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
+
     wm = WorkerManager();
+
     map = Mapper();
-    cc = CombatCommander();
+
     im = InformationManager();
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
     logger = Logger("Bot");
     debug = Monte::Debug(Debug());
-
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
+    cc = CombatCommander();
+
 }
 
 void Bot::OnGameStart(){
 
-
-
     gInterface->matchID = logger.createOutputPrefix();
+    Logger::setVersionNumber(version);
     logger.infoInit().withStr("map name: " + Observation()->GetGameInfo().map_name).write();
     logger.infoInit().withStr("bot version: " + version).write();
     logger.infoInit().withStr("match ID prefix:").withInt(gInterface->matchID).write();
@@ -36,6 +37,9 @@ void Bot::OnGameStart(){
     im.OnGameStart();
     pm.OnGameStart();
     cc.OnGameStart();
+
+    gInterface->debug->createTimer("botStepCounter");
+    logger.initializePlot({"loop", "step size (ms)"}, "step size");
 
 }
 
@@ -78,8 +82,8 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
     }
 }
 
-
 void Bot::OnStep() {
+    gInterface->debug->resetTimer("botStepCounter");
 
     if(Observation()->GetGameLoop() == 0){
         logger.tag(version);
@@ -115,6 +119,10 @@ void Bot::OnStep() {
             else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         } // end d : depots
 
+    //long long brr = gInterface->debug->getTimer("botStepCounter");
+    //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
+    //logger.addPlotData("step size", "step size (ms)", (float) brr);
+    //logger.writePlotRow("step size");
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
@@ -124,8 +132,8 @@ void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
 
 void Bot::OnUnitCreated(const sc2::Unit* unit_){
     logger.infoInit().withUnit(unit_).withStr("was created").write();
+
     
-    cc.OnUnitCreated(unit_); // FIXME: move this to the switch statement
     switch(unit_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
@@ -145,6 +153,30 @@ void Bot::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_STARPORT:
         case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
             pm.OnUnitCreated(unit_);
+            break;
+        case sc2::UNIT_TYPEID::TERRAN_MARINE:
+        case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        case sc2::UNIT_TYPEID::TERRAN_GHOST:
+        case sc2::UNIT_TYPEID::TERRAN_WIDOWMINE:
+        case sc2::UNIT_TYPEID::TERRAN_WIDOWMINEBURROWED:
+        case sc2::UNIT_TYPEID::TERRAN_CYCLONE:
+        case sc2::UNIT_TYPEID::TERRAN_HELLION:
+        case sc2::UNIT_TYPEID::TERRAN_HELLIONTANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+        case sc2::UNIT_TYPEID::TERRAN_THOR:
+        case sc2::UNIT_TYPEID::TERRAN_THORAP:
+        case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+        case sc2::UNIT_TYPEID::TERRAN_RAVEN:
+        case sc2::UNIT_TYPEID::TERRAN_BANSHEE:
+        case sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER:
+            pm.OnUnitCreated(unit_);
+            cc.OnUnitCreated(unit_);
             break;
         default:
             pm.OnUnitCreated(unit_);

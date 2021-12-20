@@ -1,8 +1,12 @@
 #pragma once
 
+#include <chrono>
+#include <map>
 #include <sc2api/sc2_control_interfaces.h>
 #include <sc2api/sc2_interfaces.h>
 #include "Logger.h"
+
+
 
 // namespace Monte to differentiate more from sc2::DebugInterface
 namespace Monte {
@@ -12,6 +16,14 @@ class Debug {
     // constructors
     Debug();
     Debug(sc2::DebugInterface* debug_);
+
+    void OnGameStart();
+    void OnGameEnd();
+    void OnStep();
+
+    void createTimer(std::string name);
+    long long getTimer(std::string name);
+    void resetTimer(std::string name);
 
     // sendDebug is only valid when BUILD_FOR_LADDER is off, see build instructions
     void sendDebug();
@@ -27,6 +39,7 @@ class Debug {
     protected:
     sc2::DebugInterface* debug;
     Logger logger;
+    std::map<std::string, std::chrono::time_point<std::chrono::system_clock>> timers;
 };
 
 } // end namespace Monte

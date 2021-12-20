@@ -2,47 +2,54 @@
 
 namespace Monte {
 
-InfluenceMap::InfluenceMap(sc2::Point2D center_, float maxRadius_){
-    center = center_;
-    maxRadius = maxRadius_;
-    int xMin = (int) (center.x - maxRadius), xMax = (int) (center.x + maxRadius);
-    int yMin = (int) (center.y - maxRadius), yMax = (int) (center.y + maxRadius);
+InfluenceMap::InfluenceMap(){
 
-    // initialize local region
-    for(int x = xMin; x < xMax; x++){
-        for(int y = yMin; y < yMax; y++){
-            if(sc2::Distance2D(sc2::Point2D(x,y), center_) <= maxRadius)
-                localRegion.emplace_back(sc2::Point2D(x,y), 0.0f);
+}
+
+void InfluenceMap::initialize(){
+    mapWidth = gInterface->observation->GetGameInfo().width;
+    mapHeight = gInterface->observation->GetGameInfo().height;
+    map.resize(mapWidth);
+    for(auto& r : map){
+        r.resize(mapHeight);
+    }
+    
+    
+}
+
+void InfluenceMap::setGroundMap(){
+    clearSources();
+    sc2::Units enemies = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
+    sc2::UnitTypes types = gInterface->observation->GetUnitTypeData();
+    for(auto& e : enemies){
+        if(!e) continue;
+        if(e->is_building) continue;
+        std::vector<sc2::Weapon> weapons = types[e->unit_type].weapons;
+        for(auto& w : weapons){
+            if(w.type == sc2::Weapon::TargetType::Ground || w.type == sc2::Weapon::TargetType::Any)
+                addSource(e->pos, w.damage_, w.range);
         }
     }
 }
-
-void InfluenceMap::setCenter(sc2::Point2D newCenter){
-    center = newCenter;
-    int xMin = (int) (center.x - maxRadius), xMax = (int) (center.x + maxRadius);
-    int yMin = (int) (center.y - maxRadius), yMax = (int) (center.y + maxRadius);
-    // initialize local region
-    localRegion.clear();
-    for(int x = xMin; x < xMax; x++){
-        for(int y = yMin; y < yMax; y++){
-            if(sc2::Distance2D(sc2::Point2D(x,y), center) <= maxRadius)
-                localRegion.emplace_back(sc2::Point2D(x,y), 0.0f);
+void InfluenceMap::setAirMap(){
+    clearSources();
+    sc2::Units enemies = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
+    sc2::UnitTypes types = gInterface->observation->GetUnitTypeData();
+    for(auto& e : enemies){
+        if(!e) continue;
+        // TODO: add if missile turret/spore crawler
+        if(e->is_building) continue;
+        std::vector<sc2::Weapon> weapons = types[e->unit_type].weapons;
+        for(auto& w : weapons){
+            if(w.type == sc2::Weapon::TargetType::Air || w.type == sc2::Weapon::TargetType::Any)
+                addSource(e->pos, w.damage_, w.range);
         }
     }
-}
-
-void InfluenceMap::setCenter(sc2::Point2D newCenter, float newRadius){
-    maxRadius = newRadius;
-    setCenter(newCenter);
 }
 
 void InfluenceMap::addSource(sc2::Point2D center, float score, float radius){
-    sources.emplace_back(InfluenceSource(center, score, radius));
-}
-
-void InfluenceMap::addSource(const sc2::Unit* u, float score){
-    // get weapon range, see #cpp in sc2ai discord for info from soupcatcher
-    addSource(u->pos, score, 6.0); // TODO: the 6 is a placeholder
+    InfluenceSource source(center, score, radius);
+    sources.emplace_back(source);
 }
 
 void InfluenceMap::clearSources(){
@@ -50,81 +57,61 @@ void InfluenceMap::clearSources(){
 }
 
 void InfluenceMap::resetInfluenceScores(){
-    for(auto& t : localRegion)
-        t.second = 0.0;
+    for(int i = 0; i < mapWidth; i++){
+        for(int j = 0; j < mapHeight; j++){
+            map[i][j] = 0.0;
+        }
+    }
 }
 
 void InfluenceMap::propagate(){
-    for(auto& t : localRegion){
-        t.second = 0.0; // reset influence score
-        for(auto& s : sources){
-            if(sc2::Distance2D(s.center, t.first) <= s.maxRadius){
-                t.second++;
+    if(!sources.empty())
+        resetInfluenceScores();
+    for(auto& s : sources){
+        int xMin = s.center.x - s.maxRadius, xMax = s.center.x + s.maxRadius;
+        int yMin = s.center.y - s.maxRadius, yMax = s.center.y + s.maxRadius;
+        xMin = xMin < 0 ? 0 : xMin;
+        xMax = xMax > mapWidth ? mapWidth : xMax;
+        yMin = yMin < 0 ? 0 : yMin;
+        yMax = yMax > mapHeight ? mapHeight : yMax;
+        for(int x = xMin; x < xMax; x++){
+            for(int y = yMin; y < yMax; y++){
+                if(sc2::DistanceSquared2D(s.center, sc2::Point2D(x,y)) <= s.maxRadius*s.maxRadius){
+                    map[x][y] = s.score;
+                }
             }
-        } // end s : sources
-    } // end t: localRegion
+        }
+    } // end for s : sources
 }
 
-void InfluenceMap::update(sc2::Point2D newCenter){
-    setCenter(newCenter);
-    propagate();
-}
-
-sc2::Point2D InfluenceMap::getOptimalWaypoint(sc2::Point2D target){
-    // 1. get all moore neighbors (should be 8 in total)
-    // 2. disregard neighbors, that if we were to move to we would be further from the target
-    std::vector<InfluenceTile> neighbors;
-    for(auto& t : localRegion){
-        // a tile is a neighbor if the squared distance to center is either 1 (in von neumann neighborhood only)
-        // or 2 (in moore neighborhood)
-        if(sc2::DistanceSquared2D(t.first, center) <= 2){
-            // only append if tile is closer to target than center is
-            if(sc2::DistanceSquared2D(target, t.first) < sc2::DistanceSquared2D(target, center))
-                neighbors.emplace_back(t);
+sc2::Point2D InfluenceMap::getOptimalWaypoint(sc2::Point2D pos, sc2::Point2D target){
+    sc2::Point2DI center(pos);
+    sc2::Point2DI waypoint(center);
+    for(int x = center.x-1; x < center.x+1; x++){
+        for(int y = center.y-1; y < center.y+1; y++){
+            // curr score < waypoint score and current gets us closer to target
+            if(map[x][y] < map[waypoint.x][waypoint.y] && sc2::DistanceSquared2D(sc2::Point2D(x,y), target) < sc2::DistanceSquared2D(pos, target))
+                waypoint = sc2::Point2DI(x,y);
         }
     }
-    // 3. get the neighbor with lowest score, and return its location
-    // this shouldn't be possible, but just in case something goes wrong
-    if(neighbors.empty()){
-        //std::cout << "neighbor empty" << std::endl;
-        return sc2::Point2D(0,0);
-    }
-    InfluenceTile waypoint = neighbors.front();
-    for(auto& n : neighbors){
-        if(n.second < waypoint.second) waypoint = n;
-    }
-    //std::cout << "optimal waypoint score: " << waypoint.second << std::endl;
-    return waypoint.first;
+    return sc2::Point2D(waypoint.x, waypoint.y);
 }
 
-sc2::Point2D InfluenceMap::getSafeWaypoint(){
-    // 1. get all moore neighbors (should be 8 in total)
-    std::vector<InfluenceTile> neighbors;
-    for(auto& t : localRegion){
-        // a tile is a neighbor if the squared distance to center is either 1 (in von neumann neighborhood only)
-        // or 2 (in moore neighborhood)
-        if(sc2::DistanceSquared2D(t.first, center) <= 2){
-            neighbors.emplace_back(t);
+sc2::Point2D InfluenceMap::getSafeWaypoint(sc2::Point2D pos){
+    sc2::Point2DI center(pos);
+    sc2::Point2DI waypoint(center);
+    for(int x = center.x-1; x < center.x+1; x++){
+        for(int y = center.y-1; y < center.y+1; y++){
+            // curr score < waypoint score and current gets us closer to target
+            if(map[x][y] < map[waypoint.x][waypoint.y])
+                waypoint = sc2::Point2DI(x,y);
         }
     }
-    if(neighbors.empty()){
-        //std::cout << "neighbor empty" << std::endl;
-        return sc2::Point2D(0,0);
-    }
-        
-    InfluenceTile waypoint = neighbors.front();
-    for(auto& n : neighbors){
-        if(n.second < waypoint.second) waypoint = n;
-    }
-    //std::cout << "safe waypoint score: " << waypoint.second << std::endl;
-    return waypoint.first;
+    return sc2::Point2D(waypoint.x, waypoint.y);
 }
 
 void InfluenceMap::debug(){
-    
-    gInterface->debug->sendDebug();
+
 }
-
-
 
 } // end namespace Monte

@@ -75,7 +75,7 @@ class ProductionManager : public Manager {
     Strategy* strategy;
     BuildingManager bm;
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
-    ProductionConfig config; // TODO: when we make an InformationManager class this class should be friends with that class
+    ProductionConfig config;
 
 
 };
