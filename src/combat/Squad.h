@@ -20,6 +20,7 @@ class Squad {
     
     std::string getId();
     SquadOrder getOrder();
+    SquadStatus getStatus();
     size_t getSize();
     size_t getPriority();
     std::vector<GameObject> getUnits();

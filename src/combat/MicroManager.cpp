@@ -49,7 +49,36 @@ void MicroManager::addUnit(sc2::Tag tag){
 }
 
 bool MicroManager::removeUnit(sc2::Tag tag){
-    
+    for(auto itr = bio.begin(); itr != bio.end(); ){
+        if((*itr).getTag() == tag){
+            itr = bio.erase(itr);
+            return true;
+        }
+        else ++itr;
+    }
+    for(auto itr = tanks.begin(); itr != tanks.end(); ){
+        if((*itr).getTag() == tag){
+            itr = tanks.erase(itr);
+            return true;
+        }
+        else ++itr;
+    }
+    for(auto itr = liberators.begin(); itr != liberators.end(); ){
+        if((*itr).getTag() == tag){
+            itr = liberators.erase(itr);
+            return true;
+        }
+        else ++itr;
+    }
+    for(auto itr = reapers.begin(); itr != reapers.end(); ){
+        if((*itr).getTag() == tag){
+            itr = reapers.erase(itr);
+            return true;
+        }
+        else ++itr;
+    }
+
+    return false;
 }
 
 void MicroManager::marineOnStep(){

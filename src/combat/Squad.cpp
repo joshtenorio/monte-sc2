@@ -7,7 +7,7 @@ Squad::Squad(std::string id_, size_t priority_){
 }
 
 void Squad::onStep(){
-
+    mm.OnStep();
 }
 
 void Squad::setOrder(SquadOrder order_){
@@ -44,6 +44,10 @@ std::string Squad::getId(){
 
 SquadOrder Squad::getOrder(){
     return order;
+}
+
+SquadStatus Squad::getStatus(){
+    return status;
 }
 
 size_t Squad::getSize(){
