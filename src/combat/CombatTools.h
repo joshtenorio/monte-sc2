@@ -5,7 +5,7 @@
 #include "InfluenceMap.h"
 #include "GameObject.h"
 
-enum SquadOrderType {
+enum class SquadOrderType {
     Null,
     Attack,
     Defend,
@@ -14,7 +14,7 @@ enum SquadOrderType {
     Idle
 };
 
-enum SquadStatus {
+enum class SquadStatus {
     Idle,
     Busy
 };

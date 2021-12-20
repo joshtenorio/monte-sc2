@@ -3,28 +3,20 @@
 CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
-
+    logger.infoInit().withStr("before squad").write();
+    mainArmy = Squad("main", 10);
+    logger.infoInit().withStr("after squad").write();
 
 }
 
 void CombatCommander::OnGameStart(){
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
-    bio.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
-    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
-    tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
-    
-    harassTable.reserve(40);
-    for(int n = 0; n < 40; n++){
-        harassTable.emplace_back(0);
-    }
 
-
-    reachedEnemyMain = false;
     sm.OnGameStart();
 
     groundMap.initialize();
     airMap.initialize();
 
+    mainArmy.initialize();
 }
 
 void CombatCommander::OnStep(){
@@ -47,24 +39,15 @@ void CombatCommander::OnStep(){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-
+    if(gInterface->observation->GetGameLoop() > 70 ){
+        mainArmy.onStep();
+    }
     
 
     // if we have a bunker, put marines in it
+    // TODO: fix
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
-    sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bio));
-    if(!bunkers.empty())
-        for(auto& b : bunkers){
-            // we have space in bunker so pick a marine to go in it
-            if(b->cargo_space_taken < b->cargo_space_max && b->build_progress >= 1.0)
-                for(auto& m : marines){
-                    if(m->orders.empty()){
-                        gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::SMART, b);
-                        logger.infoInit().withStr("loading").withUnit(m).withStr("in bunker").write();
-                        break;
-                    }
-                }
-        } // end for bunkers
+
 } // end OnStep
 
 void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
@@ -72,47 +55,14 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
     // TODO: don't add first 4 marines to attacksquad, they go into bunker
     switch(unit_->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-        case sc2::UNIT_TYPEID::TERRAN_MEDIVAC:{
-            // have army units rally at natural in the direction of the third expo
-            sc2::Point2D third;
-            sc2::Point2D natural;
-            if(gInterface->map->getNthExpansion(1) != nullptr)
-                natural = gInterface->map->getNthExpansion(1)->baseLocation;
-            else return;
-            if(gInterface->map->getNthExpansion(2) != nullptr)
-                third = gInterface->map->getNthExpansion(2)->baseLocation;
-            else return;
-            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, third), 2);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-        break;
-        }
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
-            liberators.emplace_back(Monte::Liberator(unit_->tag));
-        break;
-        
-        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:{
-            tanks.emplace_back(Monte::Tank(unit_->tag));
-            // have siege tanks rally at natural in the direction of the enemy main
-            sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
-            if(
-                    gInterface->observation->GetGameInfo().map_name == "Blackburn AIE" &&
-                    gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1) != nullptr
-                    )
-                    enemyMain = gInterface->map->getNthExpansion(gInterface->map->numOfExpansions() - 1)->baseLocation;
-            sc2::Point2D natural;
-            if(gInterface->map->getNthExpansion(1) != nullptr)
-                natural = gInterface->map->getNthExpansion(1)->baseLocation;
-            else return;
-
-            sc2::Point2D rally = Monte::getPoint2D(natural, Monte::Vector2D(natural, enemyMain), 3);
-            gInterface->actions->UnitCommand(unit_, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-                
-        break;
-        }
-        case sc2::UNIT_TYPEID::TERRAN_REAPER:
-        reapers.emplace_back(Monte::Reaper(unit_->tag));
+            mainArmy.addUnit(unit_->tag);
         break;
     }
     
@@ -120,37 +70,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    switch(unit_->unit_type.ToType()){
-        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
-        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-            for(auto itr = tanks.begin(); itr != tanks.end(); ){
-                if(unit_->tag == (*itr).tag){
-                    itr = tanks.erase(itr);
-                    break;
-                }
-                else ++itr;
-            }
-        break;
-        case sc2::UNIT_TYPEID::TERRAN_REAPER:
-            for(auto itr = reapers.begin(); itr != reapers.end(); ){
-            if(unit_->tag == (*itr).tag){
-                itr = reapers.erase(itr);
-                break;
-            }
-            else ++itr;
-            }
-        break;
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
-            for(auto itr = liberators.begin(); itr != liberators.end(); ){
-            if(unit_->tag == (*itr).tag){
-                itr = liberators.erase(itr);
-                break;
-            }
-            else ++itr;
-            }
-        break;
-    } // end switch unit_->unit_type.ToType()
+    mainArmy.removeUnit(unit_->tag);
 
 }
 

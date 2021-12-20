@@ -4,6 +4,18 @@ Squad::Squad(std::string id_, size_t priority_){
     id = id_;
     priority = priority_;
     status = SquadStatus::Idle;
+    logger = Logger(id);
+}
+
+Squad::Squad(){
+    id = "brr";
+    priority = 10;
+    status = SquadStatus::Idle;
+    logger = Logger(id);
+}
+
+void Squad::initialize(){
+    mm.initialize();
 }
 
 void Squad::onStep(){

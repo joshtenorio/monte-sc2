@@ -3,13 +3,16 @@
 #include "CombatTools.h"
 #include "GameObject.h"
 #include "MicroManager.h"
-
+#include "Logger.h"
 
 
 class Squad {
     public:
     Squad(std::string id_, size_t priority_);
+    Squad();
+
     void onStep();
+    void initialize();
 
     void setOrder(SquadOrder order_);
     void setOrder(SquadOrderType, sc2::Point2D target, float radius);
@@ -32,6 +35,7 @@ class Squad {
     int validateUnits();
     sc2::Point2D getCenter();
 
+    Logger logger;
     MicroManager mm;
     size_t priority;
     SquadOrder order;

@@ -6,18 +6,20 @@ std::string version = "v0_11_13"; // update this everytime we upload
 
 std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
+
     wm = WorkerManager();
+
     map = Mapper();
-    
+
     im = InformationManager();
 
     strategy = new MarinePush();
     pm = ProductionManager(dynamic_cast<Strategy*>(strategy));
     logger = Logger("Bot");
     debug = Monte::Debug(Debug());
-
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
     cc = CombatCommander();
+
 }
 
 void Bot::OnGameStart(){

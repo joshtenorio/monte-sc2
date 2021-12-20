@@ -5,6 +5,18 @@ MicroManager::MicroManager(){
 }
 
 void MicroManager::OnStep(){
+
+    // TODO: this gets passed from squad
+    // update influence maps
+
+    if(gInterface->observation->GetGameLoop() % 4 == 0){
+        groundMap.initialize();
+        groundMap.setGroundMap();
+        groundMap.propagate();
+        //airMap.setAirMap();
+        //airMap.propagate();
+    }
+
     marineOnStep();
     medivacOnStep();
     siegeTankOnStep();

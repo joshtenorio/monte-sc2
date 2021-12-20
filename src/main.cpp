@@ -108,8 +108,9 @@ int main(int argc, char* argv[])
     // Disables ability to control your bot during game.
     // Recommended for competitions.
     // coordinator.SetRawAffectsSelection(true);
-
+    std::cout << "brr" << std::endl;
     Bot bot;
+    std::cout << "hee hoo" << std::endl;
     //EmptyBot empty;
     coordinator.SetParticipants(
         {
