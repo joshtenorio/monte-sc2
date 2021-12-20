@@ -7,12 +7,6 @@
 #include "Logger.h"
 
 
-typedef struct Timer_s_t {
-    Timer_s_t(std::chrono::time_point<std::chrono::system_clock> s):
-        start(s) {};
-    
-    std::chrono::time_point<std::chrono::system_clock> start;
-} Timer;
 
 // namespace Monte to differentiate more from sc2::DebugInterface
 namespace Monte {
@@ -28,7 +22,7 @@ class Debug {
     void OnStep();
 
     void createTimer(std::string name);
-    long long getTime(std::string name);
+    long long getTimer(std::string name);
     void resetTimer(std::string name);
 
     // sendDebug is only valid when BUILD_FOR_LADDER is off, see build instructions
@@ -45,7 +39,7 @@ class Debug {
     protected:
     sc2::DebugInterface* debug;
     Logger logger;
-    std::map<std::string, Timer> timers;
+    std::map<std::string, std::chrono::time_point<std::chrono::system_clock>> timers;
 };
 
 } // end namespace Monte

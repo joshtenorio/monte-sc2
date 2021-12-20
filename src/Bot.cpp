@@ -38,6 +38,9 @@ void Bot::OnGameStart(){
     pm.OnGameStart();
     cc.OnGameStart();
 
+    gInterface->debug->createTimer("botStepCounter");
+    logger.initializePlot({"loop", "step size (ms)"}, "step size");
+
 }
 
 void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
@@ -80,6 +83,7 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
 }
 
 void Bot::OnStep() {
+    gInterface->debug->resetTimer("botStepCounter");
 
     if(Observation()->GetGameLoop() == 0){
         logger.tag(version);
@@ -115,6 +119,10 @@ void Bot::OnStep() {
             else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         } // end d : depots
 
+    //long long brr = gInterface->debug->getTimer("botStepCounter");
+    //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
+    //logger.addPlotData("step size", "step size (ms)", (float) brr);
+    //logger.writePlotRow("step size");
 }
 
 void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){

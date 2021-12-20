@@ -14,14 +14,14 @@ void Debug::createTimer(std::string name){
     timers.insert({name, std::chrono::system_clock::now()});
 }
 
-long long Debug::getTime(std::string name){
-    auto start = timers[name].start;
+long long Debug::getTimer(std::string name){
+    auto start = timers[name];
     auto end = std::chrono::system_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
 
 void Debug::resetTimer(std::string name){
-    timers[name].start = std::chrono::system_clock::now();
+    timers[name] = std::chrono::system_clock::now();
 }
 
 void Debug::sendDebug(){
