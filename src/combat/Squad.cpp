@@ -5,6 +5,7 @@ Squad::Squad(std::string id_, size_t priority_){
     priority = priority_;
     status = SquadStatus::Idle;
     logger = Logger(id);
+    mm = MicroManager();
 }
 
 Squad::Squad(){
@@ -12,6 +13,7 @@ Squad::Squad(){
     priority = 10;
     status = SquadStatus::Idle;
     logger = Logger(id);
+    mm = MicroManager();
 }
 
 void Squad::initialize(){

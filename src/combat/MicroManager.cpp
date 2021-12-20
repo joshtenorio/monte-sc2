@@ -10,8 +10,8 @@ void MicroManager::OnStep(){
     // update influence maps
 
     if(gInterface->observation->GetGameLoop() % 4 == 0){
-        //groundMap.setGroundMap();
-        //groundMap.propagate();
+        groundMap.setGroundMap();
+        groundMap.propagate();
         //airMap.setAirMap();
         //airMap.propagate();
     }
@@ -19,7 +19,7 @@ void MicroManager::OnStep(){
     marineOnStep();
     medivacOnStep();
     siegeTankOnStep();
-    //reaperOnStep();
+    reaperOnStep();
     liberatorOnStep();
 }
 
@@ -29,7 +29,7 @@ void MicroManager::initialize(){
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
     reachedEnemyMain = false;
-    //groundMap.initialize();
+    groundMap.initialize();
     //airMap.initialize();
 
     harassTable.reserve(40);

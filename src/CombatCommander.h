@@ -36,7 +36,7 @@ class CombatCommander : public Manager {
     CombatConfig config;
 
     //std::map<std::string, Squad> squads;
-    //Squad mainArmy;
+    Squad mainArmy;
 
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;
