@@ -6,11 +6,13 @@
 #include <sc2api/sc2_interfaces.h>
 #include "Logger.h"
 
-// TODO: should Timer be in here or in Logger?
+
 typedef struct Timer_s_t {
+    Timer_s_t(std::chrono::time_point<std::chrono::system_clock> s):
+        start(s) {};
+    
     std::chrono::time_point<std::chrono::system_clock> start;
 } Timer;
-
 
 // namespace Monte to differentiate more from sc2::DebugInterface
 namespace Monte {
@@ -26,7 +28,7 @@ class Debug {
     void OnStep();
 
     void createTimer(std::string name);
-    std::chrono::milliseconds getTime(std::string name);
+    long long getTime(std::string name);
     void resetTimer(std::string name);
 
     // sendDebug is only valid when BUILD_FOR_LADDER is off, see build instructions
