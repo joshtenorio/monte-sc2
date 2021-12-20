@@ -4,6 +4,10 @@ GameObject::GameObject(sc2::Tag gTag){
     tag = gTag;
 }
 
+const sc2::Unit* GameObject::getUnit(sc2::Tag tag){
+    return gInterface->observation->GetUnit(tag);
+}
+
 const sc2::Unit* GameObject::getUnit(){
     return gInterface->observation->GetUnit(tag);
 }

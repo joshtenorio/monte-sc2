@@ -28,11 +28,28 @@ void MicroManager::initialize(){
 }
 
 void MicroManager::addUnit(sc2::Tag tag){
-    
+    const sc2::Unit* unit = GameObject::getUnit(tag);
+    if(!unit) return;
+    switch(unit->unit_type.ToType()){
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
+        case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+            tanks.emplace_back(Tank(tag));
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+            reapers.emplace_back(Reaper(tag));
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+            liberators.emplace_back(Liberator(tag));
+        break;
+        default:
+            bio.emplace_back(GameObject(tag));
+        break;
+    }
 }
 
 bool MicroManager::removeUnit(sc2::Tag tag){
-
+    
 }
 
 void MicroManager::marineOnStep(){

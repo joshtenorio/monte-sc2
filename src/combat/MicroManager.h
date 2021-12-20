@@ -10,9 +10,15 @@
 class MicroManager : public Manager {
     public:
     MicroManager();
-    void OnStep();
+    void OnStep(); // this necessary?
+    void execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
     void initialize();
 
+    void addUnit(sc2::Tag tag);
+    bool removeUnit(sc2::Tag tag);
+
+    protected:
+    void executeMicro(std::vector<GameObject> targets); // TODO: should be virtual when we do subclasses
     void marineOnStep();
     void medivacOnStep();
     void siegeTankOnStep();
@@ -22,13 +28,15 @@ class MicroManager : public Manager {
     // focus on putting down auto turrets, else use anti armor missles
     void ravenOnStep();
 
-    void addUnit(sc2::Tag tag);
-    bool removeUnit(sc2::Tag tag);
 
-    protected:
+    SquadOrder order;
+    // TODO: have one std::vector of GameObject*
+    // well, ig in the future we will have different micro managers
+    // so it doesnt matter too much rn
     std::vector<Tank> tanks;
     std::vector<Reaper> reapers;
     std::vector<Liberator> liberators;
+    std::vector<GameObject> bio;
 
     std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
 

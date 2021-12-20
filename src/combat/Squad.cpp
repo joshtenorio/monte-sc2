@@ -24,11 +24,13 @@ void Squad::setPriority(size_t prio){
 
 void Squad::addUnit(sc2::Tag tag){
     units.emplace_back(GameObject(tag));
+    mm.addUnit(tag);
 }
 
 bool Squad::removeUnit(sc2::Tag tag){
     for(auto itr = units.begin(); itr != units.end(); ){
         if((*itr).getTag() == tag){
+            mm.removeUnit(tag);
             itr = units.erase(itr);
         }
         else ++itr;

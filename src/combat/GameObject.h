@@ -8,6 +8,8 @@ class GameObject {
     public:
     GameObject(sc2::Tag gTag);
 
+    static const sc2::Unit* getUnit(sc2::Tag tag);
+
     const sc2::Unit* getUnit();
     sc2::UnitTypeData getData();
     sc2::UnitTypeID getType();
