@@ -170,6 +170,7 @@ void Bot::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER:
             pm.OnUnitCreated(unit_);
             cc.OnUnitCreated(unit_);
+            break;
         default:
             pm.OnUnitCreated(unit_);
             break;

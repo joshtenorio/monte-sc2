@@ -35,8 +35,8 @@ class CombatCommander : public Manager {
     ScoutManager sm;
     CombatConfig config;
 
-    std::map<std::string, Squad> squads;
-    Squad mainArmy;
+    //std::map<std::string, Squad> squads;
+    //Squad mainArmy;
 
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;

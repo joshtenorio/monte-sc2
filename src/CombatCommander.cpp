@@ -3,9 +3,9 @@
 CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
-    logger.infoInit().withStr("before squad").write();
-    mainArmy = Squad("main", 10);
-    logger.infoInit().withStr("after squad").write();
+    std::cout << "before squad" << std::endl;
+    //mainArmy = Squad("main", 10);
+    std::cout << "after squad" << std::endl;
 
 }
 
@@ -16,7 +16,7 @@ void CombatCommander::OnGameStart(){
     groundMap.initialize();
     airMap.initialize();
 
-    mainArmy.initialize();
+    //mainArmy.initialize();
 }
 
 void CombatCommander::OnStep(){
@@ -40,7 +40,7 @@ void CombatCommander::OnStep(){
     } // end if gameloop % 24 == 0
     
     if(gInterface->observation->GetGameLoop() > 70 ){
-        mainArmy.onStep();
+        //mainArmy.onStep();
     }
     
 
@@ -62,7 +62,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
-            mainArmy.addUnit(unit_->tag);
+            //mainArmy.addUnit(unit_->tag);
         break;
     }
     
@@ -70,7 +70,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    mainArmy.removeUnit(unit_->tag);
+    //mainArmy.removeUnit(unit_->tag);
 
 }
 
@@ -152,8 +152,10 @@ void CombatCommander::handleChangelings(){
 }
 
 bool CombatCommander::isUnitInSquad(sc2::Tag tag){
+    /*
     for(auto& s : squads){
         if(s.second.containsUnit(tag)) return true;
     }
+    */
     return false;
 }
