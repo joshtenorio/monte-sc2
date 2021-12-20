@@ -14,12 +14,13 @@ void MicroManager::OnStep(){
         groundMap.propagate();
         //airMap.setAirMap();
         //airMap.propagate();
+        medivacOnStep();
+        siegeTankOnStep();
+        reaperOnStep();
     }
 
     marineOnStep();
-    medivacOnStep();
-    siegeTankOnStep();
-    reaperOnStep();
+
     liberatorOnStep();
 }
 

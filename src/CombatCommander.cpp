@@ -20,9 +20,10 @@ void CombatCommander::OnGameStart(){
 void CombatCommander::OnStep(){
     
     // update influence maps
+    // TODO: uncomment this at some point, bc it should be passed to squad/micromanager
     if(gInterface->observation->GetGameLoop() % 4 == 0){
-        groundMap.setGroundMap();
-        groundMap.propagate();
+        //groundMap.setGroundMap();
+        //groundMap.propagate();
         //airMap.setAirMap();
         //airMap.propagate();
     }
