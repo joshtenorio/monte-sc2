@@ -16,6 +16,10 @@ class InformationManager : public Manager {
     ProductionConfig updateProductionConfig(ProductionConfig& currentPConfig);
     CombatConfig updateCombatConfig(CombatConfig& currentCConfig);
 
+    sc2::Point2D setLocationTarget();
+    sc2::Point2D setLocationDefense();
+    sc2::Point2D setHarassTarget(int type); // TODO: define an enum that determines type of harass; ie liberator, mine drop, etc
+
     protected:
 
     void updateExpoOwnership();

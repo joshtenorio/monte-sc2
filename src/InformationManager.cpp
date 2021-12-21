@@ -90,6 +90,18 @@ CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig
     return currentCConfig; //tmp
 }
 
+sc2::Point2D InformationManager::setLocationTarget(){
+    return sc2::Point2D(0,0);
+}
+
+sc2::Point2D InformationManager::setLocationDefense(){
+    return sc2::Point2D(0,0);
+}
+
+sc2::Point2D InformationManager::setHarassTarget(int type){
+    return sc2::Point2D(0,0);
+}
+
 void InformationManager::updateExpoOwnership(){
     sc2::Units enemyTownHalls = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
     for(auto& th : enemyTownHalls){
