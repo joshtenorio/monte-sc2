@@ -69,7 +69,8 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    mainArmy.removeUnit(unit_->tag);
+    if(!unit_->is_building)
+        mainArmy.removeUnit(unit_->tag);
 
 }
 
