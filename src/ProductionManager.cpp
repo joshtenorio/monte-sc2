@@ -252,16 +252,20 @@ void ProductionManager::handleBarracks(){
         // NOTE: if b->addon_tag is zero, that barracks doesn't have an addon
 
         // no addon
-        if(b->add_on_tag == 0 && config.barracksOutput != PRODUCTION_UNUSED){
+        if(b->add_on_tag == 0 && config.barracksOutput != PRODUCTION_UNUSED && canAfford(config.barracksOutput)){
             gInterface->actions->UnitCommand(b, config.barracksOutput);
+            balanceBook(config.barracksOutput);
             busyBuildings.emplace_back(b->tag);
         }
         // reactor addon
         else if(
             b->add_on_tag != 0 &&
             gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR &&
-            config.barracksOutput != PRODUCTION_UNUSED
+            config.barracksOutput != PRODUCTION_UNUSED &&
+            canAfford(config.barracksOutput)
         ){
+            balanceBook(config.barracksOutput);
+            balanceBook(config.barracksOutput);
             gInterface->actions->UnitCommand(b, config.barracksOutput);
             gInterface->actions->UnitCommand(b, config.barracksOutput);
             busyBuildings.emplace_back(b->tag);
@@ -270,8 +274,10 @@ void ProductionManager::handleBarracks(){
         else if(
             b->add_on_tag != 0 &&
             gInterface->observation->GetUnit(b->add_on_tag)->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB &&
-            config.barracksTechOutput != PRODUCTION_UNUSED
+            config.barracksTechOutput != PRODUCTION_UNUSED &&
+            canAfford(config.barracksTechOutput)
         ){
+            balanceBook(config.barracksTechOutput);
             gInterface->actions->UnitCommand(b, config.barracksTechOutput);
             busyBuildings.emplace_back(b->tag);
         }
