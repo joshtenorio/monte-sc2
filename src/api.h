@@ -59,6 +59,7 @@ namespace API {
     std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
 
     int getTypeForAbility(sc2::ABILITY_ID id);
+    Cost getCost(sc2::ABILITY_ID id);
 
 } // end namespace API
 

@@ -55,6 +55,7 @@ class ProductionManager : public Manager {
     bool tryBuildBunker();
     bool tryBuildAddon();
     bool tryBuildMissileTurret();
+    bool tryBuyStructure(sc2::ABILITY_ID id);
 
     bool tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n);
 
@@ -72,7 +73,11 @@ class ProductionManager : public Manager {
     // returns true if the building has been given an order in the current loop
     bool isBuildingBusy(sc2::Tag bTag);
 
-    bool canBuild(sc2::ABILITY_ID id);
+    // true if we can afford it
+    bool canAfford(sc2::ABILITY_ID id);
+
+    // updates minerals/vespene count
+    bool balanceBook(sc2::ABILITY_ID id);
 
     private:
     Strategy* strategy;

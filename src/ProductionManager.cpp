@@ -481,8 +481,9 @@ void ProductionManager::castBuildingAbility(Step s){
                 break;
             }
         }
-        if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag)){
+        if(b->orders.empty() && canResearch && !isBuildingBusy(b->tag) && canAfford(s.getAbility())){
             logger.infoInit().withStr("casting building ability").withInt((int) s.getAbility()).write();
+            balanceBook(s.getAbility());
             gInterface->actions->UnitCommand(b, s.getAbility());
             busyBuildings.emplace_back(b->tag);
             return;
@@ -517,42 +518,42 @@ bool ProductionManager::TryBuildBarracks() {
     // check for depot and if we have 8 barracks already
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) < 1 ||
         API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) >= config.maxBarracks) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
 bool ProductionManager::tryBuildFactory(){
     if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_BARRACKS) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) >= config.maxFactories) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
 
 bool ProductionManager::tryBuildStarport(){
     if(API::countReadyUnits(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_STARPORT) >= config.maxStarports) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_STARPORT);
 }
 
 bool ProductionManager::tryBuildRefinery(){
     if(gInterface->observation->GetGameLoop() < 100 || gInterface->observation->GetMinerals() < 75 || API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) >= config.maxRefineries) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_REFINERY);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_REFINERY);
 }
 
 bool ProductionManager::tryBuildCommandCenter(){
     if(gInterface->observation->GetMinerals() < 400) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER);
 }
 
 // FIXME: when we make a strategy that actually uses armory for stuff, 
 bool ProductionManager::tryBuildArmory(){
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ARMORY) >= 1) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_ARMORY);
 }
 
 bool ProductionManager::tryBuildEngineeringBay(){
     if(API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) >= 2) return false;
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
 }
 
 bool ProductionManager::tryBuildBunker(){
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
 bool ProductionManager::tryBuildAddon(){
@@ -583,8 +584,21 @@ bool ProductionManager::tryBuildMissileTurret(){
     // only build missile turret if information manager says so
     if(!config.buildTurrets) return false;
 
-    return bm.TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
+    return tryBuyStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
             
+}
+
+bool ProductionManager::tryBuyStructure(sc2::ABILITY_ID id){
+    // ignore bank for cc
+    if(id == sc2::ABILITY_ID::BUILD_COMMANDCENTER && minerals >= 400){
+        balanceBook(id);
+        return bm.TryBuildStructure(id);
+    }
+    
+    if(!canAfford(id)) return false;
+
+    balanceBook(id);
+    return bm.TryBuildStructure(id);
 }
 
 // trains at most n units
@@ -600,7 +614,6 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
         if(b->build_progress < 1.0) continue;
 
         if(b->orders.empty() && !isBuildingBusy(b->tag)){
-            //logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
             gInterface->actions->UnitCommand(b, unitToTrain);
             busyBuildings.emplace_back(b->tag);
             return true;
@@ -622,8 +635,6 @@ void ProductionManager::handleUpgrades(){
             sc2::UNIT_TYPEID::TERRAN_THORAP
         }));
     // get random flying unit
-    
-
     
     // get current upgrade levels
     // FIXME: the combat shields stuff here is temporary
@@ -648,8 +659,6 @@ void ProductionManager::handleUpgrades(){
         }
     }
 
-    // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
-    // based on those upgrade levels, select the next upgrade to prioritise
     if(infantryWeapons > infantryArmor){
         upgradeInfantryArmor(infantryArmor);
         upgradeInfantryWeapons(infantryWeapons);
@@ -702,6 +711,25 @@ bool ProductionManager::isBuildingBusy(sc2::Tag bTag){
     for(auto& b : busyBuildings)
         if(b == bTag) return true;
     return false;
+}
+
+bool ProductionManager::canAfford(sc2::ABILITY_ID id){
+    Cost cost = API::getCost(id);
+    int mCost = cost.first;
+    int vCost = cost.second;
+    return (
+        minerals - config.bank >= mCost && vespene >= vCost
+    );
+}
+
+bool ProductionManager::balanceBook(sc2::ABILITY_ID id){
+    if(!canAfford(id)) return canAfford(id);
+
+    Cost cost = API::getCost(id);
+    minerals -= cost.first;
+    vespene -= cost.second;
+    
+    return true;
 }
 
 void ProductionManager::upgradeInfantryWeapons(int currLevel){

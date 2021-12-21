@@ -40,7 +40,6 @@ int countUnitType(sc2::Filter filter){
     return c;
 }
 
-
 sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType){
     sc2::Units pool;
     if(unitType == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR) // default, get any 
@@ -102,7 +101,6 @@ float getStructureRadiusByAbility(sc2::ABILITY_ID ability){
             break;
     }
 }
-
 
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){
@@ -530,7 +528,6 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::BUILD_REACTOR: // not sure what to do with these, probably just return default
         case sc2::ABILITY_ID::BUILD_TECHLAB:
         default:
-            std::cout << "API: abilitytounittypeid returning protoss assimilator" << std::endl;
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
 }
@@ -718,6 +715,19 @@ int getTypeForAbility(sc2::ABILITY_ID id){
 
     }
     return COST_TYPE_NULL;
+}
+
+Cost getCost(sc2::ABILITY_ID id){
+    int type = getTypeForAbility(id);
+    switch(type){
+        case COST_TYPE_PHYSICAL:
+        break;
+        case COST_TYPE_UPGRADE:
+        break;
+        case COST_TYPE_NULL:
+        default:
+    }
+    return std::make_pair(0,0);
 }
 
 } // end namespace
