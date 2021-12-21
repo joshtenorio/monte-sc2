@@ -40,6 +40,10 @@ void ProductionManager::OnStep(){
     
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+
+        minerals = gInterface->observation->GetMinerals();
+        vespene = gInterface->observation->GetVespene();
+
         tryBuildCommandCenter();
         // if we are prioritising expansion, don't bother doing any other steps
         // since we need to save up money
@@ -99,6 +103,8 @@ void ProductionManager::OnGameStart(){
 
     logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
     logger.initializePlot({"game loop", "bases"}, "basecount");
+    minerals = 0;
+    vespene = 0;
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
@@ -409,7 +415,7 @@ void ProductionManager::parseStep(Step s){
             }
 
             // 3. remove the step from buildorder
-            strategy->removeStep(s); // TODO: make sure this is working and doesn't have any side effects
+            strategy->removeStep(s);
             break;
     }
 }
@@ -461,7 +467,6 @@ void ProductionManager::trainUnit(Step s){
     tryTrainUnit(s.getAbility(), 1);
 }
 
-// TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());

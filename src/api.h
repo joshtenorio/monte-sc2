@@ -19,6 +19,13 @@
 #include "Strategy.h"
 
 
+typedef std::pair<int, int> Cost;
+
+// used for getting the Cost of an action
+#define COST_TYPE_NULL      -1
+#define COST_TYPE_PHYSICAL   1
+#define COST_TYPE_UPGRADE    2
+
 namespace API {
 
     void OnGameStart();
@@ -50,6 +57,8 @@ namespace API {
     bool isWorker(sc2::UNIT_TYPEID unit);
 
     std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
+
+    int getTypeForAbility(sc2::ABILITY_ID id);
 
 } // end namespace API
 
