@@ -39,7 +39,7 @@ class MicroManager {
 
     std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
 
-    bool reachedEnemyMain;
+    bool timeToCleanup;
     std::vector<sc2::UNIT_TYPEID> bioTypes; // filter for GetUnits
     std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
     Logger logger;

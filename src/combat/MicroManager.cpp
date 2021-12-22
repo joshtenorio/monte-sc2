@@ -26,8 +26,8 @@ void MicroManager::initialize(){
     bioTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
-    reachedEnemyMain = false;
 
+    timeToCleanup = false;
     harassTable.reserve(40);
     for(int n = 0; n < 40; n++){
         harassTable.emplace_back(0);
@@ -92,20 +92,18 @@ void MicroManager::marineOnStep(SquadOrder& order){
 
     // TODO: use bio instead of this
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
-    
     for(const auto& m : marines)
-        if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
-                reachedEnemyMain = true;
+        if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !timeToCleanup){
+                timeToCleanup = true;
                 gInterface->actions->SendChat("Tag: reachedEnemyMain");
                 gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
         }
 
-    if(order.type == SquadOrderType::Attack){
-        if(!reachedEnemyMain)
-            gInterface->actions->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, order.target);
+    if(order.type == SquadOrderType::Attack && !timeToCleanup){
+        gInterface->actions->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, order.target);
         
     } // end if order.type == attack
-    else if(order.type == SquadOrderType::Cleanup){
+    else if(order.type == SquadOrderType::Cleanup || timeToCleanup){
         sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
         for(const auto& m : marines){
             if(!enemy.empty() && m->orders.empty()){
