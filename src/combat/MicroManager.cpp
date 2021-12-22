@@ -203,46 +203,63 @@ void MicroManager::siegeTankOnStep(SquadOrder& order){
         switch(st.state){
             case TankState::Unsieged:
                 morph = false;
-                // first check if we are in range of an enemy structure r=13
-                for(auto& e : closestEnemies){
-                    if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
-                        morph = true;
-                        break;
-                    }
-                    else if(!e->is_building){
-                        morph = true;
-                        break;
-                    }
-                }
-                if(morph){
-                    // morph only if we have local support 
-                    // probably needs tuning
-                    if(localSupport.empty() && nearbyTanks.empty()) continue;
-                    st.state = TankState::Sieging;
-                }
-                else{
-                    // no enemies nearby, so follow marine closest to enemy main
-                    const sc2::Unit* closestMarine = nullptr;
-                    float d = std::numeric_limits<float>::max();
-                    for(auto& ma : marines){
-                        if(ma == nullptr) continue;
-                        if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
-                            closestMarine = ma;
-                            d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                switch(order.type){
+                    case SquadOrderType::Attack:
+                    case SquadOrderType::Cleanup:
+                        // first check if we are in range of an enemy structure r=13
+                        for(auto& e : closestEnemies){
+                            if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
+                                morph = true;
+                                break;
+                            }
+                            else if(!e->is_building){
+                                morph = true;
+                                break;
+                            }
                         }
-                    } // end marine loop
-                    if(closestMarine != nullptr){
-                        float distToMarineSquared = sc2::DistanceSquared2D(closestMarine->pos, t->pos);
-                        if(distToMarineSquared > 36)
-                            gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
-                    }
+                        if(morph){
+                            // morph only if we have local support 
+                            // probably needs tuning
+                            if(localSupport.empty() && nearbyTanks.empty()) continue;
+                            st.state = TankState::Sieging;
+                        }
+                        else{
+                            // no enemies nearby, so follow marine closest to enemy main
+                            const sc2::Unit* closestMarine = nullptr;
+                            float d = std::numeric_limits<float>::max();
+                            for(auto& ma : marines){
+                                if(ma == nullptr) continue;
+                                if(d > sc2::DistanceSquared2D(ma->pos, enemyMain)){
+                                    closestMarine = ma;
+                                    d = sc2::DistanceSquared2D(ma->pos, enemyMain);
+                                }
+                            } // end marine loop
+                            if(closestMarine != nullptr){
+                                float distToMarineSquared = sc2::DistanceSquared2D(closestMarine->pos, t->pos);
+                                if(distToMarineSquared > 36)
+                                    gInterface->actions->UnitCommand(t, sc2::ABILITY_ID::ATTACK_ATTACK, closestMarine->pos);
+                            }
+                        }
+                    break;
+                    case SquadOrderType::Defend:
+                        if(sc2::DistanceSquared2D(st.getPos(), order.target) > 36){
+                            st.attack(order.target);
+                        }
+                        else{
+                            st.state = TankState::Sieging;
+                        }
+                    break;
                 }
+
             break;
             case TankState::Sieged:
                 morph = true;
             // stay sieged if:
             //  structure within r=13
             //  any unit within r=16
+            //  squad is currently defending
+            if(order.type == SquadOrderType::Defend)
+                break;
             for(auto& e : closestEnemies){
                 if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
                     morph = false;
