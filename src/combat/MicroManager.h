@@ -2,17 +2,16 @@
 
 #include <vector>
 #include "api.h"
-#include "Manager.h"
-#include "CombatTools.h"
+#include "combat/CombatTools.h"
+#include "Logger.h"
 
 
-
-class MicroManager : public Manager {
+class MicroManager {
     public:
     MicroManager();
-    void OnStep(); // this necessary?
     void execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
     void initialize();
+    void regroup(sc2::Point2D target);
 
     void addUnit(sc2::Tag tag);
     bool removeUnit(sc2::Tag tag);
@@ -22,17 +21,17 @@ class MicroManager : public Manager {
     void marineOnStep();
     void medivacOnStep();
     void siegeTankOnStep();
-    void reaperOnStep();
+    void reaperOnStep(Monte::InfluenceMap& groundMap);
     void liberatorOnStep();
     // TODO: if nearby marine count is low
     // focus on putting down auto turrets, else use anti armor missles
     void ravenOnStep();
 
 
-    SquadOrder order;
     // TODO: have one std::vector of GameObject*
     // well, ig in the future we will have different micro managers
     // so it doesnt matter too much rn
+    // technically it will matter though, because then we won't have to redefien addUnit and removeUnit
     std::vector<Tank> tanks;
     std::vector<Reaper> reapers;
     std::vector<Liberator> liberators;
@@ -43,6 +42,5 @@ class MicroManager : public Manager {
     bool reachedEnemyMain;
     std::vector<sc2::UNIT_TYPEID> bioTypes; // filter for GetUnits
     std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
-    Monte::InfluenceMap groundMap;
-    Monte::InfluenceMap airMap;
+    Logger logger;
 };

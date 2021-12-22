@@ -22,8 +22,8 @@ void CombatCommander::OnStep(){
     // update influence maps
     // TODO: uncomment this at some point, bc it should be passed to squad/micromanager
     if(gInterface->observation->GetGameLoop() % 4 == 0){
-        //groundMap.setGroundMap();
-        //groundMap.propagate();
+        groundMap.setGroundMap();
+        groundMap.propagate();
         //airMap.setAirMap();
         //airMap.propagate();
     }
@@ -31,16 +31,16 @@ void CombatCommander::OnStep(){
     // scout manager
     sm.OnStep();
 
-
+    if(gInterface->observation->GetGameLoop() > 70 ){
+        mainArmy.onStep(groundMap, airMap);
+    }
 
     // handle killing changelings every so often
     if(gInterface->observation->GetGameLoop() % 24 == 0){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-    if(gInterface->observation->GetGameLoop() > 70 ){
-        mainArmy.onStep();
-    }
+
     
 
     // if we have a bunker, put marines in it

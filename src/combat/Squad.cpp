@@ -6,6 +6,7 @@ Squad::Squad(std::string id_, size_t priority_){
     status = SquadStatus::Idle;
     logger = Logger(id);
     mm = MicroManager();
+    order = SquadOrder();
 }
 
 Squad::Squad(){
@@ -14,14 +15,15 @@ Squad::Squad(){
     status = SquadStatus::Idle;
     logger = Logger(id);
     mm = MicroManager();
+    order = SquadOrder();
 }
 
 void Squad::initialize(){
     mm.initialize();
 }
 
-void Squad::onStep(){
-    mm.OnStep();
+void Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
+    mm.execute(order, gmap, amap);
 }
 
 void Squad::setOrder(SquadOrder order_){

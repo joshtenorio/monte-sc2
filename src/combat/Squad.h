@@ -1,8 +1,9 @@
 #pragma once
 #include <sc2api/sc2_common.h>
-#include "CombatTools.h"
-#include "GameObject.h"
-#include "MicroManager.h"
+#include "combat/CombatTools.h"
+#include "combat/GameObject.h"
+#include "combat/MicroManager.h"
+#include "combat/InfluenceMap.h"
 #include "Logger.h"
 
 
@@ -11,7 +12,7 @@ class Squad {
     Squad(std::string id_, size_t priority_);
     Squad();
 
-    void onStep();
+    void onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
     void initialize();
 
     void setOrder(SquadOrder order_);

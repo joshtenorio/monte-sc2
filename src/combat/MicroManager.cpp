@@ -4,23 +4,16 @@ MicroManager::MicroManager(){
     logger = Logger("MicroManager");
 }
 
-void MicroManager::OnStep(){
-
-    // TODO: this gets passed from squad
-    // update influence maps
+void MicroManager::execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
 
     if(gInterface->observation->GetGameLoop() % 4 == 0){
-        groundMap.setGroundMap();
-        groundMap.propagate();
-        //airMap.setAirMap();
-        //airMap.propagate();
+
         medivacOnStep();
         siegeTankOnStep();
-        reaperOnStep();
+        reaperOnStep(gmap);
     }
 
     marineOnStep();
-
     liberatorOnStep();
 }
 
@@ -30,8 +23,6 @@ void MicroManager::initialize(){
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANK);
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
     reachedEnemyMain = false;
-    groundMap.initialize();
-    //airMap.initialize();
 
     harassTable.reserve(40);
     for(int n = 0; n < 40; n++){
@@ -339,7 +330,7 @@ void MicroManager::siegeTankOnStep(){
     } // end siege tank loop
 }
 
-void MicroManager::reaperOnStep(){
+void MicroManager::reaperOnStep(Monte::InfluenceMap& groundMap){
     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
     // generate influence map
     for(auto& reaper : reapers){
