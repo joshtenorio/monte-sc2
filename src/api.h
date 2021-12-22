@@ -24,6 +24,7 @@ namespace API {
 
     void OnGameStart();
 
+    sc2::Point3D toPoint3D(sc2::Point2D p);
     int countIdleUnits(sc2::UNIT_TYPEID type);
     bool isUnitIdle(const sc2::Unit* unit);
     size_t CountUnitType(sc2::UNIT_TYPEID unitType);

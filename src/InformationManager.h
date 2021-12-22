@@ -50,5 +50,8 @@ class InformationManager : public Manager {
 
     std::vector<float> income;
 
+    std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
+
+
 
 };

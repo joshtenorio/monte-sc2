@@ -14,7 +14,7 @@ void MicroManager::execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::
     }
 
     marineOnStep(order);
-    liberatorOnStep();
+    liberatorOnStep(order);
 }
 
 void MicroManager::regroup(sc2::Point2D target){
@@ -28,10 +28,7 @@ void MicroManager::initialize(){
     tankTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
 
     timeToCleanup = false;
-    harassTable.reserve(40);
-    for(int n = 0; n < 40; n++){
-        harassTable.emplace_back(0);
-    }
+
 }
 
 void MicroManager::addUnit(sc2::Tag tag){
@@ -481,42 +478,16 @@ void MicroManager::reaperOnStep(Monte::InfluenceMap& groundMap){
     } // for r : reapers
 }
 
-void MicroManager::liberatorOnStep(){
+void MicroManager::liberatorOnStep(SquadOrder& order){
+    if(order.type == SquadOrderType::Harass)
     for(auto& l : liberators){
         const sc2::Unit* unit = l.getUnit();
         if(!unit) continue;
 
         switch(l.state){
             case LiberatorState::Init:{ // select a target and generate flight points
-                // find a target
-                Expansion* target = nullptr;
-                int eNumber = gInterface->map->numOfExpansions() - 1;
-                for(int n = eNumber; n >= 0; n--){
-                    Expansion* e = gInterface->map->getNthExpansion(n);
-                    if(!e) continue;
-                    else if(e->ownership != OWNER_ENEMY) continue;
-                    else if(harassTable[n] < harassTable[eNumber]){
-                        eNumber = n;
-                        target = e;
-                        logger.infoInit().withUnit(unit).withStr("found suitable harass at expansion").withInt(eNumber).write();
-                    }
-                }
-                
-                if(!target){
-                    sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
-                    target = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
-                    logger.warningInit().withUnit(unit).withStr("couldn't find harass target, so harassing enemy main").write();
-                    // get the expansion number of enemy main
-                    for(int n = eNumber; n >= 0; n--){
-                        if(target->baseLocation == gInterface->map->getNthExpansion(n)->baseLocation){
-                            harassTable[n]++;
-                            break;
-                        }
-                    }
-                }
-                else{
-                    harassTable[eNumber]++;
-                }
+                Expansion* target = gInterface->map->getClosestExpansion(API::toPoint3D(order.target));
+                if(!target) continue;
 
                 // generate flight points
                 sc2::Point2D maxPoint = gInterface->observation->GetGameInfo().playable_max;

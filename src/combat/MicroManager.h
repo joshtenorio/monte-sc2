@@ -22,7 +22,7 @@ class MicroManager {
     void medivacOnStep(SquadOrder& order);
     void siegeTankOnStep(SquadOrder& order);
     void reaperOnStep(Monte::InfluenceMap& groundMap);
-    void liberatorOnStep();
+    void liberatorOnStep(SquadOrder& order);
     // TODO: if nearby marine count is low
     // focus on putting down auto turrets, else use anti armor missles
     void ravenOnStep();
@@ -37,7 +37,6 @@ class MicroManager {
     std::vector<Liberator> liberators;
     std::vector<GameObject> bio;
 
-    std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
 
     bool timeToCleanup;
     std::vector<sc2::UNIT_TYPEID> bioTypes; // filter for GetUnits

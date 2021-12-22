@@ -6,6 +6,9 @@ void OnGameStart(){
     // hehe
 }
 
+sc2::Point3D toPoint3D(sc2::Point2D p){
+    return sc2::Point3D(p.x, p.y, gInterface->observation->TerrainHeight(p));
+}
 int countIdleUnits(sc2::UNIT_TYPEID type){
     sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(type));
     int c = 0;

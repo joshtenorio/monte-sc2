@@ -17,6 +17,11 @@ void InformationManager::OnGameStart(){
             enemyRace = p.race_requested;
             break;
         }
+
+    harassTable.reserve(40);
+    for(int n = 0; n < 40; n++){
+        harassTable.emplace_back(0);
+    }
 }
 
 void InformationManager::OnStep(){
@@ -117,8 +122,33 @@ sc2::Point2D InformationManager::findLocationDefense(){
 }
 
 sc2::Point2D InformationManager::findHarassTarget(int type){
-    // TODO
-     return sc2::Point2D(0,0);
+    // find a target
+    Expansion* target = nullptr;
+    int eNumber = gInterface->map->numOfExpansions() - 1;
+    for(int n = eNumber; n >= 0; n--){
+        Expansion* e = gInterface->map->getNthExpansion(n);
+        if(!e) continue;
+        else if(e->ownership != OWNER_ENEMY) continue;
+        else if(harassTable[n] < harassTable[eNumber]){
+            eNumber = n;
+            target = e;
+        }
+    }
+    if(!target){
+        sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+        target = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
+        // get the expansion number of enemy main
+        for(int n = eNumber; n >= 0; n--){
+            if(target->baseLocation == gInterface->map->getNthExpansion(n)->baseLocation){
+                harassTable[n]++;
+                break;
+            }
+        }
+    }
+    else{
+        harassTable[eNumber]++;
+    }
+    return target->baseLocation;
 }
 
 void InformationManager::updateExpoOwnership(){
