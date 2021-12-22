@@ -8,12 +8,12 @@ void MicroManager::execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::
 
     if(gInterface->observation->GetGameLoop() % 4 == 0){
 
-        medivacOnStep();
-        siegeTankOnStep();
+        medivacOnStep(order);
+        siegeTankOnStep(order);
         reaperOnStep(gmap);
     }
 
-    marineOnStep();
+    marineOnStep(order);
     liberatorOnStep();
 }
 
@@ -88,8 +88,9 @@ bool MicroManager::removeUnit(sc2::Tag tag){
     return false;
 }
 
-void MicroManager::marineOnStep(){
-    int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
+void MicroManager::marineOnStep(SquadOrder& order){
+
+    // TODO: use bio instead of this
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
     
     for(const auto& m : marines)
@@ -99,46 +100,15 @@ void MicroManager::marineOnStep(){
                 gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
         }
 
-    // send a wave if we have a decent amount of bio
-    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
+    if(order.type == SquadOrderType::Attack){
+        if(!reachedEnemyMain)
+            gInterface->actions->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, order.target);
         
+    } // end if order.type == attack
+    else if(order.type == SquadOrderType::Cleanup){
         sc2::Units enemy = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy);
-        //std::cout << "sending a wave of marines\n";
         for(const auto& m : marines){
-            if(49 > sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), m->pos) && !reachedEnemyMain){
-                reachedEnemyMain = true;
-                gInterface->actions->SendChat("Tag: reachedEnemyMain");
-                gInterface->actions->SendChat("(happy) when it all seems like it's wrong (happy) just sing along to Elton John (happy)");
-            }
-            
-            // attack closest enemy expansion
-            if(!reachedEnemyMain && m->orders.empty()){
-                // TODO: in mapper make a "closest <owner> expo" function
-                Expansion* closestEnemyExpo = nullptr;
-                for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
-                    // check if it is an enemy expansion and we are not at that base
-                    if(
-                        gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY &&
-                        sc2::DistanceSquared2D(m->pos, gInterface->map->getNthExpansion(n)->baseLocation) > 25)
-                        {
-                        closestEnemyExpo = gInterface->map->getNthExpansion(n);
-                        break;
-                    }
-                } // end for expansions
-                if(closestEnemyExpo != nullptr){
-                    gInterface->actions->UnitCommand(
-                            m,
-                            sc2::ABILITY_ID::ATTACK_ATTACK,
-                            closestEnemyExpo->baseLocation);
-                }
-                else{
-                    gInterface->actions->UnitCommand(
-                        m,
-                        sc2::ABILITY_ID::ATTACK_ATTACK,
-                        gInterface->observation->GetGameInfo().enemy_start_locations.front());
-                }
-            } // end if !reachedEnemyMain && m->orders.empty()
-            else if(!enemy.empty() && m->orders.empty()){
+            if(!enemy.empty() && m->orders.empty()){
                 const sc2::Unit* closest = nullptr;
                 float distance = std::numeric_limits<float>::max();
 
@@ -164,29 +134,16 @@ void MicroManager::marineOnStep(){
                         sc2::ABILITY_ID::ATTACK_ATTACK,
                         closest->pos);
             } // end else if
-                
-                
         } // end for loop
-    } // end if idle bio > wave amount
-    else{
-        // have bio idle at the latest allied expansion, up to third
-        sc2::Point2D expansion = sc2::Point2D(-1,-1);
-        for(int i = 0; i < 3; i++){
-            Expansion* e = gInterface->map->getNthExpansion(i);
-            if(e == nullptr) continue;
-            if(e->ownership == OWNER_SELF)
-                expansion = e->baseLocation;
-        }
-        if(expansion.x != -1){
-            sc2::Point2D rally = Monte::getPoint2D(expansion, Monte::Vector2D(expansion, gInterface->observation->GetGameInfo().enemy_start_locations.front()), 3);
-            for(auto& m : marines)
-                if(sc2::Distance2D(m->pos, rally) > 6 && m->orders.empty())
-                    gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, rally);
-        }
+    }
+    else if(order.type == SquadOrderType::Defend) {
+        for(auto& m : marines)
+            if(sc2::DistanceSquared2D(m->pos, order.target) > 36 && m->orders.empty())
+                gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, order.target);
     }
 }
 
-void MicroManager::medivacOnStep(){
+void MicroManager::medivacOnStep(SquadOrder& order){
     sc2::Units medivacs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     for(auto& med : medivacs){
         // move each medivac to the marine that is closest to the enemy main
@@ -226,7 +183,7 @@ void MicroManager::medivacOnStep(){
     } // end medivac loop
 }
 
-void MicroManager::siegeTankOnStep(){
+void MicroManager::siegeTankOnStep(SquadOrder& order){
 
     sc2::Units marines = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(bioTypes));
     sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();

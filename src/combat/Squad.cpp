@@ -24,14 +24,16 @@ void Squad::initialize(){
     supplyRemoved = 0;
 }
 
-bool Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
+SquadStatus Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
     if(shouldRegroup()){
         mm.regroup(getRegroupPosition());
-        return true;
+        status = SquadStatus::Regroup;
+        return status;
     }
     else{
         mm.execute(order, gmap, amap);
-        return false;
+        status = SquadStatus::Busy;
+        return status;
     }
 }
 

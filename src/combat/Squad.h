@@ -12,7 +12,7 @@ class Squad {
     Squad(std::string id_, size_t priority_);
     Squad();
 
-    bool onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
+    SquadStatus onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
     void initialize();
 
     void setOrder(SquadOrder order_);

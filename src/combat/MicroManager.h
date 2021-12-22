@@ -18,9 +18,9 @@ class MicroManager {
 
     protected:
     void executeMicro(std::vector<GameObject> targets); // TODO: should be virtual when we do subclasses
-    void marineOnStep();
-    void medivacOnStep();
-    void siegeTankOnStep();
+    void marineOnStep(SquadOrder& order);
+    void medivacOnStep(SquadOrder& order);
+    void siegeTankOnStep(SquadOrder& order);
     void reaperOnStep(Monte::InfluenceMap& groundMap);
     void liberatorOnStep();
     // TODO: if nearby marine count is low

@@ -11,12 +11,14 @@ enum class SquadOrderType {
     Defend,
     Harass,
     Regroup,
+    Cleanup,
     Idle
 };
 
 enum class SquadStatus {
     Idle,
-    Busy
+    Busy,
+    Regroup
 };
 
 typedef struct SquadOrder_s_t {
