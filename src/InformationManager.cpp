@@ -115,8 +115,14 @@ sc2::Point2D InformationManager::findLocationTarget(){
 }
 
 sc2::Point2D InformationManager::findLocationDefense(){
-    // TODO
-    return sc2::Point2D(0,0);
+    sc2::Point2D defensePoint = sc2::Point2D(0,0);
+    for(int i = 2; i >=0; i--){
+        if(gInterface->map->getNthExpansion(i)->ownership == OWNER_SELF){
+            defensePoint = gInterface->map->getNthExpansion(i)->baseLocation;
+            break;
+        }
+    }
+    return defensePoint;
 }
 
 sc2::Point2D InformationManager::findHarassTarget(int type){

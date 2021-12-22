@@ -39,16 +39,18 @@ GameStatus MarinePush::evaluate(){
         API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave ||
         gInterface->observation->GetFoodUsed() >= 200){
             currentStatus = GameStatus::Attack;
+            std::cout << "ATTACK ATTACK ATTACK" << std::endl;
             return GameStatus::Attack;
     }
     else if( // continue attacking if we still have more than half our bio
     // TODO: this could be smarter if we had more information about what we were doing with the bio
     // and not just going off of what we see from gInterface->observation
         currentStatus == GameStatus::Attack &&
-        API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave/2){
+        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave/2){
+            std::cout << "ATTACK ATTACK" << std::endl;
             return GameStatus::Attack;
     }
-    
+    std::cout << "BIDE PLS" << std::endl;
     currentStatus = GameStatus::Bide;
     return GameStatus::Bide;
 }
