@@ -78,9 +78,7 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
         
         if(requireAntiAir){
-            int numVikings = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER);
-            currRatio = (numVikings != 0 ? numMarines / numVikings : numMarines);
-            currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER : sc2::ABILITY_ID::TRAIN_MEDIVAC);
+            currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
         }
         else
             currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
@@ -195,8 +193,20 @@ void InformationManager::checkForMassAir(){
     int bcCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
     int fusionCoreExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE)).size();
     int colossusExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::PROTOSS_COLOSSUS)).size();
+
+    int numFlyingBuildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit& u){
+        switch(u.unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING:
+            return true;
+        }
+        return false;
+    }).size();
     
-    if((bcCount || fusionCoreExists || colossusExists) && !requireAntiAir){
+    if((bcCount || fusionCoreExists || colossusExists || numFlyingBuildings >= 2) && !requireAntiAir){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
@@ -204,7 +214,7 @@ void InformationManager::checkForMassAir(){
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
     
-    if((mutaCount >= 4 && !requireAntiAir) || (spireExists && !requireAntiAir)){ // TODO: muta threshold probably needs tuning
+    if((mutaCount >= 4 && !requireAntiAir) || (spireExists && !requireAntiAir)){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
