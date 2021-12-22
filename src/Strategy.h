@@ -16,7 +16,8 @@ class Strategy{
     void debugPrintValidSteps();
     
     // add initial steps to build orders
-    virtual void initialize(); // TODO: does this need {} here? 
+    virtual void initialize();
+    virtual bool evaluate(); // condition for sending an attack
 
     // for pushing things into build order
     void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply_ = -1);
@@ -42,7 +43,7 @@ class Strategy{
     // misc functions
     bool isEmpty();
     int getBuildOrderSize();
-    ProductionConfig getConfig(); // TODO: rename this
+    ProductionConfig getProductionConfig(); // TODO: rename this
     CombatConfig getCombatConfig();
     int getType(sc2::ABILITY_ID ability); // gets the metaType for an ability
 

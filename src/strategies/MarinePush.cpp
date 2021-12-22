@@ -32,3 +32,11 @@ void MarinePush::initialize(){
     pushBuildOrderStep(TYPE_SET_PRODUCTION, sc2::ABILITY_ID::TRAIN_MEDIVAC, STEP_NONBLOCKING, STEP_HIGHEST_PRIO);
 
 }
+
+bool MarinePush::evaluate(){
+    int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
+    if(API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave || gInterface->observation->GetFoodUsed() >= 200){
+        return true;
+    }
+    return false;
+}

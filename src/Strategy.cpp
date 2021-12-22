@@ -109,7 +109,7 @@ int Strategy::getBuildOrderSize(){
     return buildOrder.size();
 }
 
-ProductionConfig Strategy::getConfig(){
+ProductionConfig Strategy::getProductionConfig(){
     return config;
 }
 
