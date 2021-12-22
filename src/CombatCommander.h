@@ -8,7 +8,7 @@
 #include "Manager.h"
 #include "Strategy.h"
 #include "ScoutManager.h"
-#include "InfluenceMap.h"
+#include "combat/InfluenceMap.h"
 #include "combat/Squad.h"
 
 

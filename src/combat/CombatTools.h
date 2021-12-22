@@ -2,7 +2,7 @@
 
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
-#include "InfluenceMap.h"
+#include "combat/InfluenceMap.h"
 #include "GameObject.h"
 
 enum class SquadOrderType {
