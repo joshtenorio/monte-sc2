@@ -10,6 +10,7 @@ class GameObject {
 
     static const sc2::Unit* getUnit(sc2::Tag tag);
 
+    float food;
     const sc2::Unit* getUnit();
     sc2::UnitTypeData getData();
     sc2::UnitTypeID getType();

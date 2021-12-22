@@ -12,7 +12,7 @@ class Squad {
     Squad(std::string id_, size_t priority_);
     Squad();
 
-    void onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
+    bool onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap);
     void initialize();
 
     void setOrder(SquadOrder order_);
@@ -35,6 +35,8 @@ class Squad {
     // removes invalid units and returns number of units removed
     int validateUnits();
     sc2::Point2D getCenter();
+    bool shouldRegroup();
+    sc2::Point2D getRegroupPosition();
 
     Logger logger;
     MicroManager mm;
@@ -43,4 +45,6 @@ class Squad {
     SquadStatus status;
     std::string id;
     std::vector<GameObject> units;
+    float supplyRemoved; // how much supply we've lost since regrouping
+    float supplyInitial; // how much supply we started with since attacking/defending
 };

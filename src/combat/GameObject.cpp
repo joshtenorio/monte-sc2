@@ -2,6 +2,7 @@
 
 GameObject::GameObject(sc2::Tag gTag){
     tag = gTag;
+    food = getData().food_required;
 }
 
 const sc2::Unit* GameObject::getUnit(sc2::Tag tag){

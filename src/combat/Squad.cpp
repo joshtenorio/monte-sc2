@@ -20,10 +20,19 @@ Squad::Squad(){
 
 void Squad::initialize(){
     mm.initialize();
+    supplyInitial = 0;
+    supplyRemoved = 0;
 }
 
-void Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
-    mm.execute(order, gmap, amap);
+bool Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
+    if(shouldRegroup()){
+        mm.regroup(getRegroupPosition());
+        return true;
+    }
+    else{
+        mm.execute(order, gmap, amap);
+        return false;
+    }
 }
 
 void Squad::setOrder(SquadOrder order_){
@@ -32,6 +41,15 @@ void Squad::setOrder(SquadOrder order_){
 
 void Squad::setOrder(SquadOrderType type, sc2::Point2D target, float radius){
     order = SquadOrder(type, target, radius);
+    switch(type){
+        case SquadOrderType::Attack:
+        case SquadOrderType::Defend:
+        supplyInitial = 0;
+        for(auto& u : units){
+            if(!u.isValid()) continue;
+            supplyInitial += u.food;
+        }
+    }
 }
 
 void Squad::setPriority(size_t prio){
@@ -47,6 +65,7 @@ bool Squad::removeUnit(sc2::Tag tag){
     for(auto itr = units.begin(); itr != units.end(); ){
         if((*itr).getTag() == tag){
             mm.removeUnit(tag);
+            supplyRemoved += (*itr).food;
             itr = units.erase(itr);
         }
         else ++itr;
@@ -111,4 +130,17 @@ sc2::Point2D Squad::getCenter(){
     }
     sc2::Point2D avg = (n == 0.0 ? sc2::Point2D(0,0) : sc2::Point2D(x/n, y/n));
     return avg;
+}
+
+bool Squad::shouldRegroup(){
+    // regroup if we've lost half or more our initial supply
+    if(supplyInitial - supplyRemoved >= supplyInitial/2)
+        return true;
+    
+    return false;
+}
+
+sc2::Point2D Squad::getRegroupPosition(){
+    // TODO: temporary
+    return getCenter();
 }

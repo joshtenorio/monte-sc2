@@ -17,6 +17,10 @@ void MicroManager::execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::
     liberatorOnStep();
 }
 
+void MicroManager::regroup(sc2::Point2D target){
+    // brrrr
+}
+
 void MicroManager::initialize(){
     bioTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARINE);
     bioTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_MARAUDER);
