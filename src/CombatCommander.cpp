@@ -7,14 +7,23 @@ CombatCommander::CombatCommander(){
 
 }
 
+CombatCommander::CombatCommander(Strategy* strategy_){
+    strategy = strategy_;
+}
+
 void CombatCommander::OnGameStart(){
 
     sm.OnGameStart();
+
+    config = strategy->getCombatConfig();
+
 
     groundMap.initialize();
     airMap.initialize();
 
     mainArmy.initialize();
+
+    
 }
 
 void CombatCommander::OnStep(){

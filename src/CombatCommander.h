@@ -16,7 +16,7 @@ class CombatCommander : public Manager {
     public:
     // constructors
     CombatCommander();
-    // TODO: add a constructor with strategy
+    CombatCommander(Strategy* strategy_);
 
     void OnGameStart();
     void OnStep();
@@ -34,6 +34,7 @@ class CombatCommander : public Manager {
     protected:
     ScoutManager sm;
     CombatConfig config;
+    Strategy* strategy;
 
     //std::map<std::string, Squad> squads;
     Squad mainArmy;

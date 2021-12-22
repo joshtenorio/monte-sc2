@@ -33,6 +33,8 @@ void Bot::OnGameStart(){
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
+    strategy->initialize();
+
     API::OnGameStart();
     im.OnGameStart();
     pm.OnGameStart();

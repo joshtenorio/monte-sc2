@@ -95,7 +95,6 @@ void ProductionManager::OnStep(){
 void ProductionManager::OnGameStart(){
     bm.OnGameStart();
     
-    strategy->initialize();
     config = strategy->getProductionConfig();
 
     logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
