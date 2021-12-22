@@ -28,13 +28,14 @@ SquadStatus Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
     if(shouldRegroup()){
         mm.regroup(getRegroupPosition());
         status = SquadStatus::Regroup;
-        return status;
     }
     else{
         mm.execute(order, gmap, amap);
         status = SquadStatus::Busy;
-        return status;
     }
+
+    // TODO: figure out if we are supposed to be idle
+    return status;
 }
 
 void Squad::setOrder(SquadOrder order_){

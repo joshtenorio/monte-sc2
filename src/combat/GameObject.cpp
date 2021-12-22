@@ -40,6 +40,11 @@ bool GameObject::isFriendly(){
     return getUnit()->alliance == sc2::Unit::Alliance::Self;
 }
 
+bool GameObject::isIdle(){
+    if(!isValid()) return true;
+    return getUnit()->orders.empty();
+}
+
 bool GameObject::isFlying(){
     if(!isValid()) return isValid();
     return getUnit()->is_flying;

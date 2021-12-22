@@ -19,6 +19,7 @@ class GameObject {
 
     bool isValid();
     bool isFriendly();
+    bool isIdle();
     bool isFlying();
     bool isBuilding();
     bool isVisible();
