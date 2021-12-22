@@ -101,6 +101,9 @@ void ProductionManager::OnGameStart(){
     logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
     logger.initializePlot({"game loop", "bases"}, "basecount");
 
+    minerals = 0;
+    vespene = 0;
+
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){

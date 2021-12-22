@@ -77,5 +77,7 @@ class ProductionManager : public Manager {
     BuildingManager bm;
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
     ProductionConfig config;
+    int minerals;
+    int vespene;
 
 };
