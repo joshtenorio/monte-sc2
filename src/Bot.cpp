@@ -98,6 +98,10 @@ void Bot::OnStep() {
     if(Observation()->GetGameLoop() == 50)
         map.initialize();
 
+    // get targets from information manager
+    cc.setLocationTarget(im.findLocationTarget());
+    cc.setLocationDefense(im.findLocationDefense());
+
     im.OnStep();
     pm.OnStep();
     wm.OnStep();

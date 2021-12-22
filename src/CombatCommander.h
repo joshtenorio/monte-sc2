@@ -25,6 +25,9 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
+    void setLocationTarget(sc2::Point2D loc);
+    void setLocationDefense(sc2::Point2D loc);
+
     void handleChangelings();
 
     CombatConfig& getCombatConfig();
@@ -41,4 +44,7 @@ class CombatCommander : public Manager {
 
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;
+
+    sc2::Point2D attackTarget;
+    sc2::Point2D defenseTarget;
 };

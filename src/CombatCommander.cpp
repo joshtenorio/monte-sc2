@@ -4,6 +4,8 @@ CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
+    attackTarget = sc2::Point2D(0,0);
+    defenseTarget = sc2::Point2D(0,0);
 
 }
 
@@ -12,24 +14,18 @@ CombatCommander::CombatCommander(Strategy* strategy_){
 }
 
 void CombatCommander::OnGameStart(){
-
     sm.OnGameStart();
-
     config = strategy->getCombatConfig();
-
 
     groundMap.initialize();
     airMap.initialize();
 
     mainArmy.initialize();
-
-    
 }
 
 void CombatCommander::OnStep(){
     
     // update influence maps
-    // TODO: uncomment this at some point, bc it should be passed to squad/micromanager
     if(gInterface->observation->GetGameLoop() % 4 == 0){
         groundMap.setGroundMap();
         groundMap.propagate();
@@ -41,6 +37,9 @@ void CombatCommander::OnStep(){
     sm.OnStep();
 
     if(gInterface->observation->GetGameLoop() > 70 ){
+
+        if(strategy->evaluate())
+            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
         mainArmy.onStep(groundMap, airMap);
     }
 
@@ -49,13 +48,9 @@ void CombatCommander::OnStep(){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-
-    
-
     // if we have a bunker, put marines in it
     // TODO: fix
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
-
 } // end OnStep
 
 void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
@@ -70,6 +65,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+        // FIXME: medivac ???????
             mainArmy.addUnit(unit_->tag);
         break;
     }
@@ -130,6 +126,15 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
     sm.OnUnitEnterVision(unit_);
 }
+
+void CombatCommander::setLocationTarget(sc2::Point2D loc){
+    attackTarget = loc;
+}
+
+void CombatCommander::setLocationDefense(sc2::Point2D loc){
+    defenseTarget = loc;
+}
+
 
 void CombatCommander::handleChangelings(){
     // TODO: move this to somehwere where we only do this once

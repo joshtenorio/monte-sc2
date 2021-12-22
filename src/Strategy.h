@@ -17,7 +17,10 @@ class Strategy{
     
     // add initial steps to build orders
     virtual void initialize();
-    virtual bool evaluate(); // condition for sending an attack
+
+    // condition for sending an attack
+    // TODO: should return an int, i.e. a score
+    virtual bool evaluate();
 
     // for pushing things into build order
     void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply_ = -1);
