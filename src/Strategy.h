@@ -20,7 +20,7 @@ class Strategy{
 
     // condition for sending an attack
     // TODO: should return an int, i.e. a score
-    virtual bool evaluate();
+    virtual GameStatus evaluate();
 
     // for pushing things into build order
     void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply_ = -1);
@@ -57,5 +57,6 @@ class Strategy{
     char strategyType;
     ProductionConfig config; // TODO: change this name to prodConfig or pConfig or something
     CombatConfig combatConfig; // cConfig ?
+    GameStatus currentStatus = GameStatus::Bide;
 
 };

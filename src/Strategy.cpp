@@ -3,8 +3,8 @@
 
 void Strategy::initialize(){}
 
-bool Strategy::evaluate(){
-    return false;
+GameStatus Strategy::evaluate(){
+    return GameStatus::Bide;
 }
 
 void Strategy::debugPrintValidSteps(){

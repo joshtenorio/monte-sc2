@@ -48,9 +48,12 @@ void CombatCommander::OnStep(){
     if(gInterface->observation->GetGameLoop() > 70 ){
         
         harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 15);
-        if(strategy->evaluate()){
+        if(strategy->evaluate() == GameStatus::Attack){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
 
+        }
+        else if(strategy->evaluate() == GameStatus::Bide){
+            mainArmy.setOrder(SquadOrderType::Defend, defenseTarget, 20);
         }
         SquadStatus armyStatus = mainArmy.onStep(groundMap, airMap);
         SquadStatus harassStatus = harassGroup.onStep(groundMap, airMap);

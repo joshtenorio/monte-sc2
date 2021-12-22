@@ -24,6 +24,11 @@
 #define COMBAT_AGGRESSIVE   0
 #define COMBAT_BIDE         1
 
+enum class GameStatus {
+    Attack,
+    Bide
+};
+
 typedef struct MetaType_s_t {
     MetaType_s_t() {};
     MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}

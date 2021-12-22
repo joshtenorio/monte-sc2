@@ -7,6 +7,6 @@ class MarinePush : public Strategy {
     public:
     MarinePush() {};
     void initialize();
-    bool evaluate();
+    GameStatus evaluate();
 
 };
