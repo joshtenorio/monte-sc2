@@ -91,23 +91,23 @@ CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig
 }
 
 sc2::Point2D InformationManager::findLocationTarget(){
-                // attack closest enemy expansion
-                Expansion* closestEnemyExpo = nullptr;
-                for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
-                    // check if it is an enemy expansion and we are not at that base
-                    if(
-                        gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY)
-                        {
-                        closestEnemyExpo = gInterface->map->getNthExpansion(n);
-                        break;
-                    }
-                } // end for expansions
-                if(closestEnemyExpo != nullptr){
-                    return closestEnemyExpo->baseLocation;
-                }
-                else{
-                        return gInterface->observation->GetGameInfo().enemy_start_locations.front();
-                }
+    // attack closest enemy expansion
+    Expansion* closestEnemyExpo = nullptr;
+    for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+        // check if it is an enemy expansion and we are not at that base
+        if(
+            gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY)
+            {
+            closestEnemyExpo = gInterface->map->getNthExpansion(n);
+            break;
+        }
+    } // end for expansions
+    if(closestEnemyExpo != nullptr){
+        return closestEnemyExpo->baseLocation;
+    }
+    else{
+            return gInterface->observation->GetGameInfo().enemy_start_locations.front();
+    }
     return sc2::Point2D(0,0);
 }
 

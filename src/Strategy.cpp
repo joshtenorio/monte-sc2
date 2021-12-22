@@ -3,6 +3,10 @@
 
 void Strategy::initialize(){}
 
+bool Strategy::evaluate(){
+    return false;
+}
+
 void Strategy::debugPrintValidSteps(){
     // TODO: fix this
     /**

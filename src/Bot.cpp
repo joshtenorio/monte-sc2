@@ -18,7 +18,7 @@ Bot::Bot(){
     logger = Logger("Bot");
     debug = Monte::Debug(Debug());
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
-    cc = CombatCommander();
+    cc = CombatCommander(dynamic_cast<Strategy*>(strategy));
 
 }
 

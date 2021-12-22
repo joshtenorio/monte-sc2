@@ -11,11 +11,15 @@ CombatCommander::CombatCommander(){
 
 CombatCommander::CombatCommander(Strategy* strategy_){
     strategy = strategy_;
+    logger = Logger("CombatCommander");
+    mainArmy = Squad("main", 10);
+    attackTarget = sc2::Point2D(0,0);
+    defenseTarget = sc2::Point2D(0,0);
 }
 
 void CombatCommander::OnGameStart(){
     sm.OnGameStart();
-    config = strategy->getCombatConfig();
+    //config = strategy->getCombatConfig();
 
     groundMap.initialize();
     airMap.initialize();
@@ -38,8 +42,10 @@ void CombatCommander::OnStep(){
 
     if(gInterface->observation->GetGameLoop() > 70 ){
 
-        if(strategy->evaluate())
+        if(strategy->evaluate()){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
+
+        }
         mainArmy.onStep(groundMap, airMap);
     }
 
