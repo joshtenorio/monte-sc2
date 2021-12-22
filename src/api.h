@@ -10,6 +10,8 @@
 #include <sc2api/sc2_control_interfaces.h>
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_unit_filters.h>
+#include <sc2api/sc2_gametypes.h>
+#include <sc2api/sc2_typeenums.h>
 #include <vector>
 #include <memory>
 #include "VectorMath.h"
@@ -17,7 +19,6 @@
 #include "Mapper.h"
 #include "Debug.h"
 #include "Strategy.h"
-
 
 namespace API {
 
@@ -51,6 +52,17 @@ namespace API {
 
     std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
 
+    inline sc2::UnitTypeID ToUnitTypeID(sc2::UNIT_TYPEID id_) {
+        return static_cast<sc2::UnitTypeID>(id_);
+    }
+
+    inline sc2::UpgradeID ToUpgradeID(sc2::UPGRADE_ID id_) {
+        return static_cast<sc2::UpgradeID>(id_);
+    }
+
+    inline sc2::AbilityID ToAbilityID(sc2::ABILITY_ID id_) {
+        return static_cast<sc2::AbilityID>(id_);
+    }
 } // end namespace API
 
 class Interface {
