@@ -40,7 +40,6 @@ int countUnitType(sc2::Filter filter){
     return c;
 }
 
-
 sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType){
     sc2::Units pool;
     if(unitType == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR) // default, get any 
@@ -102,7 +101,6 @@ float getStructureRadiusByAbility(sc2::ABILITY_ID ability){
             break;
     }
 }
-
 
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){
@@ -530,7 +528,6 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::BUILD_REACTOR: // not sure what to do with these, probably just return default
         case sc2::ABILITY_ID::BUILD_TECHLAB:
         default:
-            std::cout << "API: abilitytounittypeid returning protoss assimilator" << std::endl;
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
 }
@@ -628,6 +625,110 @@ bool isWorker(sc2::UNIT_TYPEID unit){
     }
 }
 
+int getTypeForAbility(sc2::ABILITY_ID id){
+    switch(id){
+        // build structures...
+        case sc2::ABILITY_ID::BUILD_ARMORY:
+        case sc2::ABILITY_ID::BUILD_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_BUNKER:
+        case sc2::ABILITY_ID::BUILD_COMMANDCENTER:
+        case sc2::ABILITY_ID::BUILD_ENGINEERINGBAY:
+        case sc2::ABILITY_ID::BUILD_FACTORY:
+        case sc2::ABILITY_ID::BUILD_FUSIONCORE:
+        case sc2::ABILITY_ID::BUILD_GHOSTACADEMY:
+        case sc2::ABILITY_ID::BUILD_MISSILETURRET:
+        case sc2::ABILITY_ID::BUILD_REFINERY:
+        case sc2::ABILITY_ID::BUILD_SENSORTOWER:
+        case sc2::ABILITY_ID::BUILD_STARPORT:
+        case sc2::ABILITY_ID::BUILD_SUPPLYDEPOT:
+        
+        // train units...
+        case sc2::ABILITY_ID::TRAIN_BANSHEE:
+        case sc2::ABILITY_ID::TRAIN_MEDIVAC:
+        case sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER:
+        case sc2::ABILITY_ID::TRAIN_LIBERATOR:
+        case sc2::ABILITY_ID::TRAIN_BATTLECRUISER:
+        case sc2::ABILITY_ID::TRAIN_RAVEN:
+        case sc2::ABILITY_ID::TRAIN_MARAUDER:
+        case sc2::ABILITY_ID::TRAIN_MARINE:
+        case sc2::ABILITY_ID::TRAIN_REAPER:
+        case sc2::ABILITY_ID::TRAIN_GHOST:
+        case sc2::ABILITY_ID::TRAIN_WIDOWMINE:
+        case sc2::ABILITY_ID::TRAIN_HELLION:
+        case sc2::ABILITY_ID::TRAIN_HELLBAT:
+        case sc2::ABILITY_ID::TRAIN_CYCLONE:
+        case sc2::ABILITY_ID::TRAIN_SIEGETANK:
+        case sc2::ABILITY_ID::TRAIN_THOR:
+            return COST_TYPE_PHYSICAL;
+
+        // morphs...
+        // TODO: not sure how to handle these
+        case sc2::ABILITY_ID::MORPH_ORBITALCOMMAND:
+        case sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS:
+        case sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS:
+        case sc2::ABILITY_ID::BUILD_REACTOR_FACTORY:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY:
+        case sc2::ABILITY_ID::BUILD_REACTOR_STARPORT:
+        case sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT:
+            return COST_TYPE_NULL;
+
+        // research...
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR:
+        case sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS:
+        case sc2::ABILITY_ID::RESEARCH_NEOSTEELFRAME: // might be a different ID
+        case sc2::ABILITY_ID::RESEARCH_HISECAUTOTRACKING:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATINGLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATING:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONS:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL1:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL2:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONSLEVEL3:
+        case sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS:
+        case sc2::ABILITY_ID::RESEARCH_BATTLECRUISERWEAPONREFIT:
+        case sc2::ABILITY_ID::RESEARCH_ADVANCEDBALLISTICS:
+        case sc2::ABILITY_ID::RESEARCH_PERSONALCLOAKING:
+        case sc2::ABILITY_ID::RESEARCH_STIMPACK:
+        case sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS:
+        case sc2::ABILITY_ID::RESEARCH_COMBATSHIELD:
+        case sc2::ABILITY_ID::RESEARCH_BANSHEEHYPERFLIGHTROTORS:
+        case sc2::ABILITY_ID::RESEARCH_RAVENCORVIDREACTOR:
+        case sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD:
+        case sc2::ABILITY_ID::RESEARCH_SMARTSERVOS:
+        case sc2::ABILITY_ID::RESEARCH_DRILLINGCLAWS:
+        case sc2::ABILITY_ID::RESEARCH_INFERNALPREIGNITER:
+        case sc2::ABILITY_ID::RESEARCH_CYCLONELOCKONDAMAGE:
+            return COST_TYPE_UPGRADE;
+
+
+
+    }
+    return COST_TYPE_NULL;
+}
+
+Cost getCost(sc2::ABILITY_ID id){
+    int type = getTypeForAbility(id);
+    switch(type){
+        case COST_TYPE_PHYSICAL:
+        break;
+        case COST_TYPE_UPGRADE:
+        break;
+        case COST_TYPE_NULL:
+        default:
+    }
+    return std::make_pair(0,0);
+}
 
 } // end namespace
 std::unique_ptr<Interface> gInterface;
