@@ -27,6 +27,7 @@ class CombatCommander : public Manager {
 
     void setLocationTarget(sc2::Point2D loc);
     void setLocationDefense(sc2::Point2D loc);
+    void setHarassTarget(sc2::Point2D loc);
 
     void handleChangelings();
 
@@ -41,10 +42,12 @@ class CombatCommander : public Manager {
 
     //std::map<std::string, Squad> squads;
     Squad mainArmy;
+    Squad harassGroup;
 
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;
 
     sc2::Point2D attackTarget;
     sc2::Point2D defenseTarget;
+    sc2::Point2D harassTarget;
 };

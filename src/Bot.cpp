@@ -101,6 +101,7 @@ void Bot::OnStep() {
     // get targets from information manager
     cc.setLocationTarget(im.findLocationTarget());
     cc.setLocationDefense(im.findLocationDefense());
+    cc.setHarassTarget(im.findHarassTarget(4));
 
     im.OnStep();
     pm.OnStep();

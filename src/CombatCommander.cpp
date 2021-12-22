@@ -4,6 +4,7 @@ CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
+    harassGroup = Squad("harass", 7);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
 
@@ -13,8 +14,10 @@ CombatCommander::CombatCommander(Strategy* strategy_){
     strategy = strategy_;
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
+    harassGroup = Squad("harass", 7);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
+    harassTarget = sc2::Point2D(0,0);
 }
 
 void CombatCommander::OnGameStart(){
@@ -25,6 +28,7 @@ void CombatCommander::OnGameStart(){
     airMap.initialize();
 
     mainArmy.initialize();
+    harassGroup.initialize();
 }
 
 void CombatCommander::OnStep(){
@@ -39,14 +43,17 @@ void CombatCommander::OnStep(){
 
     // scout manager
     sm.OnStep();
-
+    
+    // update squads after mapper initializes
     if(gInterface->observation->GetGameLoop() > 70 ){
-
+        
+        harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 15);
         if(strategy->evaluate()){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
 
         }
-        mainArmy.onStep(groundMap, airMap);
+        SquadStatus armyStatus = mainArmy.onStep(groundMap, airMap);
+        SquadStatus harassStatus = harassGroup.onStep(groundMap, airMap);
     }
 
     // handle killing changelings every so often
@@ -64,24 +71,27 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
     // TODO: don't add first 4 marines to attacksquad, they go into bunker
     switch(unit_->unit_type.ToType()){
-        case sc2::UNIT_TYPEID::TERRAN_REAPER:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         // FIXME: medivac ???????
             mainArmy.addUnit(unit_->tag);
         break;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+            harassGroup.addUnit(unit_->tag);
     }
     
 }
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    if(!unit_->is_building)
+    if(!unit_->is_building){
         mainArmy.removeUnit(unit_->tag);
+        harassGroup.removeUnit(unit_->tag);
+    }
 
 }
 
@@ -139,6 +149,10 @@ void CombatCommander::setLocationTarget(sc2::Point2D loc){
 
 void CombatCommander::setLocationDefense(sc2::Point2D loc){
     defenseTarget = loc;
+}
+
+void CombatCommander::setHarassTarget(sc2::Point2D loc){
+    harassTarget = loc;
 }
 
 

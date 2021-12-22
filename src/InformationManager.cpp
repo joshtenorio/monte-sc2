@@ -118,7 +118,7 @@ sc2::Point2D InformationManager::findLocationDefense(){
 
 sc2::Point2D InformationManager::findHarassTarget(int type){
     // TODO
-    return sc2::Point2D(0,0);
+     return sc2::Point2D(0,0);
 }
 
 void InformationManager::updateExpoOwnership(){
