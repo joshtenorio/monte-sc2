@@ -40,6 +40,7 @@ void ProductionManager::OnStep(){
     
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+
         tryBuildCommandCenter();
         // if we are prioritising expansion, don't bother doing any other steps
         // since we need to save up money
@@ -99,6 +100,7 @@ void ProductionManager::OnGameStart(){
 
     logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
     logger.initializePlot({"game loop", "bases"}, "basecount");
+
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
@@ -409,7 +411,7 @@ void ProductionManager::parseStep(Step s){
             }
 
             // 3. remove the step from buildorder
-            strategy->removeStep(s); // TODO: make sure this is working and doesn't have any side effects
+            strategy->removeStep(s);
             break;
     }
 }
@@ -461,7 +463,6 @@ void ProductionManager::trainUnit(Step s){
     tryTrainUnit(s.getAbility(), 1);
 }
 
-// TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
@@ -595,7 +596,6 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
         if(b->build_progress < 1.0) continue;
 
         if(b->orders.empty() && !isBuildingBusy(b->tag)){
-            //logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
             gInterface->actions->UnitCommand(b, unitToTrain);
             busyBuildings.emplace_back(b->tag);
             return true;
@@ -617,8 +617,6 @@ void ProductionManager::handleUpgrades(){
             sc2::UNIT_TYPEID::TERRAN_THORAP
         }));
     // get random flying unit
-    
-
     
     // get current upgrade levels
     // FIXME: the combat shields stuff here is temporary
@@ -643,8 +641,6 @@ void ProductionManager::handleUpgrades(){
         }
     }
 
-    // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
-    // based on those upgrade levels, select the next upgrade to prioritise
     if(infantryWeapons > infantryArmor){
         upgradeInfantryArmor(infantryArmor);
         upgradeInfantryWeapons(infantryWeapons);

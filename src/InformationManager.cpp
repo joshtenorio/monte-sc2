@@ -71,11 +71,15 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
         int numMedivacs = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MEDIVAC);
         float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
-        currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
+        
+        if(requireAntiAir){
+            int numVikings = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER);
+            currRatio = (numVikings != 0 ? numMarines / numVikings : numMarines);
+            currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER : sc2::ABILITY_ID::TRAIN_MEDIVAC);
+        }
+        else
+            currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
 
-        // if we need anti air and we are building liberators, build vikings instead
-        if(currentPConfig.starportOutput == sc2::ABILITY_ID::TRAIN_LIBERATOR && requireAntiAir)
-            currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
     }
 
 
@@ -84,6 +88,18 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
 
 CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig){
     return currentCConfig; //tmp
+}
+
+sc2::Point2D InformationManager::setLocationTarget(){
+    return sc2::Point2D(0,0);
+}
+
+sc2::Point2D InformationManager::setLocationDefense(){
+    return sc2::Point2D(0,0);
+}
+
+sc2::Point2D InformationManager::setHarassTarget(int type){
+    return sc2::Point2D(0,0);
 }
 
 void InformationManager::updateExpoOwnership(){
@@ -129,8 +145,9 @@ void InformationManager::checkForMassAir(){
     
     int bcCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
     int fusionCoreExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE)).size();
+    int colossusExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::PROTOSS_COLOSSUS)).size();
     
-    if((bcCount || fusionCoreExists) && !requireAntiAir){
+    if((bcCount || fusionCoreExists || colossusExists) && !requireAntiAir){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }

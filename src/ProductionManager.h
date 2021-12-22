@@ -1,8 +1,9 @@
 #pragma once
 
-#include <sc2api/sc2_unit.h>
 #include <vector>
 #include <memory>
+#include <utility>
+#include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_score.h>
 #include "api.h"
 #include "Manager.h"
@@ -44,7 +45,7 @@ class ProductionManager : public Manager {
     void castBuildingAbility(Step s);
 
     bool TryBuildSupplyDepot();
-    bool TryBuildBarracks(); // TODO: add trybuildstarport, factory etc
+    bool TryBuildBarracks();
     bool tryBuildFactory();
     bool tryBuildStarport();
     bool tryBuildRefinery();
@@ -76,6 +77,5 @@ class ProductionManager : public Manager {
     BuildingManager bm;
     std::vector<sc2::Tag> busyBuildings; // list of buildings that have an order
     ProductionConfig config;
-
 
 };
