@@ -34,8 +34,58 @@ SquadStatus Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
         status = SquadStatus::Busy;
     }
 
-    // TODO: figure out if we are supposed to be idle
+    if(isDone())
+        status = SquadStatus::Idle;
+
     return status;
+}
+
+bool Squad::isDone(){
+
+    // if we are idle or empty then we are done
+    if(status == SquadStatus::Idle || getSize() == 0)
+        return true;
+
+    int numEnemies = API::getClosestNUnits(order.target, 200, order.radius, sc2::Unit::Alliance::Enemy,
+        [](const sc2::Unit& u) {
+            switch(u.unit_type.ToType()){
+                case sc2::UNIT_TYPEID::PROTOSS_OBSERVER:
+                case sc2::UNIT_TYPEID::PROTOSS_OBSERVERSIEGEMODE:
+                case sc2::UNIT_TYPEID::ZERG_LARVA:
+                case sc2::UNIT_TYPEID::ZERG_EGG:
+                    return false;
+            }
+            return true;
+            }).size();
+    
+    if(order.type == SquadOrderType::Attack){
+        // we are done if we do not see enemies around the squad, and if order's area is also clear
+        int localEnemies = API::getClosestNUnits(getCenter(), 200, order.radius, sc2::Unit::Alliance::Enemy,
+        [](const sc2::Unit& u) {
+            switch(u.unit_type.ToType()){
+                case sc2::UNIT_TYPEID::PROTOSS_OBSERVER:
+                case sc2::UNIT_TYPEID::PROTOSS_OBSERVERSIEGEMODE:
+                case sc2::UNIT_TYPEID::ZERG_LARVA:
+                case sc2::UNIT_TYPEID::ZERG_EGG:
+                    return false;
+            }
+            return true;
+            }).size();
+        
+        if(localEnemies + numEnemies <= 0)
+            return true;
+    }
+    else if(order.type == SquadOrderType::Defend){
+        // we are done if order's area is clear
+        if(numEnemies <= 0)
+            return true;
+    }
+    else if(order.type == SquadOrderType::Harass){
+        // we are done if we have arrived at order's area
+        if(sc2::Distance2D(order.target, getCenter()) < order.radius)
+            return true;
+    }
+    return false;
 }
 
 void Squad::setOrder(SquadOrder order_){

@@ -49,7 +49,7 @@ void CombatCommander::OnStep(){
         
         harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 15);
         
-        if(strategy->evaluate() == GameStatus::Attack){
+        if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
 
         }
