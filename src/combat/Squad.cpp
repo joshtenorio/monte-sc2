@@ -25,7 +25,9 @@ void Squad::initialize(){
 }
 
 SquadStatus Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
-    if(shouldRegroup()){
+
+    // harass squads should never regroup
+    if(shouldRegroup() && order.type != SquadOrderType::Harass){
         mm.regroup(getRegroupPosition());
         status = SquadStatus::Regroup;
     }

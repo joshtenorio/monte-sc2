@@ -133,7 +133,7 @@ void MicroManager::marineOnStep(SquadOrder& order){
     }
     else if(order.type == SquadOrderType::Defend) {
         for(auto& m : marines)
-            if(sc2::DistanceSquared2D(m->pos, order.target) > 36 && m->orders.empty())
+            if(sc2::DistanceSquared2D(m->pos, order.target) > 36)
                 gInterface->actions->UnitCommand(m, sc2::ABILITY_ID::ATTACK_ATTACK, order.target);
     }
 }

@@ -47,7 +47,8 @@ void CombatCommander::OnStep(){
     // update squads after mapper initializes
     if(gInterface->observation->GetGameLoop() > 70 ){
         
-        harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 15);
+        if(harassGroup.getStatus() == SquadStatus::Idle)
+            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
         
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
@@ -58,7 +59,19 @@ void CombatCommander::OnStep(){
         }
         SquadStatus armyStatus = mainArmy.onStep(groundMap, airMap);
         SquadStatus harassStatus = harassGroup.onStep(groundMap, airMap);
+
+        if(strategy->evaluate() == GameStatus::Attack){
+            gInterface->debug->debugTextOut("ATTACK");
+        }
+        else if(strategy->evaluate() == GameStatus::Bide){
+            gInterface->debug->debugTextOut("BIDE");
+        }
+        gInterface->debug->sendDebug();
+
+        
     }
+
+    
 
     // handle killing changelings every so often
     if(gInterface->observation->GetGameLoop() % 24 == 0){
