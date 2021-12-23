@@ -129,7 +129,9 @@ void Bot::OnStep() {
             else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         } // end d : depots
 
-    //long long brr = gInterface->debug->getTimer("botStepCounter");
+    long long stepSize = gInterface->debug->getTimer("botStepCounter");
+    gInterface->debug->debugTextOut("\nstepSize: " + std::to_string(stepSize));
+    gInterface->debug->sendDebug();
     //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
     //logger.addPlotData("step size", "step size (ms)", (float) brr);
     //logger.writePlotRow("step size");

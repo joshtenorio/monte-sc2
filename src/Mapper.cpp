@@ -241,10 +241,10 @@ void Mapper::sortExpansions(sc2::Point2D point){
             const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
             if(cc != nullptr)
 
-            // case 1: its the enemy expansion, set distance to flight distance
+            // case 1: its the enemy expansion, set distance to squared flight distance
             if(sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), expansions[n].baseLocation) < 25){
-                expansions[n].distanceToStart = sc2::Distance2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(),
-                                                                cc->pos);
+                // squared flight distance bc on some maps the flight distance is shorter than enemy natural + others
+                expansions[n].distanceToStart = sc2::DistanceSquared2D(gInterface->observation->GetGameInfo().enemy_start_locations.front(), cc->pos);
             }
             // case 2: its our expansion
             else if(sc2::DistanceSquared2D(cc->pos, expansions[n].baseLocation) < 49){

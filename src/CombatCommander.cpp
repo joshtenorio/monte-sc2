@@ -5,6 +5,7 @@ CombatCommander::CombatCommander(){
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
     harassGroup = Squad("harass", 7);
+    idleGroup = Squad("idle", 0);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
 
@@ -15,6 +16,7 @@ CombatCommander::CombatCommander(Strategy* strategy_){
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
     harassGroup = Squad("harass", 7);
+    idleGroup = Squad("idle", 0);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
     harassTarget = sc2::Point2D(0,0);
@@ -29,6 +31,8 @@ void CombatCommander::OnGameStart(){
 
     mainArmy.initialize();
     harassGroup.initialize();
+    idleGroup.initialize();
+
 }
 
 void CombatCommander::OnStep(){
@@ -46,16 +50,25 @@ void CombatCommander::OnStep(){
     
     // update squads after mapper initializes
     if(gInterface->observation->GetGameLoop() > 70 ){
-        
+
+        // idle group should defend
+        //idleGroup.setOrder(SquadOrderType::Defend, defenseTarget, 20);
+
         // give harass group(s) orders
         if(harassGroup.getStatus() == SquadStatus::Idle)
             harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
-        
 
         // give main army orders
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
+            
+            // transfer idleGroup units into main army
+            /*std::vector<GameObject> idleUnits = idleGroup.getUnits();
+            for(auto& g : idleUnits){
 
+                idleGroup.removeUnit(g.getTag());
+                mainArmy.addUnit(g.getTag());
+            }*/
         }
         else if(strategy->evaluate() == GameStatus::Bide){
             mainArmy.setOrder(SquadOrderType::Defend, defenseTarget, 20);
@@ -72,7 +85,6 @@ void CombatCommander::OnStep(){
         else if(strategy->evaluate() == GameStatus::Bide){
             gInterface->debug->debugTextOut("BIDE");
         }
-        gInterface->debug->sendDebug();
 
         
     } // end update squad
@@ -99,6 +111,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         // FIXME: medivac ???????
+            //idleGroup.addUnit(unit_->tag);
             mainArmy.addUnit(unit_->tag);
         break;
         case sc2::UNIT_TYPEID::TERRAN_REAPER:

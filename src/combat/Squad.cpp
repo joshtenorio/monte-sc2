@@ -32,6 +32,7 @@ SquadStatus Squad::onStep(Monte::InfluenceMap& gmap, Monte::InfluenceMap& amap){
         status = SquadStatus::Regroup;
     }
     else{
+        gInterface->debug->debugSphereOut(API::toPoint3D(order.target), order.radius);
         mm.execute(order, gmap, amap);
         status = SquadStatus::Busy;
     }
@@ -106,6 +107,7 @@ void Squad::setOrder(SquadOrderType type, sc2::Point2D target, float radius){
             supplyInitial += u.food;
         }
     }
+    status = SquadStatus::Busy;
 }
 
 void Squad::setPriority(size_t prio){
