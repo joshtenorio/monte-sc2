@@ -72,4 +72,4 @@ $ ./bin/Monte "/Users/josht/.../EverDream506.SC2Map"
 - the procedure for finding expansions is from [MulleMech](https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp)
 - Type conversion utilities are from [suvorov-bot](https://github.com/alkurbatov/suvorov-bot/blob/master/src/core/Converter.h)
 
-Both of the above projects use the MIT license.
+All of the above projects use the MIT license.
