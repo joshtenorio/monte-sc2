@@ -10,6 +10,7 @@ class GameObject {
 
     static const sc2::Unit* getUnit(sc2::Tag tag);
 
+    float food;
     const sc2::Unit* getUnit();
     sc2::UnitTypeData getData();
     sc2::UnitTypeID getType();
@@ -18,6 +19,7 @@ class GameObject {
 
     bool isValid();
     bool isFriendly();
+    bool isIdle();
     bool isFlying();
     bool isBuilding();
     bool isVisible();

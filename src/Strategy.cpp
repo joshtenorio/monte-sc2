@@ -3,6 +3,10 @@
 
 void Strategy::initialize(){}
 
+GameStatus Strategy::evaluate(){
+    return GameStatus::Bide;
+}
+
 void Strategy::debugPrintValidSteps(){
     // TODO: fix this
     /**
@@ -109,7 +113,7 @@ int Strategy::getBuildOrderSize(){
     return buildOrder.size();
 }
 
-ProductionConfig Strategy::getConfig(){
+ProductionConfig Strategy::getProductionConfig(){
     return config;
 }
 

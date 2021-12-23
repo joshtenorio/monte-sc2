@@ -6,6 +6,9 @@ void OnGameStart(){
     // hehe
 }
 
+sc2::Point3D toPoint3D(sc2::Point2D p){
+    return sc2::Point3D(p.x, p.y, gInterface->observation->TerrainHeight(p));
+}
 int countIdleUnits(sc2::UNIT_TYPEID type){
     sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(type));
     int c = 0;
@@ -39,7 +42,6 @@ int countUnitType(sc2::Filter filter){
     int c = 0;
     return c;
 }
-
 
 sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType){
     sc2::Units pool;
@@ -102,7 +104,6 @@ float getStructureRadiusByAbility(sc2::ABILITY_ID ability){
             break;
     }
 }
-
 
 sc2::ABILITY_ID unitTypeIDToAbilityID(sc2::UNIT_TYPEID unit){
     switch(unit){
@@ -530,7 +531,6 @@ sc2::UNIT_TYPEID abilityToUnitTypeID(sc2::ABILITY_ID ability){
         case sc2::ABILITY_ID::BUILD_REACTOR: // not sure what to do with these, probably just return default
         case sc2::ABILITY_ID::BUILD_TECHLAB:
         default:
-            std::cout << "API: abilitytounittypeid returning protoss assimilator" << std::endl;
             return sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR; // placeholder
     }
 }
@@ -627,7 +627,6 @@ bool isWorker(sc2::UNIT_TYPEID unit){
         return false;
     }
 }
-
 
 } // end namespace
 std::unique_ptr<Interface> gInterface;

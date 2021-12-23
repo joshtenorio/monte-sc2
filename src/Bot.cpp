@@ -18,7 +18,7 @@ Bot::Bot(){
     logger = Logger("Bot");
     debug = Monte::Debug(Debug());
     gInterface.reset(new Interface(Observation(), Actions(), Query(), &debug, &wm, &map, 1));
-    cc = CombatCommander();
+    cc = CombatCommander(dynamic_cast<Strategy*>(strategy));
 
 }
 
@@ -32,6 +32,8 @@ void Bot::OnGameStart(){
 
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
     depotTypes.emplace_back(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
+
+    strategy->initialize();
 
     API::OnGameStart();
     im.OnGameStart();
@@ -96,6 +98,14 @@ void Bot::OnStep() {
     if(Observation()->GetGameLoop() == 50)
         map.initialize();
 
+    // get targets from information manager
+    if(Observation()->GetGameLoop() > 60){
+        cc.setLocationTarget(im.findLocationTarget());
+        cc.setLocationDefense(im.findLocationDefense());
+        cc.setHarassTarget(im.findHarassTarget(4));
+    }
+
+
     im.OnStep();
     pm.OnStep();
     wm.OnStep();
@@ -119,7 +129,9 @@ void Bot::OnStep() {
             else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         } // end d : depots
 
-    //long long brr = gInterface->debug->getTimer("botStepCounter");
+    long long stepSize = gInterface->debug->getTimer("botStepCounter");
+    gInterface->debug->debugTextOut("\nstepSize: " + std::to_string(stepSize));
+    gInterface->debug->sendDebug();
     //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
     //logger.addPlotData("step size", "step size (ms)", (float) brr);
     //logger.writePlotRow("step size");

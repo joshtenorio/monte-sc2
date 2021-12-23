@@ -17,6 +17,11 @@ void InformationManager::OnGameStart(){
             enemyRace = p.race_requested;
             break;
         }
+
+    harassTable.reserve(40);
+    for(int n = 0; n < 40; n++){
+        harassTable.emplace_back(0);
+    }
 }
 
 void InformationManager::OnStep(){
@@ -71,11 +76,13 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         int numMarines = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
         int numMedivacs = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MEDIVAC);
         float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
-        currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
-
-        // if we need anti air and we are building liberators, build vikings instead
-        if(currentPConfig.starportOutput == sc2::ABILITY_ID::TRAIN_LIBERATOR && requireAntiAir)
+        
+        if(requireAntiAir){
             currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
+        }
+        else
+            currentPConfig.starportOutput = (currRatio > medicRatio ? sc2::ABILITY_ID::TRAIN_MEDIVAC : sc2::ABILITY_ID::TRAIN_LIBERATOR);
+
     }
 
 
@@ -84,6 +91,67 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
 
 CombatConfig InformationManager::updateCombatConfig(CombatConfig& currentCConfig){
     return currentCConfig; //tmp
+}
+
+sc2::Point2D InformationManager::findLocationTarget(){
+
+    // attack closest enemy expansion
+    Expansion* closestEnemyExpo = nullptr;
+    for(int n = 0; n < gInterface->map->numOfExpansions(); n++){
+        // check if it is an enemy expansion and we are not at that base
+        if(gInterface->map->getNthExpansion(n)->ownership == OWNER_ENEMY)
+        {
+            closestEnemyExpo = gInterface->map->getNthExpansion(n);
+            return closestEnemyExpo->baseLocation;
+        }
+    } // end for expansions
+
+    // this if is technically redundant
+    if(closestEnemyExpo)
+        return closestEnemyExpo->baseLocation;
+    else
+        return gInterface->observation->GetGameInfo().enemy_start_locations.front();
+}
+
+sc2::Point2D InformationManager::findLocationDefense(){
+    sc2::Point2D defensePoint = sc2::Point2D(0,0);
+    for(int i = 2; i >=0; i--){
+        if(gInterface->map->getNthExpansion(i)->ownership == OWNER_SELF){
+            defensePoint = gInterface->map->getNthExpansion(i)->baseLocation;
+            break;
+        }
+    }
+    return defensePoint;
+}
+
+sc2::Point2D InformationManager::findHarassTarget(int type){
+    // find a target
+    Expansion* target = nullptr;
+    int eNumber = gInterface->map->numOfExpansions() - 1;
+    for(int n = eNumber; n >= 0; n--){
+        Expansion* e = gInterface->map->getNthExpansion(n);
+        if(!e) continue;
+        else if(e->ownership != OWNER_ENEMY) continue;
+        else if(harassTable[n] < harassTable[eNumber]){
+            eNumber = n;
+            target = e;
+        }
+    }
+    if(!target){
+        sc2::Point2D enemyMain = gInterface->observation->GetGameInfo().enemy_start_locations.front();
+        target = gInterface->map->getClosestExpansion(sc2::Point3D(enemyMain.x, enemyMain.y, gInterface->observation->GetGameInfo().height));
+        // get the expansion number of enemy main
+        for(int n = eNumber; n >= 0; n--){
+            if(target->baseLocation == gInterface->map->getNthExpansion(n)->baseLocation){
+                harassTable[n]++;
+                break;
+            }
+        }
+    }
+    else{
+        harassTable[eNumber]++;
+    }
+    return target->baseLocation;
 }
 
 void InformationManager::updateExpoOwnership(){
@@ -129,8 +197,21 @@ void InformationManager::checkForMassAir(){
     
     int bcCount = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
     int fusionCoreExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE)).size();
+    int colossusExists = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::PROTOSS_COLOSSUS)).size();
+
+    int numFlyingBuildings = gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit& u){
+        switch(u.unit_type.ToType()){
+            case sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING:
+            case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING:
+            return true;
+        }
+        return false;
+    }).size();
     
-    if((bcCount || fusionCoreExists) && !requireAntiAir){
+    if((bcCount || fusionCoreExists || colossusExists || numFlyingBuildings >= 2) && !requireAntiAir){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }
@@ -138,7 +219,7 @@ void InformationManager::checkForMassAir(){
     if(gInterface->observation->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsUnit(sc2::UNIT_TYPEID::ZERG_SPIRE)).size() >= 1)
         spireExists = true;
     
-    if((mutaCount >= 4 && !requireAntiAir) || (spireExists && !requireAntiAir)){ // TODO: muta threshold probably needs tuning
+    if((mutaCount >= 4 && !requireAntiAir) || (spireExists && !requireAntiAir)){
         requireAntiAir = true;
         logger.tag("require_anti_air");
     }

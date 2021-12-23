@@ -4,49 +4,101 @@ CombatCommander::CombatCommander(){
     sm = ScoutManager();
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
+    harassGroup = Squad("harass", 7);
+    idleGroup = Squad("idle", 0);
+    attackTarget = sc2::Point2D(0,0);
+    defenseTarget = sc2::Point2D(0,0);
 
 }
 
-void CombatCommander::OnGameStart(){
+CombatCommander::CombatCommander(Strategy* strategy_){
+    strategy = strategy_;
+    logger = Logger("CombatCommander");
+    mainArmy = Squad("main", 10);
+    harassGroup = Squad("harass", 7);
+    idleGroup = Squad("idle", 0);
+    attackTarget = sc2::Point2D(0,0);
+    defenseTarget = sc2::Point2D(0,0);
+    harassTarget = sc2::Point2D(0,0);
+}
 
+void CombatCommander::OnGameStart(){
     sm.OnGameStart();
+    //config = strategy->getCombatConfig();
 
     groundMap.initialize();
     airMap.initialize();
 
     mainArmy.initialize();
+    harassGroup.initialize();
+    idleGroup.initialize();
+
 }
 
 void CombatCommander::OnStep(){
     
     // update influence maps
-    // TODO: uncomment this at some point, bc it should be passed to squad/micromanager
     if(gInterface->observation->GetGameLoop() % 4 == 0){
-        //groundMap.setGroundMap();
-        //groundMap.propagate();
+        groundMap.setGroundMap();
+        groundMap.propagate();
         //airMap.setAirMap();
         //airMap.propagate();
     }
 
     // scout manager
     sm.OnStep();
+    
+    // update squads after mapper initializes
+    if(gInterface->observation->GetGameLoop() > 70 ){
 
+        // idle group should defend
+        //idleGroup.setOrder(SquadOrderType::Defend, defenseTarget, 20);
 
+        // give harass group(s) orders
+        if(harassGroup.getStatus() == SquadStatus::Idle)
+            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
+
+        // give main army orders
+        if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
+            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
+            
+            // transfer idleGroup units into main army
+            /*std::vector<GameObject> idleUnits = idleGroup.getUnits();
+            for(auto& g : idleUnits){
+
+                idleGroup.removeUnit(g.getTag());
+                mainArmy.addUnit(g.getTag());
+            }*/
+        }
+        else if(strategy->evaluate() == GameStatus::Bide){
+            mainArmy.setOrder(SquadOrderType::Defend, defenseTarget, 20);
+        }
+
+        // do micro stuff
+        mainArmy.onStep(groundMap, airMap);
+        harassGroup.onStep(groundMap, airMap);
+
+        // debug
+        if(strategy->evaluate() == GameStatus::Attack){
+            gInterface->debug->debugTextOut("ATTACK");
+        }
+        else if(strategy->evaluate() == GameStatus::Bide){
+            gInterface->debug->debugTextOut("BIDE");
+        }
+
+        
+    } // end update squad
+
+    
 
     // handle killing changelings every so often
     if(gInterface->observation->GetGameLoop() % 24 == 0){
         handleChangelings();
     } // end if gameloop % 24 == 0
     
-    if(gInterface->observation->GetGameLoop() > 70 ){
-        mainArmy.onStep();
-    }
-    
-
     // if we have a bunker, put marines in it
     // TODO: fix
     sc2::Units bunkers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
-
 } // end OnStep
 
 void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
@@ -54,22 +106,29 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
 
     // TODO: don't add first 4 marines to attacksquad, they go into bunker
     switch(unit_->unit_type.ToType()){
-        case sc2::UNIT_TYPEID::TERRAN_REAPER:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
-        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
+        // FIXME: medivac ???????
+            //idleGroup.addUnit(unit_->tag);
             mainArmy.addUnit(unit_->tag);
         break;
+        case sc2::UNIT_TYPEID::TERRAN_REAPER:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
+        case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
+            harassGroup.addUnit(unit_->tag);
     }
     
 }
 
 void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
-    mainArmy.removeUnit(unit_->tag);
+    if(!unit_->is_building){
+        mainArmy.removeUnit(unit_->tag);
+        harassGroup.removeUnit(unit_->tag);
+    }
 
 }
 
@@ -120,6 +179,19 @@ void CombatCommander::OnUnitDamaged(const sc2::Unit* unit_, float health_, float
 void CombatCommander::OnUnitEnterVision(const sc2::Unit* unit_){
     sm.OnUnitEnterVision(unit_);
 }
+
+void CombatCommander::setLocationTarget(sc2::Point2D loc){
+    attackTarget = loc;
+}
+
+void CombatCommander::setLocationDefense(sc2::Point2D loc){
+    defenseTarget = loc;
+}
+
+void CombatCommander::setHarassTarget(sc2::Point2D loc){
+    harassTarget = loc;
+}
+
 
 void CombatCommander::handleChangelings(){
     // TODO: move this to somehwere where we only do this once

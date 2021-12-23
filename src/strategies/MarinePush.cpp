@@ -32,3 +32,23 @@ void MarinePush::initialize(){
     pushBuildOrderStep(TYPE_SET_PRODUCTION, sc2::ABILITY_ID::TRAIN_MEDIVAC, STEP_NONBLOCKING, STEP_HIGHEST_PRIO);
 
 }
+
+GameStatus MarinePush::evaluate(){
+    int numPerWave = 5 + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) * 3;
+    if(
+        API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::countIdleUnits(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave ||
+        gInterface->observation->GetFoodUsed() >= 200){
+            currentStatus = GameStatus::Attack;
+            return GameStatus::Attack;
+    }
+    else if( // continue attacking if we still have more than half our bio
+        currentStatus == GameStatus::Attack &&
+        API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) + API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) >= numPerWave/2){
+            return GameStatus::Attack;
+    }
+    else{
+        currentStatus = GameStatus::Bide;
+        return GameStatus::Bide;
+    }
+
+}

@@ -16,6 +16,10 @@ class InformationManager : public Manager {
     ProductionConfig updateProductionConfig(ProductionConfig& currentPConfig);
     CombatConfig updateCombatConfig(CombatConfig& currentCConfig);
 
+    sc2::Point2D findLocationTarget();
+    sc2::Point2D findLocationDefense();
+    sc2::Point2D findHarassTarget(int type); // TODO: define an enum that determines type of harass; ie liberator, mine drop, etc
+
     protected:
 
     void updateExpoOwnership();
@@ -45,6 +49,9 @@ class InformationManager : public Manager {
     bool spireExists = false;
 
     std::vector<float> income;
+
+    std::vector<short> harassTable; // TODO: move this elsewhere, its only here for compile purposes
+
 
 
 };

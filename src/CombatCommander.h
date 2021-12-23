@@ -8,15 +8,16 @@
 #include "Manager.h"
 #include "Strategy.h"
 #include "ScoutManager.h"
-#include "InfluenceMap.h"
+#include "combat/InfluenceMap.h"
 #include "combat/Squad.h"
+#include "combat/CombatTools.h"
 
 
 class CombatCommander : public Manager {
     public:
     // constructors
     CombatCommander();
-    // TODO: add a constructor with strategy
+    CombatCommander(Strategy* strategy_);
 
     void OnGameStart();
     void OnStep();
@@ -24,6 +25,10 @@ class CombatCommander : public Manager {
     void OnUnitDestroyed(const sc2::Unit* unit_);
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
+
+    void setLocationTarget(sc2::Point2D loc);
+    void setLocationDefense(sc2::Point2D loc);
+    void setHarassTarget(sc2::Point2D loc);
 
     void handleChangelings();
 
@@ -34,10 +39,17 @@ class CombatCommander : public Manager {
     protected:
     ScoutManager sm;
     CombatConfig config;
+    Strategy* strategy;
 
     //std::map<std::string, Squad> squads;
     Squad mainArmy;
+    Squad harassGroup;
+    Squad idleGroup;
 
     Monte::InfluenceMap groundMap;
     Monte::InfluenceMap airMap;
+
+    sc2::Point2D attackTarget;
+    sc2::Point2D defenseTarget;
+    sc2::Point2D harassTarget;
 };

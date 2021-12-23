@@ -2,6 +2,7 @@
 
 GameObject::GameObject(sc2::Tag gTag){
     tag = gTag;
+    food = getData().food_required;
 }
 
 const sc2::Unit* GameObject::getUnit(sc2::Tag tag){
@@ -37,6 +38,11 @@ bool GameObject::isValid(){
 bool GameObject::isFriendly(){
     if(!isValid()) return isValid();
     return getUnit()->alliance == sc2::Unit::Alliance::Self;
+}
+
+bool GameObject::isIdle(){
+    if(!isValid()) return true;
+    return getUnit()->orders.empty();
 }
 
 bool GameObject::isFlying(){

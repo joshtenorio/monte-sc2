@@ -36,10 +36,9 @@ void ProductionManager::OnStep(){
     // handle building scvs/auto morphing ccs
     handleTownHalls();
 
-    // TODO: temporarily removed while testing handleBuildOrder();
-    
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
+
         tryBuildCommandCenter();
         // if we are prioritising expansion, don't bother doing any other steps
         // since we need to save up money
@@ -94,11 +93,11 @@ void ProductionManager::OnStep(){
 void ProductionManager::OnGameStart(){
     bm.OnGameStart();
     
-    strategy->initialize();
-    config = strategy->getConfig();
+    config = strategy->getProductionConfig();
 
     logger.initializePlot({"game loop", "mineral income", "vespene income", "num of bases"}, "income");
     logger.initializePlot({"game loop", "bases"}, "basecount");
+
 }
 
 void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
@@ -126,9 +125,8 @@ void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building
             // remove step from build order
             strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
-        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            gInterface->map->setExpansionOwnership(building_->pos, OWNER_SELF);
-            
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:     
+        break;       
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -141,8 +139,10 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
         bm.OnUnitCreated(unit_);
     
     // set to false since we just expanded
-    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER)
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER){
+        gInterface->map->setExpansionOwnership(unit_->pos, OWNER_SELF);
         config.prioritiseExpansion = false;
+    }
 
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure
@@ -409,7 +409,7 @@ void ProductionManager::parseStep(Step s){
             }
 
             // 3. remove the step from buildorder
-            strategy->removeStep(s); // TODO: make sure this is working and doesn't have any side effects
+            strategy->removeStep(s);
             break;
     }
 }
@@ -461,7 +461,6 @@ void ProductionManager::trainUnit(Step s){
     tryTrainUnit(s.getAbility(), 1);
 }
 
-// TODO: this could probably be combined with morphStructure, into some function called castBuildingAbility or whatever
 void ProductionManager::castBuildingAbility(Step s){
     // find research building that corresponds to the research ability
     sc2::UNIT_TYPEID structureID = API::abilityToUnitTypeID(s.getAbility());
@@ -595,7 +594,6 @@ bool ProductionManager::tryTrainUnit(sc2::ABILITY_ID unitToTrain, int n){
         if(b->build_progress < 1.0) continue;
 
         if(b->orders.empty() && !isBuildingBusy(b->tag)){
-            //logger.infoInit().withStr("training unit").withInt((int) unitToTrain).write();
             gInterface->actions->UnitCommand(b, unitToTrain);
             busyBuildings.emplace_back(b->tag);
             return true;
@@ -617,8 +615,6 @@ void ProductionManager::handleUpgrades(){
             sc2::UNIT_TYPEID::TERRAN_THORAP
         }));
     // get random flying unit
-    
-
     
     // get current upgrade levels
     // FIXME: the combat shields stuff here is temporary
@@ -643,8 +639,6 @@ void ProductionManager::handleUpgrades(){
         }
     }
 
-    // FIXME: see if theres a better way to do this - based on what is higher, queue one upgrade then the other
-    // based on those upgrade levels, select the next upgrade to prioritise
     if(infantryWeapons > infantryArmor){
         upgradeInfantryArmor(infantryArmor);
         upgradeInfantryWeapons(infantryWeapons);

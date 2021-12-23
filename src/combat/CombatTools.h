@@ -2,7 +2,7 @@
 
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
-#include "InfluenceMap.h"
+#include "combat/InfluenceMap.h"
 #include "GameObject.h"
 
 enum class SquadOrderType {
@@ -11,12 +11,14 @@ enum class SquadOrderType {
     Defend,
     Harass,
     Regroup,
+    Cleanup,
     Idle
 };
 
 enum class SquadStatus {
     Idle,
-    Busy
+    Busy,
+    Regroup
 };
 
 typedef struct SquadOrder_s_t {
@@ -75,3 +77,8 @@ typedef struct Liberator_s_t : public GameObject {
     sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);
     sc2::Point2D targetFlightPoint = sc2::Point2D(-1, -1);
 } Liberator;
+
+typedef struct Viking_s_t : public GameObject {
+    Viking_s_t(sc2::Tag tag_) : GameObject(tag_) {};
+    sc2::Tag target;
+} Viking;
