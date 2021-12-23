@@ -11,6 +11,7 @@ void MicroManager::execute(SquadOrder& order, Monte::InfluenceMap& gmap, Monte::
         medivacOnStep(order);
         siegeTankOnStep(order);
         reaperOnStep(gmap);
+        vikingOnStep(order, amap);
     }
 
     marineOnStep(order);
@@ -46,6 +47,10 @@ void MicroManager::addUnit(sc2::Tag tag){
         case sc2::UNIT_TYPEID::TERRAN_LIBERATORAG:
             liberators.emplace_back(Liberator(tag));
         break;
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+            vikings.emplace_back(Viking(tag));
+        break;
         default:
             bio.emplace_back(GameObject(tag));
         break;
@@ -77,6 +82,13 @@ bool MicroManager::removeUnit(sc2::Tag tag){
     for(auto itr = reapers.begin(); itr != reapers.end(); ){
         if((*itr).getTag() == tag){
             itr = reapers.erase(itr);
+            return true;
+        }
+        else ++itr;
+    }
+    for(auto itr = vikings.begin(); itr != vikings.end(); ){
+        if((*itr).getTag() == tag){
+            itr = vikings.erase(itr);
             return true;
         }
         else ++itr;
@@ -563,4 +575,8 @@ void MicroManager::liberatorOnStep(SquadOrder& order){
                 break;
         } // end switch l.state
     } // end for l : liberators
+}
+
+void MicroManager::vikingOnStep(SquadOrder& order, Monte::InfluenceMap& airMap){
+
 }

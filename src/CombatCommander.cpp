@@ -108,6 +108,7 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
     switch(unit_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         // FIXME: medivac ???????

@@ -117,6 +117,9 @@ void Squad::setPriority(size_t prio){
 void Squad::addUnit(sc2::Tag tag){
     units.emplace_back(GameObject(tag));
     mm.addUnit(tag);
+    if(getStatus() == SquadStatus::Busy){
+        supplyInitial += GameObject(tag).food;
+    }
 }
 
 bool Squad::removeUnit(sc2::Tag tag){

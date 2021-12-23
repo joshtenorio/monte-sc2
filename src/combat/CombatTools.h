@@ -77,3 +77,8 @@ typedef struct Liberator_s_t : public GameObject {
     sc2::Point2D intermediateFlightPoint = sc2::Point2D(-1, -1);
     sc2::Point2D targetFlightPoint = sc2::Point2D(-1, -1);
 } Liberator;
+
+typedef struct Viking_s_t : public GameObject {
+    Viking_s_t(sc2::Tag tag_) : GameObject(tag_) {};
+    sc2::Tag target;
+} Viking;

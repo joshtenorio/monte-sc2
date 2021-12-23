@@ -23,6 +23,7 @@ class MicroManager {
     void siegeTankOnStep(SquadOrder& order);
     void reaperOnStep(Monte::InfluenceMap& groundMap);
     void liberatorOnStep(SquadOrder& order);
+    void vikingOnStep(SquadOrder& order, Monte::InfluenceMap& airMap);
     // TODO: if nearby marine count is low
     // focus on putting down auto turrets, else use anti armor missles
     void ravenOnStep();
@@ -36,6 +37,7 @@ class MicroManager {
     std::vector<Reaper> reapers;
     std::vector<Liberator> liberators;
     std::vector<GameObject> bio;
+    std::vector<Viking> vikings;
 
 
     bool timeToCleanup;
