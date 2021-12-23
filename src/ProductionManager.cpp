@@ -36,8 +36,6 @@ void ProductionManager::OnStep(){
     // handle building scvs/auto morphing ccs
     handleTownHalls();
 
-    // TODO: temporarily removed while testing handleBuildOrder();
-    
     // if queue still empty and strategy is done, just do normal macro stuff
     if(strategy->isEmpty() && strategy->peekNextBuildOrderStep() == STEP_NULL){
 
@@ -127,9 +125,8 @@ void ProductionManager::OnBuildingConstructionComplete(const sc2::Unit* building
             // remove step from build order
             strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType())); // TODO: is this redundant?
             return;
-        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
-            gInterface->map->setExpansionOwnership(building_->pos, OWNER_SELF);
-            
+        case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:     
+        break;       
     }
     
     strategy->removeStep(API::unitTypeIDToAbilityID(building_->unit_type.ToType()));
@@ -142,8 +139,10 @@ void ProductionManager::OnUnitCreated(const sc2::Unit* unit_){
         bm.OnUnitCreated(unit_);
     
     // set to false since we just expanded
-    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER)
+    if(gInterface->observation->GetGameLoop() > 50 && unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER){
+        gInterface->map->setExpansionOwnership(unit_->pos, OWNER_SELF);
         config.prioritiseExpansion = false;
+    }
 
     // loop through production queue to check which Step corresponds to the unit
     // that just finished and make sure that unit created is a unit, not a structure

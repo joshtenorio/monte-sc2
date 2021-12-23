@@ -10,6 +10,7 @@
 #include "ScoutManager.h"
 #include "combat/InfluenceMap.h"
 #include "combat/Squad.h"
+#include "combat/CombatTools.h"
 
 
 class CombatCommander : public Manager {

@@ -47,9 +47,12 @@ void CombatCommander::OnStep(){
     // update squads after mapper initializes
     if(gInterface->observation->GetGameLoop() > 70 ){
         
+        // give harass group(s) orders
         if(harassGroup.getStatus() == SquadStatus::Idle)
             harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
         
+
+        // give main army orders
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
             mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
 
@@ -57,9 +60,12 @@ void CombatCommander::OnStep(){
         else if(strategy->evaluate() == GameStatus::Bide){
             mainArmy.setOrder(SquadOrderType::Defend, defenseTarget, 20);
         }
-        SquadStatus armyStatus = mainArmy.onStep(groundMap, airMap);
-        SquadStatus harassStatus = harassGroup.onStep(groundMap, airMap);
 
+        // do micro stuff
+        mainArmy.onStep(groundMap, airMap);
+        harassGroup.onStep(groundMap, airMap);
+
+        // debug
         if(strategy->evaluate() == GameStatus::Attack){
             gInterface->debug->debugTextOut("ATTACK");
         }
@@ -69,7 +75,7 @@ void CombatCommander::OnStep(){
         gInterface->debug->sendDebug();
 
         
-    }
+    } // end update squad
 
     
 

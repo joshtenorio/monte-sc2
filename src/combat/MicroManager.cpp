@@ -237,7 +237,7 @@ void MicroManager::siegeTankOnStep(SquadOrder& order){
                         }
                     break;
                     case SquadOrderType::Defend:
-                        if(sc2::DistanceSquared2D(st.getPos(), order.target) > 36){
+                        if(sc2::Distance2D(st.getPos(), order.target) > order.radius/4){
                             st.attack(order.target);
                         }
                         else{
@@ -252,9 +252,15 @@ void MicroManager::siegeTankOnStep(SquadOrder& order){
             // stay sieged if:
             //  structure within r=13
             //  any unit within r=16
-            //  squad is currently defending
-            if(order.type == SquadOrderType::Defend)
-                break;
+            //  squad is currently defending and we are within the order radius
+            if(order.type == SquadOrderType::Defend){
+                if(sc2::Distance2D(st.getPos(), order.target) > order.radius/4){
+                    st.state = TankState::Unsieging;
+                }
+                else{
+                    break;
+                }
+            }
             for(auto& e : closestEnemies){
                 if(e->is_building && sc2::Distance2D(t->pos, e->pos) <= 13){
                     morph = false;
