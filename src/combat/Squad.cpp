@@ -48,6 +48,7 @@ void Squad::setOrder(SquadOrderType type, sc2::Point2D target, float radius){
         case SquadOrderType::Attack:
         case SquadOrderType::Defend:
         supplyInitial = 0;
+        supplyRemoved = 0;
         for(auto& u : units){
             if(!u.isValid()) continue;
             supplyInitial += u.food;
@@ -137,8 +138,9 @@ sc2::Point2D Squad::getCenter(){
 
 bool Squad::shouldRegroup(){
     // regroup if we've lost half or more our initial supply
-    if(supplyInitial - supplyRemoved >= supplyInitial/2)
-        return true;
+    // FIXME: breaks at beginning of game
+    //if(supplyInitial - supplyRemoved >= supplyInitial/2)
+    //    return true;
     
     return false;
 }
