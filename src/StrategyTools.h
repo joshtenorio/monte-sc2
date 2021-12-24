@@ -24,6 +24,11 @@
 #define COMBAT_AGGRESSIVE   0
 #define COMBAT_BIDE         1
 
+enum class GameStatus {
+    Attack,
+    Bide
+};
+
 typedef struct MetaType_s_t {
     MetaType_s_t() {};
     MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}
@@ -42,7 +47,7 @@ typedef struct MetaType_s_t {
 } MetaType;
 
 typedef struct Step_s_t {
-    Step_s_t() { container.type = TYPE_NULL; priority = -1; };
+    Step_s_t() { container.type = TYPE_NULL; priority = -1; blocking = false; };
     Step_s_t(int mtType, sc2::ABILITY_ID mtAbility, bool blocking_, int priority_, int reqSupply_) :
                 container(mtType, mtAbility), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
 
@@ -94,8 +99,11 @@ typedef struct ProductionConfig_s_t {
     short maxStarports = 2;
     short maxRefineries = 6;
     short maxEngineeringBays = 2;
-    short maxArmories = 1;
+    short maxArmories = 2;
     short maxOrbitals = 3; //std::numeric_limits<short>::max();
+    float marineMarauderRatio = 2; // marines:marauders; this number is __ marines to 1 marauder. if this is -1, then dont build marauders
+    float marineMedivacRatio = 7; // marines:medivacs; __ marines to 1 medivac
+    int bank = 0; // how many minerals we should bank up
 
     // if we should automatically morph a cc
     bool autoMorphCC = true;
@@ -105,6 +113,8 @@ typedef struct ProductionConfig_s_t {
 
     // if we need missile turrets
     bool buildTurrets = false;
+
+    bool prioritiseExpansion = false;
 
     // defines what we produce by default
     sc2::ABILITY_ID barracksOutput = PRODUCTION_UNUSED;
@@ -128,11 +138,15 @@ typedef struct ProductionConfig_s_t {
         maxEngineeringBays = pc.maxEngineeringBays;
         maxArmories = pc.maxArmories;
         maxOrbitals = pc.maxOrbitals;
+        marineMarauderRatio = pc.marineMarauderRatio;
+        marineMedivacRatio = pc.marineMedivacRatio;
+        bank = pc.bank;
 
         autoMorphCC = pc.autoMorphCC;
    
         pullWorkers = pc.pullWorkers;
         buildTurrets = pc.buildTurrets;
+        prioritiseExpansion = pc.prioritiseExpansion;
 
         barracksOutput = pc.barracksOutput;
         barracksTechOutput = pc.barracksTechOutput;
@@ -151,11 +165,12 @@ typedef struct CombatConfig_s_t {
     CombatConfig_s_t() {};
 
     char combatState = COMBAT_BIDE; // define whether or not we should be always attacking or wait for waves
-    int bioWaveSize; // should this be the barracks multiplier instead?
+    int bioMultiplier = 3; // should this be the barracks multiplier instead?
+    int minimumWave = 5;
 
     // TODO: this should be a std::map instead where they key is the unit type and the value is the maximum number
     int maxTanks;
-    int maxMedivacs;
+    int medivacMultiplier = 2; // this * numBarracks = max medivac number
 
 
     void operator = (const CombatConfig_s_t& cc){

@@ -16,7 +16,11 @@ class Strategy{
     void debugPrintValidSteps();
     
     // add initial steps to build orders
-    virtual void initialize(); // TODO: does this need {} here? 
+    virtual void initialize();
+
+    // condition for sending an attack
+    // TODO: should return an int, i.e. a score
+    virtual GameStatus evaluate();
 
     // for pushing things into build order
     void pushBuildOrderStep(int type, sc2::ABILITY_ID ability_, bool blocking_, int priority, int reqSupply_ = -1);
@@ -42,7 +46,7 @@ class Strategy{
     // misc functions
     bool isEmpty();
     int getBuildOrderSize();
-    ProductionConfig getConfig(); // TODO: rename this
+    ProductionConfig getProductionConfig(); // TODO: rename this
     CombatConfig getCombatConfig();
     int getType(sc2::ABILITY_ID ability); // gets the metaType for an ability
 
@@ -53,5 +57,6 @@ class Strategy{
     char strategyType;
     ProductionConfig config; // TODO: change this name to prodConfig or pConfig or something
     CombatConfig combatConfig; // cConfig ?
+    GameStatus currentStatus = GameStatus::Bide;
 
 };

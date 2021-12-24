@@ -1,51 +1,23 @@
 #pragma once
 
+#include <map>
 #include <sc2api/sc2_unit.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_agent.h>
 #include "api.h"
 #include "Manager.h"
+#include "Strategy.h"
 #include "ScoutManager.h"
-#include "InfluenceMap.h"
+#include "combat/InfluenceMap.h"
+#include "combat/Squad.h"
+#include "combat/CombatTools.h"
 
-namespace Monte {
-    enum class TankState {
-        Null = -1,
-        Unsieged,
-        Sieging,
-        Sieged,
-        Unsieging
-    };
-
-    typedef struct Tank_s_t {
-        Tank_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::TankState::Null; };
-        sc2::Tag tag;
-        Monte::TankState state;
-    } Tank;
-
-    enum class ReaperState {
-        Null = -1,
-        Init,
-        Attack,
-        Kite,
-        Move,
-        Bide
-    };
-
-    typedef struct Reaper_s_t{
-        Reaper_s_t(sc2::Tag tag_) { tag = tag_; state = Monte::ReaperState::Init; };
-        sc2::Tag tag;
-        Monte::ReaperState state;
-        sc2::Point2D targetLocation = sc2::Point2D(-1, -1);
-    } Reaper;
-
-} // end namespace Monte
 
 class CombatCommander : public Manager {
     public:
     // constructors
-    CombatCommander() { sm = ScoutManager(); logger = Logger("CombatCommander"); };
-    // TODO: add a constructor with strategy
+    CombatCommander();
+    CombatCommander(Strategy* strategy_);
 
     void OnGameStart();
     void OnStep();
@@ -54,23 +26,31 @@ class CombatCommander : public Manager {
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_);
     void OnUnitEnterVision(const sc2::Unit* unit_);
 
-    void marineOnStep();
-    void medivacOnStep();
-    void siegeTankOnStep();
-    void reaperOnStep();
-    void ravenOnStep(); // if nearby marine count is low, focus on putting down auto turrets, else use anti armor missles
+    void setLocationTarget(sc2::Point2D loc);
+    void setLocationDefense(sc2::Point2D loc);
+    void setHarassTarget(sc2::Point2D loc);
 
     void handleChangelings();
+
+    CombatConfig& getCombatConfig();
     
+    bool isUnitInSquad(sc2::Tag tag);
 
     protected:
     ScoutManager sm;
+    CombatConfig config;
+    Strategy* strategy;
 
-    std::vector<Monte::Tank> tanks;
-    std::vector<Monte::Reaper> reapers;
+    //std::map<std::string, Squad> squads;
+    Squad mainArmy;
+    Squad harassGroup;
+    Squad vikingGroup;
+    Squad idleGroup;
 
-    // used for marine control
-    bool reachedEnemyMain;
-    std::vector<sc2::UNIT_TYPEID> bio; // filter for GetUnits
-    std::vector<sc2::UNIT_TYPEID> tankTypes; // filter for GetUnits
+    Monte::InfluenceMap groundMap;
+    Monte::InfluenceMap airMap;
+
+    sc2::Point2D attackTarget;
+    sc2::Point2D defenseTarget;
+    sc2::Point2D harassTarget;
 };

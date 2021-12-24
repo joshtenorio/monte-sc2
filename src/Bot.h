@@ -19,9 +19,8 @@
 // include more strategies here
 #include "strategies/MarinePush.h"
 
-using namespace sc2;
 
-class Bot : public Agent{
+class Bot : public sc2::Agent {
 
 public:
     Bot();
@@ -39,14 +38,14 @@ private:
     //TODO: maybe have a vector of managers?
     void OnGameStart() final;   
     void OnStep() final;
-    void OnBuildingConstructionComplete(const Unit* building_) final;
+    void OnBuildingConstructionComplete(const sc2::Unit* building_) final;
     void OnUpgradeCompleted(sc2::UpgradeID upgrade_) final;
-    void OnUnitCreated(const Unit* unit_) final;
-    void OnUnitIdle(const Unit* unit_) final;
+    void OnUnitCreated(const sc2::Unit* unit_) final;
+    void OnUnitIdle(const sc2::Unit* unit_) final;
     void OnUnitDestroyed(const sc2::Unit* unit_) final;
     void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_) final;
     void OnUnitEnterVision(const sc2::Unit* unit_) final;
-    void OnError(const std::vector<ClientError>& client_errors,
+    void OnError(const std::vector<sc2::ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors = {}) final;
     void OnGameEnd() final;
 

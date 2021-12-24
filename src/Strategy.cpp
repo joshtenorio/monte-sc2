@@ -3,6 +3,10 @@
 
 void Strategy::initialize(){}
 
+GameStatus Strategy::evaluate(){
+    return GameStatus::Bide;
+}
+
 void Strategy::debugPrintValidSteps(){
     // TODO: fix this
     /**
@@ -91,7 +95,7 @@ void Strategy::removeStep(Step s){
 void Strategy::removeStep(sc2::ABILITY_ID ability){
     // find the highest valid priority item with this ability
     // then use removeStep(Step s) to remove it
-    Step step;
+    Step step = STEP_NULL;
     for(auto& s : buildOrder){
         if(s.priority >= step.priority && s.getAbility() == ability)
             step = s;
@@ -109,7 +113,7 @@ int Strategy::getBuildOrderSize(){
     return buildOrder.size();
 }
 
-ProductionConfig Strategy::getConfig(){
+ProductionConfig Strategy::getProductionConfig(){
     return config;
 }
 

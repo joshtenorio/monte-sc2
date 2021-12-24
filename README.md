@@ -1,5 +1,10 @@
 # monte-bot
-
+- [monte-bot](#monte-bot)
+    - [About](#about)
+    - [Building](#building)
+        - [Windows](#windows)
+        - [Linux](#linux)
+    - [Thanks](#thanks)
 ## About
 Monte is a StarCraft II Terran rule-based bot.
 Its architecture is based off of parts of CommandCenter I liked.
@@ -7,10 +12,14 @@ Its architecture is based off of parts of CommandCenter I liked.
 Monte currently supports the following features:
 - Supports building for the [SC2 AI Arena ladder](https://aiarena.net/)
 - Building addons
-- worker distribution, including long-distance mining
-- calling MULES
+- Basic worker distribution, including long-distance mining
+- Calling MULES
 - Rudimentary scouting to find enemy bases
-- Getting infantry weapon/armor upgrades
+- Primitive Reaper micro
+
+![for the badge](./worker-rush-not-included.svg)
+
+More information can be found in the wiki (WIP).
 
 ## Building
 ### Windows
@@ -47,7 +56,8 @@ $ mkdir build && cd build
 # Generate a Makefile.
 # Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debuginfo is needed
 # Debug build also contains additional debug features and chat commands support.
-# or use 'cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0 ../' to build for aiarena ladder
+# or use 'cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0 ../' to build for aiarena ladder if using 4.10.0 IDs in code
+# otherwise, 'cmake -DBUILD_FOR_LADDER=ON ../' is fine for ladder too (for now)
 $ cmake ../
 
 # Build the project.
@@ -60,5 +70,6 @@ $ ./bin/Monte "/Users/josht/.../EverDream506.SC2Map"
 ## Thanks
 - ladder code, CMakelists and build instructions are from [BlankBot](https://github.com/cpp-sc2/blank-bot)
 - the procedure for finding expansions is from [MulleMech](https://github.com/ludlyl/MulleMech/blob/master/src/core/Map.cpp)
+- Type conversion utilities are from [suvorov-bot](https://github.com/alkurbatov/suvorov-bot/blob/master/src/core/Converter.h)
 
 Both of the above projects use the MIT license.

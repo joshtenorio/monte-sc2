@@ -7,10 +7,12 @@
 #include "WorkerManager.h"
 
 #include "api.h" // this breaks our "code style," but it is necessary for now to avoid circular definition
-// TODO: find a way to avoid workaround
 
-using namespace sc2;
 
+WorkerManager::WorkerManager(){
+    logger = Logger("WorkerManager");
+    //logger.initializePlot({"game loop", "long distance miners"}, "long distance mining");
+}
 const sc2::Unit* Worker::getUnit(){
     return gInterface->observation->GetUnit(tag);
 }
@@ -24,7 +26,7 @@ void WorkerManager::OnStep(){
     }
 }
 
-void WorkerManager::OnUnitCreated(const Unit* unit_){
+void WorkerManager::OnUnitCreated(const sc2::Unit* unit_){
     Worker w;
     if(gInterface->observation->GetGameLoop() < 20) w.job = JOB_GATHERING_MINERALS;
     else w.job = JOB_UNEMPLOYED;
@@ -37,16 +39,32 @@ void WorkerManager::OnUnitCreated(const Unit* unit_){
     
 }
 
-void WorkerManager::OnUnitDestroyed(const Unit* unit_){
-    Tag key = unit_->tag;
-    int index = 0;
-    for(auto itr = workers.begin(); itr != workers.end(); ){
-        if((*itr).tag == key){
-            itr = workers.erase(itr);
-            break;
+void WorkerManager::OnUnitDestroyed(const sc2::Unit* unit_){
+    if(unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+        unit_->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS){
+        // if a cc is destroyed, assume the closest 16 workers were mining minerals
+        // if not, its a close-enough approximation imo
+        sc2::Units nearbyWorkers = API::getClosestNUnits(unit_->pos, 16, 11, sc2::Unit::Alliance::Self, sc2::IsWorker());
+        for(auto& w : nearbyWorkers){
+            Worker* scv = gInterface->wm->getWorker(w->tag);
+            if(scv){
+                scv->job = JOB_LONGDISTANCE_MINE;
+            }
         }
-        else ++itr;
     }
+    else{
+        sc2::Tag key = unit_->tag;
+        int index = 0;
+        for(auto itr = workers.begin(); itr != workers.end(); ){
+            if((*itr).tag == key){
+                itr = workers.erase(itr);
+                break;
+            }
+            else ++itr;
+        }
+    }
+
 }
 
 void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
@@ -59,6 +77,15 @@ void WorkerManager::OnUnitIdle(const sc2::Unit* unit_){
     }
     else{
         logger.errorInit().withStr("e is nullptr").write();
+    }
+}
+
+void WorkerManager::OnBuildingConstructionComplete(const sc2::Unit* building_){
+    for(auto& w : workers){
+        if(!&w) continue;
+        if(w.job == JOB_LONGDISTANCE_MINE){
+            w.job = JOB_GATHERING_MINERALS;
+        }
     }
 }
 
@@ -98,7 +125,8 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 
     // 2. send to next base if base is overfull
-    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, IsTownHall());
+    int numLongDistanceMiners = 0;
+    sc2::Units ccs = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     for(auto& cc : ccs){
         if(cc->assigned_harvesters > cc->ideal_harvesters){
             // worker to move
@@ -118,12 +146,17 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
             }
             
             if(e != nullptr){
+                numLongDistanceMiners++;
                 const sc2::Unit* mineral = FindNearestMineralPatch(e->baseLocation);
                 gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, mineral);
-                w->job = JOB_GATHERING_MINERALS;
+                w->job = (e->ownership != OWNER_SELF ? JOB_LONGDISTANCE_MINE : JOB_GATHERING_MINERALS);
             }
         } // end if cc->assigned_harvesters > cc->ideal_harvesters
     } // end for cc : ccs
+
+    //logger.addPlotData("game loop", (float) gInterface->observation->GetGameLoop());
+    //logger.addPlotData("long distance miners", (float) numLongDistanceMiners);
+    //logger.writePlotRow();
 
     // 3. handle leftover workers that are unemployed/still idle
     for(auto& w : workers){
@@ -135,10 +168,10 @@ void WorkerManager::DistributeWorkers(int gasWorkers){
     }
 }
 
-const Unit* WorkerManager::FindNearestMineralPatch(const Point2D& start){
-    Units units = gInterface->observation->GetUnits(Unit::Alliance::Neutral, IsMineralPatch());
+const sc2::Unit* WorkerManager::FindNearestMineralPatch(const sc2::Point2D& start){
+    sc2::Units units = gInterface->observation->GetUnits(sc2::Unit::Alliance::Neutral, sc2::IsMineralPatch());
     float distance = std::numeric_limits<float>::max();
-    const Unit* target = nullptr;
+    const sc2::Unit* target = nullptr;
     for(const auto& u : units){
         if(DistanceSquared2D(u->pos, start) < distance){
             distance = DistanceSquared2D(u->pos, start);
@@ -167,8 +200,8 @@ Worker* WorkerManager::getFreeWorker(){
     return nullptr;
 }
 
-Worker* WorkerManager::getWorker(const Unit* unit_){
-    Tag key = unit_->tag;
+Worker* WorkerManager::getWorker(const sc2::Unit* unit_){
+    sc2::Tag key = unit_->tag;
     for(auto& w : workers){
         if(w.tag == key){
             return &w; 
@@ -217,20 +250,30 @@ Worker* WorkerManager::getClosestWorker(sc2::Point2D pos, int jobType){
     }
 }
 
-int WorkerManager::getNumWorkers(){
-    return workers.size();
+int WorkerManager::getNumWorkers(int jobType){
+    if(jobType == -1)
+        return workers.size();
+    else{
+        int c = 0;
+        for(auto& w : workers){
+            if(!&w) continue;
+            if(w.job == jobType) c++;
+        }
+        return c;
+    }
 }
 
 bool WorkerManager::isFree(Worker* w){
     if(
         w->job == JOB_GATHERING_MINERALS ||
-        w->job == JOB_UNEMPLOYED
+        w->job == JOB_UNEMPLOYED || 
+        w->job == JOB_LONGDISTANCE_MINE
     ) return true;
     else return false;
 }
 
 void WorkerManager::printDebug(){
-    int countUnemployed = 0, countMinerals = 0, countGas = 0, countBuilding = 0, countBuildingGas = 0, countScouting = 0;
+    int countUnemployed = 0, countMinerals = 0, countGas = 0, countBuilding = 0, countBuildingGas = 0, countScouting = 0, countLDMine = 0;
     // count how many of each worker type we have
     for(auto& w : workers){
         switch(w.job){
@@ -252,6 +295,9 @@ void WorkerManager::printDebug(){
             case JOB_SCOUTING:
                 countScouting++;
                 break;
+            case JOB_LONGDISTANCE_MINE:
+                countLDMine++;
+                break;
         }
     }
     // print to debug
@@ -261,6 +307,7 @@ void WorkerManager::printDebug(){
     gInterface->debug->debugTextOut("building : " + std::to_string(countBuilding));
     gInterface->debug->debugTextOut("building gas: " + std::to_string(countBuildingGas));
     gInterface->debug->debugTextOut("scouting: " + std::to_string(countScouting));
+    gInterface->debug->debugTextOut("long distance: " + std::to_string(countLDMine));
 
     gInterface->debug->sendDebug();
 }

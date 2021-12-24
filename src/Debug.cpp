@@ -2,6 +2,28 @@
 
 namespace Monte {
 
+Debug::Debug(){
+    logger = Logger("Debug");
+}
+
+Debug::Debug(sc2::DebugInterface* debug_): debug(debug_){
+    logger = Logger("Debug");
+}
+
+void Debug::createTimer(std::string name){
+    timers.insert({name, std::chrono::system_clock::now()});
+}
+
+long long Debug::getTimer(std::string name){
+    auto start = timers[name];
+    auto end = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+}
+
+void Debug::resetTimer(std::string name){
+    timers[name] = std::chrono::system_clock::now();
+}
+
 void Debug::sendDebug(){
     #ifdef BUILD_FOR_LADDER
     // don't send debug
