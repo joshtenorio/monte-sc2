@@ -66,7 +66,7 @@ std::vector<Ramp> findRamps(){
     } // while we still have ramp points to consider
 
     for(auto &r: ramps){
-        sc2::Point3D p = sc2::Point3D(r.points.front().x, r.points.front().y, gInterface->observation->TerrainHeight(r.points.front()));
+        sc2::Point3D p = API::toPoint3D(r.center());
         gInterface->debug->debugSphereOut(p, 8.0);
     }
     gInterface->debug->sendDebug();
