@@ -578,27 +578,54 @@ void MicroManager::liberatorOnStep(SquadOrder& order){
 }
 
 void MicroManager::vikingOnStep(SquadOrder& order, Monte::InfluenceMap& airMap){
-    sc2::Units localAirTargets = API::getClosestNUnits(order.target, 200, order.radius, sc2::Unit::Alliance::Enemy, [](const sc2::Unit& u){ return u.is_flying; });
     sc2::Units localTankTargets = API::getClosestNUnits(order.target, 200, order.radius, sc2::Unit::Alliance::Enemy, [](const sc2::Unit& u){ return !u.is_flying; });
     sc2::Units localAlliedTanks = API::getClosestNUnits(order.target, 10, order.radius, sc2::Unit::Alliance::Self, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED);
     switch(order.type){
         case SquadOrderType::Support: //order.target represents squad.getCenter() of the squad we are supporting
             for(auto& v : vikings){
+                if(!v.isValid()) continue;
+
                 // case 1. viking needs to be very near order.target:
                 sc2::Point2D position = order.target;
                 // 1a. there is a sieged tank nearby; viking should hover in front of the tank so it gets vision of the closest tank target
-                if(!localAlliedTanks.empty()){
+                if(!localAlliedTanks.empty() && !localTankTargets.empty()){ // TODO:
                     // find tank w/ shortest distance to an enemy
                     // create a vector from tank to enemy w/ magnitude ~1-2
                     // set tip of that vector to target
+                    const sc2::Unit* cTank = localAlliedTanks.front();
+                    const sc2::Unit* cEnemy = localTankTargets.front();
+                    for(auto& t : localAlliedTanks){
+                        for(auto& e : localTankTargets){
+                            if(!e || !t) continue;
+                            if(sc2::DistanceSquared2D(t->pos, e->pos) < sc2::DistanceSquared2D(cTank->pos, cEnemy->pos)){
+                                cTank = t;
+                                cEnemy = e;
+                            }
+                        }
+                    }
+                    Monte::Vector2D v(cTank->pos, cEnemy->pos);
+                    position = Monte::getPoint2D(cTank->pos, v, 1.5);
                 }
                 // 1b. no tank nearby so viking should hover at order.target
-                if(v.isValid() && sc2::Distance2D(v.getPos(), position) > 2){
+                if(sc2::Distance2D(v.getPos(), position) > 2){
                     v.move(position);
                     continue;
                 }
 
-                // case 2. if we have weapon available we should attack closest enemy; else don't do anything
+                // case 2. if we have weapon available and enemy in range; else don't do anything
+                if(!v.getUnit()->weapon_cooldown){
+                    sc2::Units localAirTargets = API::getClosestNUnits(v.getPos(), 200, 9, sc2::Unit::Alliance::Enemy, [](const sc2::Unit& u){ return u.is_flying; });
+                    if(!localAirTargets.empty()){
+                        // find closest enemy and attack it
+                        const sc2::Unit* target = localAirTargets.front();
+                        for(auto& u : localAirTargets){
+                            if(!u) continue;
+                            if(sc2::DistanceSquared2D(v.getPos(), u->pos) < sc2::DistanceSquared2D(v.getPos(), target->pos))
+                                target = u;
+                        }
+                        v.attack(target);
+                    }
+                }
             }
         break;
         case SquadOrderType::Harass:
