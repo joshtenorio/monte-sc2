@@ -60,7 +60,7 @@ void CombatCommander::OnStep(){
         vikingGroup.setOrder(SquadOrderType::Support, mainArmy.getCenter(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED), 14);
         // give harass group(s) orders
         if(harassGroup.getStatus() == SquadStatus::Idle)
-            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
+            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 12);
 
         // give main army orders
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
