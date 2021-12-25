@@ -26,7 +26,7 @@ void Mapper::initialize(){
             dist = sc2::DistanceSquared2D(r.center, gInterface->observation->GetStartLocation());
         }
     }
-    main = generateMainRamp(closest);
+    mainRamp = generateMainRamp(closest);
 
     //validateGeysers();
 

@@ -94,7 +94,7 @@ class Mapper {
 
     static std::vector<Expansion> expansions;
     std::vector<Ramp> ramps;
-    MainRamp main;
+    MainRamp mainRamp;
 
     Expansion startingExpansion; // TODO: could this be a pointer instead? i.e. yes it can
     Logger logger;

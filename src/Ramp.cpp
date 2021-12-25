@@ -96,6 +96,21 @@ MainRamp generateMainRamp(Ramp r){
     main.isMainRamp = true;
     main.direction = Monte::Vector2D(r.points.back(), r.points.front());
 
-    
+    if(main.direction.dx > 0 && main.direction.dy > 0){
+        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Blue);
+    }
+    else if(main.direction.dx < 0 && main.direction.dy > 0){
+        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Green);
+
+    }
+    else if(main.direction.dx < 0 && main.direction.dy < 0){
+        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Red);
+        
+    }
+    else if(main.direction.dx > 0 && main.direction.dy < 0){
+        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::White);
+        
+    }
+    gInterface->debug->sendDebug();
     return main;
 }
