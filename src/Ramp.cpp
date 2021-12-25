@@ -68,13 +68,34 @@ std::vector<Ramp> findRamps(){
     for(auto &r: ramps){
         sc2::Point3D p = API::toPoint3D(r.center);
         gInterface->debug->debugSphereOut(p, 8.0);
+        // sort tiles by height in order of highest -> lowest
+        int i = 1;
+        while(i < r.points.size()){
+            int j = i;
+            while(j > 0 && API::toPoint3D(r.points[j-1]).z <= API::toPoint3D(r.points[j]).z){
+                sc2::Point2D tmp = r.points[j-1];
+                r.points[j-1] = r.points[j];
+                r.points[j] = tmp;
+                j -= 1;
+            }
+            i += 1;
+        }
+        gInterface->debug->debugDrawTile(API::toPoint3D(r.points[0]), sc2::Colors::Red);
+        gInterface->debug->debugDrawTile(API::toPoint3D(r.points[1]), sc2::Colors::Red);
+        r.direction = Monte::Vector2D(r.points.back(), r.points.front());
     }
+
     gInterface->debug->sendDebug();
     return ramps;
 }
 
 MainRamp generateMainRamp(Ramp r){
     MainRamp main;
+    main.center = r.center;
+    main.points = r.points;
+    main.isMainRamp = true;
+    main.direction = Monte::Vector2D(r.points.back(), r.points.front());
 
+    
     return main;
 }

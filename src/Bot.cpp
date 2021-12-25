@@ -131,7 +131,7 @@ void Bot::OnStep() {
 
     long long stepSize = gInterface->debug->getTimer("botStepCounter");
     gInterface->debug->debugTextOut("\nstepSize: " + std::to_string(stepSize));
-    gInterface->debug->sendDebug();
+    //gInterface->debug->sendDebug();
     //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
     //logger.addPlotData("step size", "step size (ms)", (float) brr);
     //logger.writePlotRow("step size");

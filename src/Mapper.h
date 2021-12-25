@@ -37,6 +37,7 @@ typedef struct Expansion_s_t {
     float distanceToStart;
     int numFriendlyRefineries = 0;
     char ownership = OWNER_NEUTRAL;
+    MainRamp ramp;
 
     // used for std::sort
     bool operator < (const Expansion_s_t& e) const {
