@@ -163,7 +163,7 @@ void Bot::OnUnitCreated(const sc2::Unit* unit_){
         case sc2::UNIT_TYPEID::TERRAN_REFINERYRICH:
         case sc2::UNIT_TYPEID::TERRAN_SENSORTOWER:
         case sc2::UNIT_TYPEID::TERRAN_STARPORT:
-        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: // TODO: hehehe
+        case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
             pm.OnUnitCreated(unit_);
             break;
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
