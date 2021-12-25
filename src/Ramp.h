@@ -27,3 +27,4 @@ typedef struct MainRamp_s_t : public Ramp {
 
 std::vector<Ramp> findRamps();
 MainRamp generateMainRamp(Ramp r);
+void testRampLocation(MainRamp* r);

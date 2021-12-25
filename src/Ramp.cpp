@@ -114,3 +114,7 @@ MainRamp generateMainRamp(Ramp r){
     gInterface->debug->sendDebug();
     return main;
 }
+
+void testRampLocation(MainRamp* r){
+    
+}
