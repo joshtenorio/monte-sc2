@@ -77,7 +77,7 @@ ProductionConfig InformationManager::updateProductionConfig(ProductionConfig& cu
         int numMedivacs = API::CountUnitType(sc2::UNIT_TYPEID::TERRAN_MEDIVAC);
         float currRatio = (numMedivacs != 0 ? numMarines / numMedivacs : numMarines);
         
-        if(requireAntiAir){
+        if(true){
             currentPConfig.starportOutput = sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER;
         }
         else

@@ -57,13 +57,14 @@ void CombatCommander::OnStep(){
         // idle group should defend
         //idleGroup.setOrder(SquadOrderType::Defend, defenseTarget, 20);
 
+        vikingGroup.setOrder(SquadOrderType::Support, mainArmy.getCenter(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED), 14);
         // give harass group(s) orders
         if(harassGroup.getStatus() == SquadStatus::Idle)
             harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
 
         // give main army orders
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
-            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
+            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 15);
             
             // transfer idleGroup units into main army
             /*std::vector<GameObject> idleUnits = idleGroup.getUnits();
@@ -80,6 +81,7 @@ void CombatCommander::OnStep(){
         // do micro stuff
         mainArmy.onStep(groundMap, airMap);
         harassGroup.onStep(groundMap, airMap);
+        vikingGroup.onStep(groundMap, airMap);
 
         // debug
         if(strategy->evaluate() == GameStatus::Attack){

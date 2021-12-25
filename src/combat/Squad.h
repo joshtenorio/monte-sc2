@@ -33,11 +33,13 @@ class Squad {
     std::vector<GameObject> getUnits();
     bool containsUnit(sc2::Tag tag);
     bool isEmpty();
+    sc2::Point2D getCenter();
+    sc2::Point2D getCenter(sc2::UNIT_TYPEID type);
 
     protected:
     // removes invalid units and returns number of units removed
     int validateUnits();
-    sc2::Point2D getCenter();
+    
     bool shouldRegroup();
     sc2::Point2D getRegroupPosition();
 

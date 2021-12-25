@@ -18,7 +18,7 @@ sc2::UnitTypeData GameObject::getData(){
 }
 
 sc2::UnitTypeID GameObject::getType(){
-    if(!isValid()) return isValid(); // FIXME: what to do here? isValid is bool
+    if(!isValid()) return sc2::UNIT_TYPEID::INVALID;
     return getUnit()->unit_type;
 }
 
