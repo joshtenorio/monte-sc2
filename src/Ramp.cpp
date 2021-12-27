@@ -116,5 +116,24 @@ MainRamp generateMainRamp(Ramp r){
 }
 
 void testRampLocation(MainRamp* r){
-    
+    std::string map = gInterface->observation->GetGameInfo().map_name;
+    sc2::Point2D start = gInterface->observation->GetStartLocation();
+    if(map == "2000 Atmospheres AIE"){
+        
+    }
+    else if(map == "Blackburn AIE"){
+
+    }
+    else if(map == "Jagannatha AIE"){
+        
+    }
+    else if(map == "Lightshade AIE"){
+        
+    }
+    else if(map == "Romanticide AIE"){
+        
+    }
+    else if(map == "Oxide AIE"){
+        
+    }
 }
