@@ -109,7 +109,13 @@ MainRamp generateMainRamp(Ramp r){
     }
     else if(main.direction.dx > 0 && main.direction.dy < 0){
         gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::White);
-        
+        if(main.points[0].y < main.points[1].y){
+            main.supplyDepotPoints.emplace_back(sc2::Point2D(main.points[1].x, main.points[1].y-1));
+            main.supplyDepotPoints.emplace_back(sc2::Point2D(main.points[0].x+2, main.points[0].y+1));
+        }
+        else {
+
+        }
     }
     gInterface->debug->sendDebug();
     return main;

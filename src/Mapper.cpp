@@ -28,6 +28,7 @@ void Mapper::initialize(){
     }
     mainRamp = generateMainRamp(closest);
 
+    logger.infoInit().withStr("highest point:").withPoint(mainRamp.points[0]).withStr("and").withPoint(mainRamp.points[1]).write();
     //validateGeysers();
 
 }
