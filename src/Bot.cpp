@@ -2,7 +2,7 @@
 
 
 MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
-std::string version = "v0_13_0"; // update this everytime we upload
+std::string version = "v0_14_0"; // update this everytime we upload
 
 std::vector<sc2::UNIT_TYPEID> depotTypes;
 Bot::Bot(){
