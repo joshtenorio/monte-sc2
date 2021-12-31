@@ -96,50 +96,7 @@ MainRamp generateMainRamp(Ramp r){
     main.isMainRamp = true;
     main.direction = Monte::Vector2D(r.points.back(), r.points.front());
 
-    if(main.direction.dx > 0 && main.direction.dy > 0){
-        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Blue);
-    }
-    else if(main.direction.dx < 0 && main.direction.dy > 0){
-        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Green);
-
-    }
-    else if(main.direction.dx < 0 && main.direction.dy < 0){
-        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::Red);
-        
-    }
-    else if(main.direction.dx > 0 && main.direction.dy < 0){
-        gInterface->debug->debugSphereOut(API::toPoint3D(main.center), 8, sc2::Colors::White);
-        if(main.points[0].y < main.points[1].y){
-            main.supplyDepotPoints.emplace_back(sc2::Point2D(main.points[1].x, main.points[1].y-1));
-            main.supplyDepotPoints.emplace_back(sc2::Point2D(main.points[0].x+2, main.points[0].y+1));
-        }
-        else {
-
-        }
-    }
+    // sadge
     gInterface->debug->sendDebug();
     return main;
-}
-
-void testRampLocation(MainRamp* r){
-    std::string map = gInterface->observation->GetGameInfo().map_name;
-    sc2::Point2D start = gInterface->observation->GetStartLocation();
-    if(map == "2000 Atmospheres AIE"){
-        
-    }
-    else if(map == "Blackburn AIE"){
-
-    }
-    else if(map == "Jagannatha AIE"){
-        
-    }
-    else if(map == "Lightshade AIE"){
-        
-    }
-    else if(map == "Romanticide AIE"){
-        
-    }
-    else if(map == "Oxide AIE"){
-        
-    }
 }

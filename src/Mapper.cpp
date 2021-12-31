@@ -278,16 +278,7 @@ void Mapper::sortExpansions(sc2::Point2D point){
     // sort them
     std::sort(expansions.begin(), expansions.end());
 
-    for(int n = 0; n < expansions.size(); n++){
-        logger.infoInit().withStr("distance for").withPoint(expansions[n].baseLocation).withStr(":").withFloat(expansions[n].distanceToStart).write();
-        sc2::Point3D debugPos = sc2::Point3D(expansions[n].mineralMidpoint.x, expansions[n].mineralMidpoint.y, expansions[n].mineralMidpoint.z + 5);
-        gInterface->debug->debugTextOut(std::to_string(n), debugPos);
-    }
     gInterface->debug->sendDebug();
-    logger.infoInit().withStr("enemy location:").withPoint(gInterface->observation->GetGameInfo().enemy_start_locations.front()).write();
-    const sc2::Unit* cc = (gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))).front();
-    if(cc != nullptr)
-        logger.infoInit().withStr("our location:").withPoint(cc->pos).write();
 
 }
 
