@@ -11,6 +11,7 @@ enum class SquadOrderType {
     Defend,
     Harass,
     Regroup,
+    Support,
     Cleanup,
     Idle
 };

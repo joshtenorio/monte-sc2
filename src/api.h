@@ -32,6 +32,7 @@ namespace API {
     int countUnitType(sc2::Filter filter);
 
     // get the closest n units within radius r of loc
+    // TODO: this should be sorted
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::UNIT_TYPEID unitType = sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR);
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, std::vector<sc2::UNIT_TYPEID> unitTypes);
     sc2::Units getClosestNUnits(sc2::Point2D loc, int n, int r, sc2::Unit::Alliance alliance, sc2::Filter filter);

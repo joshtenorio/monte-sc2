@@ -5,6 +5,7 @@ CombatCommander::CombatCommander(){
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
     harassGroup = Squad("harass", 7);
+    vikingGroup = Squad("vikings", 8);
     idleGroup = Squad("idle", 0);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
@@ -16,6 +17,7 @@ CombatCommander::CombatCommander(Strategy* strategy_){
     logger = Logger("CombatCommander");
     mainArmy = Squad("main", 10);
     harassGroup = Squad("harass", 7);
+    vikingGroup = Squad("vikings", 8);
     idleGroup = Squad("idle", 0);
     attackTarget = sc2::Point2D(0,0);
     defenseTarget = sc2::Point2D(0,0);
@@ -31,6 +33,7 @@ void CombatCommander::OnGameStart(){
 
     mainArmy.initialize();
     harassGroup.initialize();
+    vikingGroup.initialize();
     idleGroup.initialize();
 
 }
@@ -54,13 +57,14 @@ void CombatCommander::OnStep(){
         // idle group should defend
         //idleGroup.setOrder(SquadOrderType::Defend, defenseTarget, 20);
 
+        vikingGroup.setOrder(SquadOrderType::Support, mainArmy.getCenter(sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED), 14);
         // give harass group(s) orders
         if(harassGroup.getStatus() == SquadStatus::Idle)
-            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 6);
+            harassGroup.setOrder(SquadOrderType::Harass, harassTarget, 12);
 
         // give main army orders
         if(strategy->evaluate() == GameStatus::Attack && mainArmy.getStatus() == SquadStatus::Idle){
-            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 20);
+            mainArmy.setOrder(SquadOrderType::Attack, attackTarget, 15);
             
             // transfer idleGroup units into main army
             /*std::vector<GameObject> idleUnits = idleGroup.getUnits();
@@ -77,6 +81,7 @@ void CombatCommander::OnStep(){
         // do micro stuff
         mainArmy.onStep(groundMap, airMap);
         harassGroup.onStep(groundMap, airMap);
+        vikingGroup.onStep(groundMap, airMap);
 
         // debug
         if(strategy->evaluate() == GameStatus::Attack){
@@ -108,12 +113,15 @@ void CombatCommander::OnUnitCreated(const sc2::Unit* unit_){
     switch(unit_->unit_type.ToType()){
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANK:
         case sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED:
-        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
         case sc2::UNIT_TYPEID::TERRAN_MARINE:
         case sc2::UNIT_TYPEID::TERRAN_MARAUDER:
         // FIXME: medivac ???????
             //idleGroup.addUnit(unit_->tag);
             mainArmy.addUnit(unit_->tag);
+        break;
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER:
+        case sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT:
+            vikingGroup.addUnit(unit_->tag);
         break;
         case sc2::UNIT_TYPEID::TERRAN_REAPER:
         case sc2::UNIT_TYPEID::TERRAN_LIBERATOR:
@@ -127,6 +135,7 @@ void CombatCommander::OnUnitDestroyed(const sc2::Unit* unit_){
     sm.OnUnitDestroyed(unit_);
     if(!unit_->is_building){
         mainArmy.removeUnit(unit_->tag);
+        vikingGroup.removeUnit(unit_->tag);
         harassGroup.removeUnit(unit_->tag);
     }
 

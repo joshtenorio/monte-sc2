@@ -72,6 +72,10 @@ bool Squad::isDone(){
                 case sc2::UNIT_TYPEID::ZERG_EGG:
                     return false;
             }
+            switch(u.display_type){
+                case sc2::Unit::DisplayType::Hidden:
+                    return false;
+            }
             return true;
             }).size();
         
@@ -192,6 +196,21 @@ sc2::Point2D Squad::getCenter(){
     sc2::Point2D avg = (n == 0.0 ? sc2::Point2D(0,0) : sc2::Point2D(x/n, y/n));
     return avg;
 }
+
+sc2::Point2D Squad::getCenter(sc2::UNIT_TYPEID type){
+    if(isEmpty()) return sc2::Point2D(0,0);
+    float x = 0.0, y = 0.0;
+    float n = 0.0;
+    for(auto& u : units){
+        if(u.getType().ToType() != type) continue;
+        x += u.getPos().x;
+        y += u.getPos().y;
+        if(u.isValid()) n++;
+    }
+    sc2::Point2D avg = (n == 0.0 ? getCenter() : sc2::Point2D(x/n, y/n));
+    return avg;
+}
+
 
 bool Squad::shouldRegroup(){
     // regroup if we've lost half or more our initial supply

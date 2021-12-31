@@ -44,6 +44,7 @@ class CombatCommander : public Manager {
     //std::map<std::string, Squad> squads;
     Squad mainArmy;
     Squad harassGroup;
+    Squad vikingGroup;
     Squad idleGroup;
 
     Monte::InfluenceMap groundMap;

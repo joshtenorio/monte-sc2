@@ -18,7 +18,7 @@ sc2::UnitTypeData GameObject::getData(){
 }
 
 sc2::UnitTypeID GameObject::getType(){
-    if(!isValid()) return isValid(); // FIXME: what to do here? isValid is bool
+    if(!isValid()) return sc2::UNIT_TYPEID::INVALID;
     return getUnit()->unit_type;
 }
 
@@ -83,7 +83,7 @@ bool GameObject::attack(sc2::Point2D target){
 }
 
 bool GameObject::attack(const sc2::Unit* target){
-    if(!isValid()) return isValid();
+    if(!isValid() || !target) return isValid();
     gInterface->actions->UnitCommand(getUnit(), sc2::ABILITY_ID::ATTACK_ATTACK, target); // note: sc2::ABILITY_ID::ATTACK also exists
     return true;
 }
