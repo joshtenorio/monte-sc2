@@ -36,23 +36,23 @@ void findRamp(Ramp* r, sc2::Point2D start){
             r->barracksWithAddonPos = sc2::Point2D(48.5, 43.5);
         }
     } // end blackburn
-    else if(gInterface->observation->GetGameInfo().map_name == "Jagannatha AIE"){
+    else if(gInterface->observation->GetGameInfo().map_name == "Glittering Ashes AIE"){
         if(
-            sc2::DistanceSquared2D(start, sc2::Point2D(113, 146)) <
-            sc2::DistanceSquared2D(start, sc2::Point2D(55, 40))
+            sc2::DistanceSquared2D(start, sc2::Point2D(155, 152)) <
+            sc2::DistanceSquared2D(start, sc2::Point2D(61, 52))
         ){ // use top right locations
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(113, 146));
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(110, 143));
-            r->barracksPos = sc2::Point2D(112.5, 143.5);
-            r->barracksWithAddonPos = sc2::Point2D(112.5, 143.5);
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(155, 152));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(152, 149));
+            r->barracksPos = sc2::Point2D(154.5, 149.5);
+            r->barracksWithAddonPos = sc2::Point2D(154.5, 149.5);
         }
         else{ // use bot left locations
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(55, 40));
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(58, 43));
-            r->barracksPos = sc2::Point2D(55.5, 42.5);
-            r->barracksWithAddonPos = sc2::Point2D(53.5, 42.5);
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(61, 52));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(64, 55));
+            r->barracksPos = sc2::Point2D(61.5, 54.5);
+            r->barracksWithAddonPos = sc2::Point2D(59.5, 54.5);
         }
-    } // end jagannatha
+    } // end glittering ashes
     else if(gInterface->observation->GetGameInfo().map_name == "Lightshade AIE"){
         if(
             sc2::DistanceSquared2D(start, sc2::Point2D(140, 47)) <
@@ -70,23 +70,23 @@ void findRamp(Ramp* r, sc2::Point2D start){
             r->barracksWithAddonPos = sc2::Point2D(46.5, 116.5);
         }
     } // end lightshade
-    else if(gInterface->observation->GetGameInfo().map_name == "Romanticide AIE"){
+    else if(gInterface->observation->GetGameInfo().map_name == "Curious Minds AIE"){
         if(
-            sc2::DistanceSquared2D(start, sc2::Point2D(154, 53)) <
-            sc2::DistanceSquared2D(start, sc2::Point2D(43, 116))
+            sc2::DistanceSquared2D(start, sc2::Point2D(122, 39)) <
+            sc2::DistanceSquared2D(start, sc2::Point2D(30, 101))
         ){ // use bot right locations
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(154, 53));
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(157, 56));
-            r->barracksPos = sc2::Point2D(156.5, 53.5);
-            r->barracksWithAddonPos = sc2::Point2D(156.5, 53.5);
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(122, 39));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(119, 42));
+            r->barracksPos = sc2::Point2D(119.5, 39.5);
+            r->barracksWithAddonPos = sc2::Point2D(117.5, 39.5);
         }
         else{ // use top left locations
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(43, 116));
-            r->supplyDepotPoints.emplace_back(sc2::Point2D(46, 119));
-            r->barracksPos = sc2::Point2D(43.5, 118.5);
-            r->barracksWithAddonPos = sc2::Point2D(41.5, 118.5);
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(30, 101));
+            r->supplyDepotPoints.emplace_back(sc2::Point2D(33, 98));
+            r->barracksPos = sc2::Point2D(32.5, 100.5);
+            r->barracksWithAddonPos = sc2::Point2D(32.5, 100.5);
         }
-    } // end romanticide
+    } // end curious minds
     else if(gInterface->observation->GetGameInfo().map_name == "Oxide AIE"){
         if(
             sc2::DistanceSquared2D(start, sc2::Point2D(130, 141)) <
