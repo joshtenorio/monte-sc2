@@ -1,77 +1,104 @@
 #include "BuildingManager.h"
 
-BuildingManager::BuildingManager(){
+BuildingManager::BuildingManager()
+{
     logger = Logger("BuildingManager");
 }
 
-void BuildingManager::OnGameStart(){
+void BuildingManager::OnGameStart()
+{
     bp.OnGameStart();
 }
 
-void BuildingManager::OnStep(){
+void BuildingManager::OnStep()
+{
     bp.OnStep();
 
     // debug
-    if(gInterface->observation->GetGameLoop() % 400 == 0){
+    if(gInterface->observation->GetGameLoop() % 400 == 0)
+    {
         logger.infoInit().withInt(inProgressBuildings.size()).withStr("in progress buildings").write();
     }
 
     // clear the cache of reserved workers every once in a while
     if(gInterface->observation->GetGameLoop() % 5 == 0)
+    {
         reservedWorkers.clear();
+    }
     
     // make sure all in-progress buildings are being worked on
     // kinda inefficient method
     bool workedOn = false;
     if(!inProgressBuildings.empty() && gInterface->observation->GetGameLoop() % 20 == 0) // make sure its not empty, and only do this every 20 loops
-    for(auto& c : inProgressBuildings){
-        // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
-        //       here, pos would be location of the in progress building
-        sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-        for(auto& w : workers){
-            if(w != nullptr){ // TODO: not sure if this check is necessary
-                if(!w->orders.empty())
-                    if(w->orders.front().target_unit_tag == c.first){
-                        workedOn = true;
-                        break;
+    { 
+        for(auto& c : inProgressBuildings)
+        {
+            // TODO: this can be optimized if workermanager had a function called getClosestWorkers(pos, distance)
+            //       here, pos would be location of the in progress building
+            sc2::Units workers = gInterface->observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+            for(auto& w : workers)
+            {
+                if(w != nullptr)
+                { // TODO: not sure if this check is necessary
+                    if(!w->orders.empty())
+                    {
+                        if(w->orders.front().target_unit_tag == c.first)
+                        {
+                            workedOn = true;
+                            break;
+                        }
                     }
+                }
             }
-        }
-        if(!workedOn){ // building is not being worked on, so get a worker to work on it
-            const sc2::Unit* building = gInterface->observation->GetUnit(c.first);
-            if(building == nullptr) continue;
+            if(!workedOn)
+            { // building is not being worked on, so get a worker to work on it
+                const sc2::Unit* building = gInterface->observation->GetUnit(c.first);
+                if(building == nullptr)
+                {
+                    continue;
+                }
 
-            Worker* w = gInterface->wm->getClosestWorker(building->pos);
-            if(w != nullptr){
-                gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, building); // target the building
-                if(building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
-                    w->job = JOB_BUILDING_GAS;
-                else
-                    w->job = JOB_BUILDING;
-                c.second = w;
-            }
-        } // end if !workedOn
-    } // end for c : inProg
-
+                Worker* w = gInterface->wm->getClosestWorker(building->pos);
+                if(w != nullptr)
+                {
+                    gInterface->actions->UnitCommand(w->getUnit(), sc2::ABILITY_ID::SMART, building); // target the building
+                    if(building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERY || building->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH)
+                    {
+                        w->job = JOB_BUILDING_GAS;
+                    }
+                    else
+                    {
+                        w->job = JOB_BUILDING;
+                    }
+                    c.second = w;
+                }
+            } // end if !workedOn
+        } // end for c : inProg
+    }
 }
 
 void BuildingManager::OnUnitDestroyed(const sc2::Unit* unit_){
     
     // if it is a structure we need to free the tiles
     if(unit_->is_building)
+    {
         bp.freeTiles(unit_->pos, API::getStructureRadiusByAbility(API::unitTypeIDToAbilityID(unit_->unit_type.ToType())));
+    }
 
     // if its an in-prog building that died, release the worker and remove Construction from list
-    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); ){
+    for(auto itr = inProgressBuildings.begin(); itr != inProgressBuildings.end(); )
+    {
        // the building died, so release the worker and remove Construction
-       if((*itr).first == unit_->tag){
+       if((*itr).first == unit_->tag)
+       {
             (*itr).second->job = JOB_UNEMPLOYED;
             itr = inProgressBuildings.erase(itr);
             break;
        }
        // the worker died so need to assign a new, differnent worker
        // dead worker's object will already be taken care of in workermanager
-       else if((*itr).second->tag == unit_->tag){
+       else if((*itr).second->tag == unit_->tag)
+       {
             Worker* newWorker = gInterface->wm->getClosestWorker(unit_->pos);
             if(newWorker == nullptr) return;
             size_t n = 0;

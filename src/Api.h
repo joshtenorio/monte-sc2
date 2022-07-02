@@ -20,7 +20,8 @@
 #include "Debug.h"
 #include "Strategy.h"
 
-namespace API {
+namespace API
+{
 
     void OnGameStart();
 
@@ -54,20 +55,24 @@ namespace API {
 
     std::vector<sc2::UNIT_TYPEID> getTechRequirements(sc2::ABILITY_ID ability);
 
-    inline sc2::UnitTypeID ToUnitTypeID(sc2::UNIT_TYPEID id_) {
+    inline sc2::UnitTypeID ToUnitTypeID(sc2::UNIT_TYPEID id_)
+    {
         return static_cast<sc2::UnitTypeID>(id_);
     }
 
-    inline sc2::UpgradeID ToUpgradeID(sc2::UPGRADE_ID id_) {
+    inline sc2::UpgradeID ToUpgradeID(sc2::UPGRADE_ID id_)
+    {
         return static_cast<sc2::UpgradeID>(id_);
     }
 
-    inline sc2::AbilityID ToAbilityID(sc2::ABILITY_ID id_) {
+    inline sc2::AbilityID ToAbilityID(sc2::ABILITY_ID id_)
+    {
         return static_cast<sc2::AbilityID>(id_);
     }
 } // end namespace API
 
-class Interface {
+class Interface 
+{
     public:
     Interface(const sc2::ObservationInterface* observation_,
         sc2::ActionInterface* actions_,
@@ -75,7 +80,8 @@ class Interface {
         Monte::Debug* debug_,
         WorkerManager* wm_,
         Mapper* map_,
-        int matchID_){
+        int matchID_)
+    {
             observation = observation_;
             actions = actions_;
             query = query_;
@@ -83,7 +89,7 @@ class Interface {
             wm = wm_;
             map = map_;
             matchID = matchID_;
-        };
+    };
     
     const sc2::ObservationInterface* observation;
     sc2::ActionInterface* actions;

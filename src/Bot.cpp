@@ -5,7 +5,8 @@ MarinePush* strategy; // this is file-global so i can delete it in OnGameEnd()
 std::string version = "v0_11_13"; // update this everytime we upload
 
 std::vector<sc2::UNIT_TYPEID> depotTypes;
-Bot::Bot(){
+Bot::Bot()
+{
 
     wm = WorkerManager();
 
@@ -22,7 +23,8 @@ Bot::Bot(){
 
 }
 
-void Bot::OnGameStart(){
+void Bot::OnGameStart()
+{
 
     gInterface->matchID = logger.createOutputPrefix();
     Logger::setVersionNumber(version);
@@ -45,15 +47,19 @@ void Bot::OnGameStart(){
 
 }
 
-void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
+void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_)
+{
     logger.infoInit().withUnit(building_).withStr("constructed").write();
     //logger.infoInit().withUnit(building_).withStr("constructed").write("constructed.txt");
 
     // if it is a supply depot, lower it
     if(building_->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)
+    {
         Actions()->UnitCommand(building_, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+    }
     
-    switch(building_->unit_type.ToType()){
+    switch(building_->unit_type.ToType())
+    {
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             wm.OnBuildingConstructionComplete(building_);
         case sc2::UNIT_TYPEID::TERRAN_ARMORY:
@@ -84,10 +90,12 @@ void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_){
     }
 }
 
-void Bot::OnStep() {
+void Bot::OnStep()
+{
     gInterface->debug->resetTimer("botStepCounter");
 
-    if(Observation()->GetGameLoop() == 0){
+    if(Observation()->GetGameLoop() == 0)
+    {
         logger.tag(version);
         logger.tag("matchid_" + std::to_string(gInterface->matchID));
         std::string glhf = "glhf :)"; // TODO: need to add a chat overload that takes const char[] so we dont need to make a var for this
@@ -96,10 +104,13 @@ void Bot::OnStep() {
 
     // initialize mapper (find expansions and ramps)
     if(Observation()->GetGameLoop() == 50)
+    {
         map.initialize();
+    }
 
     // get targets from information manager
-    if(Observation()->GetGameLoop() > 60){
+    if(Observation()->GetGameLoop() > 60)
+    {
         cc.setLocationTarget(im.findLocationTarget());
         cc.setLocationDefense(im.findLocationDefense());
         cc.setHarassTarget(im.findHarassTarget(4));
@@ -117,36 +128,43 @@ void Bot::OnStep() {
     sc2::Units depots = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(depotTypes));
     sc2::Units enemies = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
     if(Observation()->GetGameLoop() % 15 == 0)
-        for (auto& d : depots){
+    {
+        for (auto& d : depots)
+        {
             bool enemyNearby = false;
-            for (auto& e : enemies){
-                if(sc2::DistanceSquared3D(d->pos, e->pos) < 49){ // TODO: tune this value
+            for (auto& e : enemies)
+            {
+                if(sc2::DistanceSquared3D(d->pos, e->pos) < 49)
+                { // TODO: tune this value
                     enemyNearby = true;
                     break;
                 }
             } // end e : enemies
-            if(enemyNearby) Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
-            else Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+            if(enemyNearby)
+            {
+                Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
+            }
+            else
+            {
+                Actions()->UnitCommand(d, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+            }
         } // end d : depots
-
-    long long stepSize = gInterface->debug->getTimer("botStepCounter");
-    gInterface->debug->debugTextOut("\nstepSize: " + std::to_string(stepSize));
-    gInterface->debug->sendDebug();
-    //logger.addPlotData("step size", "loop", (float) gInterface->observation->GetGameLoop());
-    //logger.addPlotData("step size", "step size (ms)", (float) brr);
-    //logger.writePlotRow("step size");
+    }
 }
 
-void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_){
+void Bot::OnUpgradeCompleted(sc2::UpgradeID upgrade_)
+{
     logger.infoInit().withStr(sc2::UpgradeIDToName(upgrade_)).withStr("completed").write();
     pm.OnUpgradeCompleted(upgrade_);
 }
 
-void Bot::OnUnitCreated(const sc2::Unit* unit_){
+void Bot::OnUnitCreated(const sc2::Unit* unit_)
+{
     logger.infoInit().withUnit(unit_).withStr("was created").write();
 
     
-    switch(unit_->unit_type.ToType()){
+    switch(unit_->unit_type.ToType())
+    {
         case sc2::UNIT_TYPEID::TERRAN_SCV:
             wm.OnUnitCreated(unit_);
             break;
@@ -196,8 +214,10 @@ void Bot::OnUnitCreated(const sc2::Unit* unit_){
     }
 }
 
-void Bot::OnUnitIdle(const sc2::Unit* unit) {
-    switch (unit->unit_type.ToType()){
+void Bot::OnUnitIdle(const sc2::Unit* unit)
+{
+    switch (unit->unit_type.ToType())
+    {
         case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
             break;
         case sc2::UNIT_TYPEID::TERRAN_SCV:
@@ -213,17 +233,18 @@ void Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 }
 
-void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
+void Bot::OnUnitDestroyed(const sc2::Unit* unit_)
+{
     logger.infoInit().withUnit(unit_).withStr("was destroyed").write();
     
     // cc call needs to be here in case we need to remove a worker scout, we need to do so before worker pointer gets removed
     // additionally we also track dead town halls in scout manager
     cc.OnUnitDestroyed(unit_);
     // we only care if one of our units dies (for now, perhaps)
-    if(unit_->alliance == sc2::Unit::Alliance::Self){
-
-        
-        switch(unit_->unit_type.ToType()){
+    if(unit_->alliance == sc2::Unit::Alliance::Self)
+    {
+        switch(unit_->unit_type.ToType())
+        {
             case sc2::UNIT_TYPEID::TERRAN_SCV:
             case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND:
             case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
@@ -255,28 +276,37 @@ void Bot::OnUnitDestroyed(const sc2::Unit* unit_){
     }
 }
 
-void Bot::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_){
+void Bot::OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_)
+{
     if(unit_->alliance == sc2::Unit::Alliance::Self)
+    {
         pm.OnUnitDamaged(unit_, health_, shields_);
+    }
     cc.OnUnitDamaged(unit_, health_, shields_);
 }
 
-void Bot::OnUnitEnterVision(const sc2::Unit* unit_){
+void Bot::OnUnitEnterVision(const sc2::Unit* unit_)
+{
     cc.OnUnitEnterVision(unit_);
 }
 
 void Bot::OnError(const std::vector<sc2::ClientError>& client_errors,
-        const std::vector<std::string>& protocol_errors){
-    for (const auto i : client_errors) {
+        const std::vector<std::string>& protocol_errors)
+{
+    for(const auto i : client_errors)
+    {
         std::cerr << "Encountered client error: " <<
             static_cast<int>(i) << std::endl;
     }
 
-    for (const auto& i : protocol_errors)
+    for(const auto& i : protocol_errors)
+    {
         std::cerr << "Encountered protocol error: " << i << std::endl;
+    }
 }
 
-void Bot::OnGameEnd(){
+void Bot::OnGameEnd()
+{
     Control()->SaveReplay("lastReplay.SC2Replay");
     logger.infoInit().withStr("game finished!").write();
 

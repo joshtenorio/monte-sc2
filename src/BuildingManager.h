@@ -10,7 +10,8 @@
 // second: Worker object
 typedef std::pair<sc2::Tag, Worker*> Construction;
 
-class BuildingManager : public Manager {
+class BuildingManager : public Manager
+{
     public:
     BuildingManager();
 

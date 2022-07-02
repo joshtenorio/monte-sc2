@@ -20,34 +20,35 @@
 #include "strategies/MarinePush.h"
 
 
-class Bot : public sc2::Agent {
+class Bot : public sc2::Agent
+{
 
-public:
-    Bot();
+    public:
+        Bot();
 
-private:
-    Mapper map;
-    WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
-    ProductionManager pm;
-    CombatCommander cc;
-    InformationManager im;
+    private:
+        Mapper map;
+        WorkerManager wm; //TODO: get a better name for workermanager because wm isn't very identifiable/readable
+        ProductionManager pm;
+        CombatCommander cc;
+        InformationManager im;
 
-    Monte::Debug debug;
-    Logger logger;
-    
-    //TODO: maybe have a vector of managers?
-    void OnGameStart() final;   
-    void OnStep() final;
-    void OnBuildingConstructionComplete(const sc2::Unit* building_) final;
-    void OnUpgradeCompleted(sc2::UpgradeID upgrade_) final;
-    void OnUnitCreated(const sc2::Unit* unit_) final;
-    void OnUnitIdle(const sc2::Unit* unit_) final;
-    void OnUnitDestroyed(const sc2::Unit* unit_) final;
-    void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_) final;
-    void OnUnitEnterVision(const sc2::Unit* unit_) final;
-    void OnError(const std::vector<sc2::ClientError>& client_errors,
-        const std::vector<std::string>& protocol_errors = {}) final;
-    void OnGameEnd() final;
+        Monte::Debug debug;
+        Logger logger;
+        
+        //TODO: maybe have a vector of managers?
+        void OnGameStart() final;   
+        void OnStep() final;
+        void OnBuildingConstructionComplete(const sc2::Unit* building_) final;
+        void OnUpgradeCompleted(sc2::UpgradeID upgrade_) final;
+        void OnUnitCreated(const sc2::Unit* unit_) final;
+        void OnUnitIdle(const sc2::Unit* unit_) final;
+        void OnUnitDestroyed(const sc2::Unit* unit_) final;
+        void OnUnitDamaged(const sc2::Unit* unit_, float health_, float shields_) final;
+        void OnUnitEnterVision(const sc2::Unit* unit_) final;
+        void OnError(const std::vector<sc2::ClientError>& client_errors,
+            const std::vector<std::string>& protocol_errors = {}) final;
+        void OnGameEnd() final;
 
 
 };
