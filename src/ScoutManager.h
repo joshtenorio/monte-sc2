@@ -7,13 +7,15 @@
 #include "api.h"
 #include "Manager.h"
 
-typedef struct Scout_s_t {
+typedef struct Scout_s_t
+{
     const sc2::Unit* u;
     sc2::Tag tag;
     sc2::Point2D target;
 } Scout;
 
-class ScoutManager : public Manager {
+class ScoutManager : public Manager
+{
     public:
     ScoutManager();
     void OnGameStart();

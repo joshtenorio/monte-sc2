@@ -8,9 +8,11 @@
 
 #include <sc2api/sc2_common.h>
 
-namespace Monte {
+namespace Monte
+{
 
-typedef struct Vector2D_s_t {
+typedef struct Vector2D_s_t
+{
     Vector2D_s_t() {};
     Vector2D_s_t(float dx_, float dy_) { dx = dx_; dy = dy_; };
     Vector2D_s_t(sc2::Point2D i, sc2::Point2D f) { dx = f.x - i.x; dy = f.y - i.y; };
@@ -20,25 +22,29 @@ typedef struct Vector2D_s_t {
     virtual float getMagnitudeSquared();
 
     // scalar multiplication
-    Vector2D_s_t operator * (const float magnitude){
+    Vector2D_s_t operator * (const float magnitude)
+    {
         Vector2D_s_t v;
         v.dx = this->dx * magnitude;
         v.dy = this->dy * magnitude;
         return v;
     }
-    Vector2D_s_t operator * (const int magnitude){
+    Vector2D_s_t operator * (const int magnitude)
+    {
         Vector2D_s_t v;
         v.dx = this->dx * magnitude;
         v.dy = this->dy * magnitude;
         return v;
     }
-    Vector2D_s_t operator / (const float magnitude){
+    Vector2D_s_t operator / (const float magnitude)
+    {
         Vector2D_s_t v;
         v.dx = this->dx / magnitude;
         v.dy = this->dy / magnitude;
         return v;
     }
-    Vector2D_s_t operator / (const int magnitude){
+    Vector2D_s_t operator / (const int magnitude)
+    {
         Vector2D_s_t v;
         v.dx = this->dx / magnitude;
         v.dy = this->dy / magnitude;
@@ -46,7 +52,8 @@ typedef struct Vector2D_s_t {
     }
 
     // vector addition
-    Vector2D_s_t operator + (const Vector2D_s_t& u){
+    Vector2D_s_t operator + (const Vector2D_s_t& u)
+    {
         Vector2D_s_t v;
         v.dx = this->dx + u.dx;
         v.dy = this->dy + u.dy;
@@ -55,13 +62,15 @@ typedef struct Vector2D_s_t {
 
     // TODO: vector subtraction
 
-    Vector2D_s_t& operator = (const Vector2D_s_t& u){
+    Vector2D_s_t& operator = (const Vector2D_s_t& u)
+    {
         dx = u.dx;
         dy = u.dy;
         return *this;
     }
 
-    bool operator == (const Vector2D_s_t& u) const {
+    bool operator == (const Vector2D_s_t& u) const
+    {
         if(
             dx == u.dx &&
             dy == u.dy
@@ -71,13 +80,15 @@ typedef struct Vector2D_s_t {
 } Vector2D;
 
 // TODO: create constructors for Monte::Vector3D
-typedef struct Vector3D_s_t : public Vector2D_s_t {
+typedef struct Vector3D_s_t : public Vector2D_s_t
+{
     float dz;
 
     virtual float getMagnitude();
     virtual float getMagnitudeSquared();
 
-    Vector3D_s_t operator * (const float magnitude){
+    Vector3D_s_t operator * (const float magnitude)
+    {
         Vector3D_s_t v;
         v.dx = this->dx * magnitude;
         v.dy = this->dy * magnitude;
@@ -85,7 +96,8 @@ typedef struct Vector3D_s_t : public Vector2D_s_t {
         return v;
     }
 
-    Vector3D_s_t operator * (const int magnitude){
+    Vector3D_s_t operator * (const int magnitude)
+    {
         Vector3D_s_t v;
         v.dx = this->dx * magnitude;
         v.dy = this->dy * magnitude;
@@ -93,7 +105,8 @@ typedef struct Vector3D_s_t : public Vector2D_s_t {
         return v;
     }
 
-    Vector3D_s_t operator / (const float magnitude){
+    Vector3D_s_t operator / (const float magnitude)
+    {
         Vector3D_s_t v;
         v.dx = this->dx / magnitude;
         v.dy = this->dy / magnitude;
@@ -101,7 +114,8 @@ typedef struct Vector3D_s_t : public Vector2D_s_t {
         return v;
     }
 
-    Vector3D_s_t operator / (const int magnitude){
+    Vector3D_s_t operator / (const int magnitude)
+    {
         Vector3D_s_t v;
         v.dx = this->dx / magnitude;
         v.dy = this->dy / magnitude;
@@ -109,19 +123,22 @@ typedef struct Vector3D_s_t : public Vector2D_s_t {
         return v;
     }
 
-    Vector3D_s_t& operator + (const Vector3D_s_t& u){
+    Vector3D_s_t& operator + (const Vector3D_s_t& u)
+    {
         dx = u.dx;
         dy = u.dy;
         return *this;
     }
 
-    Vector3D_s_t& operator = (const Vector3D_s_t& u){
+    Vector3D_s_t& operator = (const Vector3D_s_t& u)
+    {
         Vector2D_s_t::operator=(u);
         dz = u.dz;
         return *this;
     }
 
-    bool operator == (const Vector3D_s_t& u) const {
+    bool operator == (const Vector3D_s_t& u) const
+    {
         if(
             Vector2D_s_t::operator==(u) &&
             dz == u.dz

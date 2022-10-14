@@ -9,9 +9,11 @@
 
 
 // namespace Monte to differentiate more from sc2::DebugInterface
-namespace Monte {
+namespace Monte
+{
 
-class Debug {
+class Debug
+{
     public:
     // constructors
     Debug();

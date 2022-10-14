@@ -9,13 +9,15 @@
 #define POINT3D_NULL sc2::Point3D(-1, -1, -1)
 
 // typedefing integer points to a more friendly name
-namespace Monte {
-typedef sc2::Point2DI Tile;
+namespace Monte
+{
+    typedef sc2::Point2DI Tile;
 } // end namespace Monte
 
 // purpose is solely to find a suitable location for building a structure
 // TODO: should this inherit manager?
-class BuildingPlacer {
+class BuildingPlacer
+{
     public:
     BuildingPlacer();
 

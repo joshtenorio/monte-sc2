@@ -9,7 +9,8 @@
 
 #include "Logger.h"
 
-class Manager {
+class Manager
+{
     public:
     Manager() { logger = Logger(); };
     virtual void OnStep() = 0;

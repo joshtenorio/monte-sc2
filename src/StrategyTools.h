@@ -24,12 +24,14 @@
 #define COMBAT_AGGRESSIVE   0
 #define COMBAT_BIDE         1
 
-enum class GameStatus {
+enum class GameStatus
+{
     Attack,
     Bide
 };
 
-typedef struct MetaType_s_t {
+typedef struct MetaType_s_t
+{
     MetaType_s_t() {};
     MetaType_s_t(int type_, sc2::ABILITY_ID ability_): type(type_), ability(ability_) {}
     int type;
@@ -46,7 +48,8 @@ typedef struct MetaType_s_t {
     }
 } MetaType;
 
-typedef struct Step_s_t {
+typedef struct Step_s_t
+{
     Step_s_t() { container.type = TYPE_NULL; priority = -1; blocking = false; };
     Step_s_t(int mtType, sc2::ABILITY_ID mtAbility, bool blocking_, int priority_, int reqSupply_) :
                 container(mtType, mtAbility), blocking(blocking_), priority(priority_), reqSupply(reqSupply_) {}
@@ -89,7 +92,8 @@ typedef struct Step_s_t {
     }
 } Step;
 
-typedef struct ProductionConfig_s_t {
+typedef struct ProductionConfig_s_t
+{
     ProductionConfig_s_t() {};
 
     // defines the maximum amount of a unit we can build
@@ -129,7 +133,8 @@ typedef struct ProductionConfig_s_t {
     sc2::ABILITY_ID starportDefaultAddon = sc2::ABILITY_ID::BUILD_REACTOR_STARPORT;
 
 
-    void operator = (const ProductionConfig_s_t& pc){
+    void operator = (const ProductionConfig_s_t& pc)
+    {
         maxWorkers = pc.maxWorkers;
         maxBarracks = pc.maxBarracks;
         maxFactories = pc.maxFactories;
@@ -161,7 +166,8 @@ typedef struct ProductionConfig_s_t {
     }
 } ProductionConfig;
 
-typedef struct CombatConfig_s_t {
+typedef struct CombatConfig_s_t
+{
     CombatConfig_s_t() {};
 
     char combatState = COMBAT_BIDE; // define whether or not we should be always attacking or wait for waves

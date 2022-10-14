@@ -79,7 +79,9 @@ int main(int argc, char* argv[])
     std::cout << "Successfully joined game" << std::endl;
 
     while (coordinator.Update())
-    {}
+    {
+
+    }
 
     return 0;
 }
@@ -128,7 +130,9 @@ int main(int argc, char* argv[])
     coordinator.StartGame(argv[1]);
 
     while (coordinator.Update())
-    {}
+    {
+        
+    }
 
     return 0;
 }

@@ -9,7 +9,8 @@
 #define STRAT_TYPE_PROXY    1
 #define STRAT_TYPE_ALLIN    2
 
-class Strategy{
+class Strategy
+{
     public:
     Strategy() {};
 
